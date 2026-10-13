@@ -493,7 +493,7 @@ const DebridPage: React.FC = () => {
   };
 
   return (
-    <SquareBackground squareSize={48} borderColor="rgba(220, 38, 38, 0.10)" className="min-h-screen bg-black text-white">
+    <SquareBackground squareSize={48} borderColor="rgba(200, 144, 40, 0.10)" className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10 h-full overflow-y-auto">
         {/* Back Button */}
         <Link to="/" className="inline-flex items-center text-white/50 hover:text-white transition-colors mb-8 group/icon">

@@ -336,7 +336,7 @@ export default function WrappedVideo({ data, theme, autoTheme, onTheme }: {
     };
 
     return <section className="mx-auto w-full max-w-5xl space-y-5" aria-labelledby="wrapped-video-title">
-        <header className="space-y-2"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--wrapped-accent)]">MOVIX</p><h2 id="wrapped-video-title" className="font-['Archivo_Black'] text-3xl tracking-[-0.035em] sm:text-4xl">{t('wrappedVideo.title')}</h2><p className="max-w-xl text-sm text-white/65">{t('wrappedVideo.caption')}</p></header>
+        <header className="space-y-2"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--wrapped-accent)]">CINEHD</p><h2 id="wrapped-video-title" className="font-['Archivo_Black'] text-3xl tracking-[-0.035em] sm:text-4xl">{t('wrappedVideo.title')}</h2><p className="max-w-xl text-sm text-white/65">{t('wrappedVideo.caption')}</p></header>
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
             <div className="relative mx-auto w-full max-w-[300px]">
                 <canvas ref={canvasRef} width={WRAPPED_VIDEO_SIZE.width} height={WRAPPED_VIDEO_SIZE.height} className="w-full rounded-xl shadow-[0_20px_44px_rgba(0,0,0,0.4)]" aria-label={t('wrappedVideo.previewAlt', { year: data.year })} />

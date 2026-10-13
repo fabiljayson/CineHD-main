@@ -18,7 +18,7 @@ const NotFound = () => {
   const Icon = VARIANT_ICONS[variant - 1];
 
   useEffect(() => {
-    document.title = '404 - Movix';
+    document.title = '404 - CineHD';
   }, []);
 
   return (

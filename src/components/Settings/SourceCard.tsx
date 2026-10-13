@@ -36,7 +36,7 @@ export const SOURCE_LABELS: Record<TopLevelSourceId, string> = {
   viper: 'Viper',
   vox: 'Vox',
   kisskh: 'KissKH',
-  custom: 'Lecteur Movix',
+  custom: 'Lecteur CineHD',
 };
 
 interface SwitchProps {

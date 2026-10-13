@@ -274,7 +274,7 @@ export default function WrappedExperience({ data, onClose }: { data: WrappedData
                     <button type="button" onClick={details ? () => setDetails(false) : onClose} className={iconButton} aria-label={t(details ? 'wrappedStory.backToStory' : 'wrappedStory.close')}>
                         {details ? <ArrowLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
                     </button>
-                    <p className="flex items-center gap-3 text-sm font-bold tracking-tight"><span className="font-['Archivo_Black']">MOVIX</span><span className="h-3 w-px bg-white/25" aria-hidden="true" /><span className="font-normal text-white/60">Wrapped {data.year}</span></p>
+                    <p className="flex items-center gap-3 text-sm font-bold tracking-tight"><span className="font-['Archivo_Black']">CINEHD</span><span className="h-3 w-px bg-white/25" aria-hidden="true" /><span className="font-normal text-white/60">Wrapped {data.year}</span></p>
                     <button type="button" className={iconButton} aria-label={t('wrapped.shareWrapped')} onClick={() => { setDetails(false); requestIndex(scenes.length - 1); }}><Share2 className="h-5 w-5" /></button>
                 </header>
                 {!details && <div className="relative z-10 flex shrink-0 gap-1.5 px-6 py-3 lg:px-10 lg:py-4" role="progressbar" aria-label={t('wrappedStory.progress')} aria-valuemin={1} aria-valuemax={scenes.length} aria-valuenow={index + 1}>

@@ -459,7 +459,7 @@ function drawPosterFallback(ctx: CanvasRenderingContext2D, tone: Tone, box: Box,
         return;
     }
     const pad = inset * 1.8;
-    const brand = layout(ctx, 'Movix', w * 0.5, smallCaps(Math.round(w * 0.04)));
+    const brand = layout(ctx,  'CineHD', w * 0.5, smallCaps(Math.round(w * 0.04)));
     paint(ctx, brand, x + pad, y + pad, tone.light);
     const number = layout(ctx, String(rank).padStart(2, '0'), w * 0.3, { size: Math.round(w * 0.075), display: true });
     paint(ctx, number, x + w - pad, y + pad + brand.cap - number.cap, accent, 'right');
@@ -903,7 +903,7 @@ function drawPosterCard(ctx: CanvasRenderingContext2D, tone: Tone, data: Wrapped
     drawWrappedGrain(ctx, WIDTH, height, 0.07, 9);
 
     // « Movix présente » entre deux filets, en écho à la ligne de sortie en pied.
-    const presents = runLine(ctx, [{ text: data.labels.presents || 'Movix', size: 24, weight: 800, color: tone.paper, tracking: 5.5, upper: true }], CONTENT - 240);
+    const presents = runLine(ctx, [{ text: data.labels.presents ||  'CineHD', size: 24, weight: 800, color: tone.paper, tracking: 5.5, upper: true }], CONTENT - 240);
     if (presents) flanked(ctx, presents, 58, alpha(tone.paper, 0.45));
 
     // Bloc générique : petits mots discrets, grands noms en capitales.

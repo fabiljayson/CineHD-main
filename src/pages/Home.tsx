@@ -1058,20 +1058,20 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     // Simple title for homepage
-    document.title = `${t('nav.home')} - Movix`;
+    document.title = `${t('nav.home')} - CineHD`;
 
     // Add or update structured data for a WebSite
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "Movix",
+      "name": "CineHD",
       "url": SITE_URL,
       "potentialAction": {
         "@type": "SearchAction",
         "target": `${SITE_URL}/search?q={search_term_string}`,
         "query-input": "required name=search_term_string"
       },
-      "description": "Movix - Plateforme de streaming gratuite proposant des films et séries en français. Regardez en ligne sans inscription."
+      "description": "CineHD - Plateforme de streaming gratuite proposant des films et séries en français. Regardez en ligne sans inscription."
     };
 
     // Add structured data to head
@@ -1170,7 +1170,7 @@ const Home: React.FC = () => {
             animate={{ opacity: 1 }}
             className="flex items-center justify-center min-h-screen"
           >
-            <Loader2 className="w-12 h-12 text-red-600 animate-spin" />
+            <Loader2 className="w-12 h-12 text-[#C89028] animate-spin" />
           </motion.div>
         ) : (
           <>

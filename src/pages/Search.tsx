@@ -590,7 +590,7 @@ const Search: React.FC = () => {
 
     // Set simple title
     React.useEffect(() => {
-        document.title = `${t('search.title')} - Movix`;
+        document.title = `${t('search.title')} - CineHD`;
     }, []);
 
     const filtersActive = showFilters || selectedGenres.length > 0 || director || actor || year || selectedKeywords.length > 0 || selectedLanguage || selectedCountry || selectedProviders.length > 0;

@@ -287,7 +287,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
   /** Remplissage rouge d'un curseur, comme les autres réglages du panneau. */
   const sliderFill = (value: number, min: number, max: number) => {
     const ratio = max > min ? ((value - min) / (max - min)) * 100 : 0;
-    return `linear-gradient(to right, #dc2626 0%, #dc2626 ${ratio}%, #374151 ${ratio}%, #374151 100%)`;
+    return `linear-gradient(to right, #C89028 0%, #C89028 ${ratio}%, #374151 ${ratio}%, #374151 100%)`;
   };
 
   const [subtitleFilters, setSubtitleFilters] = useState<SubtitleFilters>({
@@ -1670,7 +1670,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                           onChange={(e) => handleVolumeBoostChange(parseFloat(e.target.value))}
                           className="w-full accent-red-600 appearance-none h-2 rounded-full cursor-pointer"
                           style={{
-                            background: `linear-gradient(to right, #dc2626 ${((volumeBoost - 1) / 2) * 100}%, rgba(255, 255, 255, 0.2) ${((volumeBoost - 1) / 2) * 100}%)`
+                            background: `linear-gradient(to right, #C89028 ${((volumeBoost - 1) / 2) * 100}%, rgba(255, 255, 255, 0.2) ${((volumeBoost - 1) / 2) * 100}%)`
                           }}
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">

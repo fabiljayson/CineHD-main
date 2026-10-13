@@ -7,7 +7,7 @@ const QualiteVideoPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.qualiteVideo.title')} — Movix`;
+    document.title = `${t('help.qualiteVideo.title')} — CineHD`;
   }, [t]);
 
   const sections: TutoSection[] = [

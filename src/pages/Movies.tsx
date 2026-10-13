@@ -855,7 +855,7 @@ const Movies: React.FC = () => {
 
   useEffect(() => {
     // Simple title for Movies page
-    document.title = `${t('movies.title')} - Movix`;
+    document.title = `${t('movies.title')} - CineHD`;
   }, []);
 
   React.useEffect(() => {

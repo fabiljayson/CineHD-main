@@ -8,7 +8,7 @@ import { Film, Search, Menu, X, Star, Tv2, Users, Clapperboard, Bell, Tv, Lightb
 import { motion, AnimatePresence } from 'framer-motion';
 import ProfileMenu from './ProfileMenu';
 import NotificationsPopup from './NotificationsPopup';
-import { MovixWordmark } from './brand/MovixWordmark';
+import { CineHDWordmark } from './brand/CineHDWordmark';
 import { getUnreadNotificationsCount, getNotificationsDisabled } from '../services/apiNotificationService';
 import { encodeId } from '../utils/idEncoder';
 
@@ -463,8 +463,8 @@ const Header: React.FC = () => {
                   }
                 }}
               >
-                {/* Logo long [Movix] : rouge fixe hors palette, lettres claires. */}
-                <MovixWordmark className="h-[30px] w-auto text-[#f4f4f0] md:h-9" />
+                {/* Lockup CineHD : triangle doré, CINE argent, HD or. */}
+                <CineHDWordmark className="h-[30px] w-auto text-[#f4f4f0] md:h-9" />
               </Link>
 
               <a
@@ -734,7 +734,7 @@ const Header: React.FC = () => {
                   className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] pointer-events-none"
                   style={{
                     background:
-                      'radial-gradient(circle, rgba(220, 38, 38, 0.18) 0%, rgba(220, 38, 38, 0.08) 35%, transparent 70%)',
+                      'radial-gradient(circle, rgba(200, 144, 40, 0.18) 0%, rgba(200, 144, 40, 0.08) 35%, transparent 70%)',
                   }}
                 />
                 <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-gradient-to-t from-red-950/15 to-transparent pointer-events-none" />
@@ -762,7 +762,7 @@ const Header: React.FC = () => {
                         onClick={() => setIsExploreOpen(false)}
                         className={`flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-medium transition-all border whitespace-nowrap ${
                           item.isActive
-                            ? 'bg-red-600/20 border-red-500/30 text-white'
+                            ? 'bg-[#C89028]/20 border-[#C89028]/30 text-white'
                             : 'bg-white/[0.06] border-white/[0.08] text-gray-300 active:bg-white/10'
                         }`}
                       >

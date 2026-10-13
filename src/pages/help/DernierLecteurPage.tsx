@@ -10,7 +10,7 @@ const DernierLecteurPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.dernierLecteur.title')} — Movix`;
+    document.title = `${t('help.dernierLecteur.title')} — CineHD`;
   }, [t]);
 
   const sections: TutoSection[] = [

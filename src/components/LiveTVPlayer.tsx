@@ -2524,7 +2524,7 @@ const LiveTVPlayer: React.FC<LiveTVPlayerProps> = ({
                                                     onClick={(e) => e.stopPropagation()}
                                                     className="w-full accent-red-600 appearance-none h-1 rounded-full cursor-pointer"
                                                     style={{
-                                                        background: `linear-gradient(to right, #dc2626 ${volume * 100}%, rgba(255, 255, 255, 0.2) ${volume * 100}%)`
+                                                        background: `linear-gradient(to right, #C89028 ${volume * 100}%, rgba(255, 255, 255, 0.2) ${volume * 100}%)`
                                                     }}
                                                 />
                                             </div>
@@ -2557,7 +2557,7 @@ const LiveTVPlayer: React.FC<LiveTVPlayerProps> = ({
 
                             {/* Cast button (Chromecast) - Always visible */}
                             <motion.div
-                                animate={{ color: isCasting ? '#dc2626' : '#ffffff' }}
+                                animate={{ color: isCasting ? '#C89028' : '#ffffff' }}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
                                 transition={{ duration: 0.2, ease: "easeInOut" }}
@@ -2574,7 +2574,7 @@ const LiveTVPlayer: React.FC<LiveTVPlayerProps> = ({
                             {/* AirPlay button */}
                             {(airPlaySupported || airplayState.isAvailable) && (
                                 <motion.div
-                                    animate={{ color: airplayState.isConnected ? '#dc2626' : '#ffffff' }}
+                                    animate={{ color: airplayState.isConnected ? '#C89028' : '#ffffff' }}
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     transition={{ duration: 0.2, ease: "easeInOut" }}

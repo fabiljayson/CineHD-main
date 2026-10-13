@@ -70,7 +70,7 @@ const DnsPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('helpDns.title')} — Movix`;
+    document.title = `${t('helpDns.title')} — CineHD`;
   }, [t]);
 
   const renderInstallGrid = () => (

@@ -487,7 +487,7 @@ const Anime: React.FC = () => {
   }, [genreImageCacheKey, genreImageCacheTsKey, tmdbLanguage]);
 
   useEffect(() => {
-    document.title = `${t('animePage.title')} - Movix`;
+    document.title = `${t('animePage.title')} - CineHD`;
   }, [i18n.language, t]);
 
   if (error) {

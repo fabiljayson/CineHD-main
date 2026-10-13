@@ -35,7 +35,7 @@ export const SmoothRange = React.forwardRef<SmoothRangeHandle, SmoothRangeProps>
   formatValue = String,
   animateExternalValue = true,
   disabled = false,
-  accentColor = '#dc2626',
+  accentColor = '#C89028',
   onFocus,
   onBlur,
   onPreview,

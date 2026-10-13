@@ -874,7 +874,7 @@ const FranceTVPlayer: React.FC = () => {
             <motion.div
               animate={{
                 scale: isPipActive ? 0.85 : 1,
-                color: isPipActive ? '#dc2626' : '#ffffff'
+                color: isPipActive ? '#C89028' : '#ffffff'
               }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -1003,7 +1003,7 @@ const FranceTVPlayer: React.FC = () => {
                         onChange={handleVolumeChange}
                         className="w-full accent-red-600 appearance-none h-1 rounded-full cursor-pointer"
                         style={{
-                          background: `linear-gradient(to right, #dc2626 ${(isMuted ? 0 : volume) * 100}%, rgba(255, 255, 255, 0.2) ${(isMuted ? 0 : volume) * 100}%)`
+                          background: `linear-gradient(to right, #C89028 ${(isMuted ? 0 : volume) * 100}%, rgba(255, 255, 255, 0.2) ${(isMuted ? 0 : volume) * 100}%)`
                         }}
                       />
                     </div>

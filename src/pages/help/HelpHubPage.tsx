@@ -92,7 +92,7 @@ const HelpHubPage: React.FC = () => {
   const currentLang = i18n.language;
 
   useEffect(() => {
-    document.title = `${t('help.hub.title')} — Movix`;
+    document.title = `${t('help.hub.title')} — CineHD`;
   }, [t]);
 
   const results: Result[] = useMemo(() => {

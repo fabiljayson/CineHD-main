@@ -10,7 +10,7 @@ const OpenSourcePage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.openSource.title')} — Movix`;
+    document.title = `${t('help.openSource.title')} — CineHD`;
   }, [t]);
 
   const repoLink = (

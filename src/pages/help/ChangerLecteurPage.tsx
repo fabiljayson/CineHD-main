@@ -9,7 +9,7 @@ const ChangerLecteurPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.changerLecteur.title')} — Movix`;
+    document.title = `${t('help.changerLecteur.title')} — CineHD`;
   }, [t]);
 
   const sections: TutoSection[] = [

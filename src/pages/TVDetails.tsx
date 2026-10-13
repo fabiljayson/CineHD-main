@@ -2133,7 +2133,7 @@ const TVDetails: React.FC = () => {
   useEffect(() => {
     if (tvShow) {
       // Simple TV show title
-      document.title = `${tvShow.name} - Movix`;
+      document.title = `${tvShow.name} - CineHD`;
     } else {
       document.title = t('details.tvShowDefaultTitle');
     }
@@ -3004,7 +3004,7 @@ const TVDetails: React.FC = () => {
   const { last: lastBroadcastEpisode, next: nextBroadcastEpisode } = getEpisodeTimeline(timelineEpisodes, airingSchedule, airingNow);
   const lastBroadcastAiring = lastBroadcastEpisode ? resolveEpisodeAiring(lastBroadcastEpisode, airingSchedule, airingNow) : null;
   const nextBroadcastAiring = nextBroadcastEpisode ? resolveEpisodeAiring(nextBroadcastEpisode, airingSchedule, airingNow) : null;
-  const tvTitle = tvYear ? `${tvShow.name} (${tvYear}) - Movix` : `${tvShow.name} - Movix`;
+  const tvTitle = tvYear ? `${tvShow.name} (${tvYear}) - CineHD` : `${tvShow.name} - CineHD`;
   const tvCanonicalUrl = buildSiteUrl(`/tv/${encodedId || id}`);
   const tvSocialImage = tvShow.backdrop_path || tvShow.poster_path
     ? `https://image.tmdb.org/t/p/original${tvShow.backdrop_path || tvShow.poster_path}`

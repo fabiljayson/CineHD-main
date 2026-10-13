@@ -10,7 +10,7 @@ const PrioriteSourcesPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.prioriteSources.title')} — Movix`;
+    document.title = `${t('help.prioriteSources.title')} — CineHD`;
   }, [t]);
 
   const stepIcons = {

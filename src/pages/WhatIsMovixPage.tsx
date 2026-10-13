@@ -83,7 +83,7 @@ const WhatIsMovixPage: React.FC = () => {
   };
 
   return (
-    <SquareBackground squareSize={48} borderColor="rgba(220, 38, 38, 0.10)" className="min-h-screen bg-black text-white">
+    <SquareBackground squareSize={48} borderColor="rgba(200, 144, 40, 0.10)" className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10 h-full overflow-y-auto">
         {/* Back Button */}
         <Link to="/" className="inline-flex items-center text-white/50 hover:text-white transition-colors mb-8 group/icon">
@@ -98,7 +98,7 @@ const WhatIsMovixPage: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="mb-6 relative"
           >
-            {/* Logo Movix - tilted left like the mammoth image */}
+            {/* Lockup CineHD - penché à gauche comme l'image de référence */}
             <motion.div
               initial={{ opacity: 0, rotate: -15, scale: 0.7 }}
               animate={{ opacity: 1, rotate: -8, scale: 1 }}
@@ -107,17 +107,17 @@ const WhatIsMovixPage: React.FC = () => {
             >
               <img
                 src={movixIcon}
-                alt="Movix Logo"
-                className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 drop-shadow-[0_0_40px_rgba(220,38,38,0.35)]"
+                alt="CineHD Logo"
+                className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 drop-shadow-[0_0_40px_rgba(200,144,40,0.35)]"
                 style={{ transform: 'rotate(-8deg)' }}
               />
             </motion.div>
 
             <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-4 pb-4">
               <span className="block py-2 leading-tight">
-                <ShinyText text={t('whatIsMovix.title').split('Movix')[0]} speed={3} color="#ffffff" shineColor="#dc2626" className="inline" />
-                <ShinyText text="Movix" speed={2} color="#dc2626" shineColor="#ffffff" className="inline" />
-                <ShinyText text={t('whatIsMovix.title').includes('?') ? ' ?' : ''} speed={3} color="#ffffff" shineColor="#dc2626" className="inline" />
+                <ShinyText text={t('whatIsMovix.title').split('CineHD')[0]} speed={3} color="#ffffff" shineColor="#C89028" className="inline" />
+                <ShinyText text="CineHD" speed={2} color="#C89028" shineColor="#ffffff" className="inline" />
+                <ShinyText text={t('whatIsMovix.title').includes('?') ? ' ?' : ''} speed={3} color="#ffffff" shineColor="#C89028" className="inline" />
               </span>
             </h1>
           </motion.div>
@@ -178,7 +178,7 @@ const WhatIsMovixPage: React.FC = () => {
             transition={{ delay: 1.1 }}
           >
             <Link to="/">
-              <Button className="bg-red-600 hover:bg-red-700 text-white px-10 h-13 text-lg font-semibold gap-2 rounded-full shadow-lg shadow-red-600/25">
+              <Button className="bg-[#C89028] hover:bg-[#A87820] text-black px-10 h-13 text-lg font-semibold gap-2 rounded-full shadow-lg shadow-[#C89028]/25">
                 <Tv className="w-5 h-5" />
                 {t('whatIsMovix.startWatching')}
               </Button>

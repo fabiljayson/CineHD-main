@@ -1646,9 +1646,9 @@ const MovieDetails = (): JSX.Element => {
       const genres = movie.genres?.map(g => g.name).join(', ') || '';
 
       // Simple movie title
-      document.title = `${movie.title} - Movix`;
+      document.title = `${movie.title} - CineHD`;
     } else {
-      document.title = 'Film - Movix';
+      document.title = 'Film - CineHD';
     }
   }, [movie, id]);
 
@@ -1826,7 +1826,7 @@ const MovieDetails = (): JSX.Element => {
     : null;
   const movieIsReleased = movieReleases.referenceDate !== null
     && !isMovieReleaseDatePending(movieReleases.referenceDate, releaseNow);
-  const movieTitle = movieYear ? `${movie.title} (${movieYear}) - Movix` : `${movie.title} - Movix`;
+  const movieTitle = movieYear ? `${movie.title} (${movieYear}) - CineHD` : `${movie.title} - CineHD`;
   const movieCanonicalUrl = buildSiteUrl(`/movie/${encodedId || id}`);
   const movieSocialImage = movie.backdrop_path || movie.poster_path
     ? `https://image.tmdb.org/t/p/original${movie.backdrop_path || movie.poster_path}`
@@ -3312,7 +3312,7 @@ const MovieDetails = (): JSX.Element => {
                                       const target = e.target as HTMLImageElement;
                                       target.onerror = null;
                                       target.removeAttribute('srcset');
-                                      target.src = 'data:image/svg+xml;utf8,<svg width="500" height="750" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 750" preserveAspectRatio="xMidYMid meet"><rect width="100%" height="100%" fill="%23333"/><text x="50%" y="50%" fill="%23ccc" font-size="50" font-family="Arial, sans-serif" text-anchor="middle" dy=".3em">MOVIX</text></svg>';
+                                      target.src = 'data:image/svg+xml;utf8,<svg width="500" height="750" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 750" preserveAspectRatio="xMidYMid meet"><rect width="100%" height="100%" fill="%23333"/><text x="50%" y="50%" fill="%23ccc" font-size="50" font-family="Arial, sans-serif" text-anchor="middle" dy=".3em">CINEHD</text></svg>';
                                     }}
                                   />
 
@@ -3334,7 +3334,7 @@ const MovieDetails = (): JSX.Element => {
                                           const target = e.target as HTMLImageElement;
                                           target.onerror = null;
                                           target.removeAttribute('srcset');
-                                          target.src = 'data:image/svg+xml;utf8,<svg width="500" height="281" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 281" preserveAspectRatio="xMidYMid meet"><rect width="100%" height="100%" fill="%23333"/><text x="50%" y="50%" fill="%23ccc" font-size="30" font-family="Arial, sans-serif" text-anchor="middle" dy=".3em">MOVIX</text></svg>';
+                                          target.src = 'data:image/svg+xml;utf8,<svg width="500" height="281" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 281" preserveAspectRatio="xMidYMid meet"><rect width="100%" height="100%" fill="%23333"/><text x="50%" y="50%" fill="%23ccc" font-size="30" font-family="Arial, sans-serif" text-anchor="middle" dy=".3em">CINEHD</text></svg>';
                                         }}
                                       />
 

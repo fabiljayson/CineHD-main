@@ -1,7 +1,7 @@
 import React from 'react';
 import { isChunkLoadError, isChunkResponseError, reloadForChunkFailure } from '../routing/lazyWithRetry';
 import { captureCrash, isRecoverableError } from '../utils/errorTracking';
-import { MovixWordmark } from './brand/MovixWordmark';
+import { CineHDWordmark } from './brand/CineHDWordmark';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -136,7 +136,7 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBounda
     if (this.state.recoverable) {
       const { error, reloadScheduled } = this.state;
       const isChunk = isChunkLoadError(error);
-      const title = isChunk ? 'Mise à jour de Movix' : 'Rechargement';
+      const title = isChunk ? 'Mise à jour de CineHD' : 'Rechargement';
       const body = reloadScheduled
         ? isChunk
           ? 'Une nouvelle version est disponible. Rechargement en cours…'
@@ -145,14 +145,14 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBounda
       return (
         <div style={{ minHeight: '100vh', backgroundColor: '#000', color: '#f3f4f6', fontFamily: 'ui-sans-serif, system-ui, sans-serif', padding: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
-            <MovixWordmark style={{ display: 'block', height: 44, width: 'auto', margin: '0 auto 24px', color: '#f4f4f0' }} />
+            <CineHDWordmark style={{ display: 'block', height: 44, width: 'auto', margin: '0 auto 24px', color: '#f4f4f0' }} />
             {reloadScheduled && (
-              <div style={{ width: 40, height: 40, margin: '0 auto 24px', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: '#dc2626', borderRadius: '50%', animation: 'movix-eb-spin 0.8s linear infinite' }} />
+              <div style={{ width: 40, height: 40, margin: '0 auto 24px', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: '#C89028', borderRadius: '50%', animation: 'movix-eb-spin 0.8s linear infinite' }} />
             )}
             <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: '#fff' }}>{title}</h1>
             <p style={{ margin: '12px 0 0', fontSize: 14, color: '#9ca3af', lineHeight: 1.5 }}>{body}</p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 24 }}>
-              <button onClick={this.handleReload} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer', backgroundColor: '#dc2626', color: '#fff' }}>Recharger</button>
+              <button onClick={this.handleReload} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer', backgroundColor: '#C89028', color: '#000' }}>Recharger</button>
               <button onClick={this.handleGoHome} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #333', fontWeight: 600, fontSize: 14, cursor: 'pointer', backgroundColor: 'transparent', color: '#9ca3af' }}>Accueil</button>
             </div>
           </div>
@@ -169,20 +169,20 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBounda
         <div style={{ maxWidth: 700, width: '100%' }}>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#C89028" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <div>
-              <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#fff' }}>Movix a rencontré une erreur</h1>
+              <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#fff' }}>CineHD a rencontré une erreur</h1>
               <p style={{ margin: '4px 0 0', fontSize: 14, color: '#9ca3af' }}>Une erreur inattendue s'est produite. Les détails sont affichés ci-dessous.</p>
             </div>
           </div>
 
           {/* Error message */}
-          <div style={{ backgroundColor: '#1c1c1c', border: '1px solid #dc2626', borderRadius: 8, padding: 16, marginBottom: 16 }}>
-            <p style={{ margin: 0, fontSize: 13, color: '#dc2626', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Erreur</p>
+          <div style={{ backgroundColor: '#1c1c1c', border: '1px solid #C89028', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+            <p style={{ margin: 0, fontSize: 13, color: '#C89028', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Erreur</p>
             <p style={{ margin: '8px 0 0', fontSize: 15, color: '#fca5a5', fontFamily: 'ui-monospace, monospace', wordBreak: 'break-word' }}>
               {error?.message ?? 'Erreur inconnue'}
             </p>
@@ -251,8 +251,8 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBounda
                 fontWeight: 600,
                 fontSize: 14,
                 cursor: 'pointer',
-                backgroundColor: '#dc2626',
-                color: '#fff',
+                backgroundColor: '#C89028',
+                color: '#000',
               }}
             >
               Recharger la page

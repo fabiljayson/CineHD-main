@@ -8,7 +8,7 @@ const LiveTvHelpPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.liveTv.title')} — Movix`;
+    document.title = `${t('help.liveTv.title')} — CineHD`;
   }, [t]);
 
   const sections: TutoSection[] = [

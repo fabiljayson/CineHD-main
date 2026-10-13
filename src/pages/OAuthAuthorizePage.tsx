@@ -63,7 +63,7 @@ function getStoredIdentity(): StoredIdentity | null {
       const userProfile = parsed?.userProfile;
       if (userProfile && typeof userProfile === 'object') {
         return {
-          username: String(userProfile.username || userProfile.name || 'Movix'),
+          username: String(userProfile.username || userProfile.name || 'CineHD'),
           avatar: String(userProfile.avatar || DEFAULT_AVATAR),
         };
       }
@@ -77,7 +77,7 @@ function getStoredIdentity(): StoredIdentity | null {
     try {
       const parsed = JSON.parse(googleRaw);
       return {
-        username: String(parsed?.name || 'Movix'),
+        username: String(parsed?.name || 'CineHD'),
         avatar: String(parsed?.picture || DEFAULT_AVATAR),
       };
     } catch {
@@ -90,7 +90,7 @@ function getStoredIdentity(): StoredIdentity | null {
     try {
       const parsed = JSON.parse(discordRaw);
       return {
-        username: String(parsed?.username || 'Movix'),
+        username: String(parsed?.username || 'CineHD'),
         avatar: String(parsed?.avatar || DEFAULT_AVATAR),
       };
     } catch {
@@ -215,7 +215,7 @@ const FakePermissionsTeasingCard: React.FC = () => {
   return (
     <div>
       <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-gray-400">
-        🚫 {t('oauthAuthorize.fakeNotRequestedTitle', 'Ce que Movix ne demande pas')}
+        🚫 {t('oauthAuthorize.fakeNotRequestedTitle', 'Ce que CineHD ne demande pas')}
       </p>
       <div className="mt-2 flex items-start gap-2.5">
         <span className="mt-0.5 shrink-0 text-red-400/70 leading-none">✗</span>
@@ -312,7 +312,7 @@ const OAuthAuthorizePage: React.FC = () => {
   const authToken = localStorage.getItem('auth_token');
   const accountIdentity = useMemo(() => getStoredIdentity(), []);
   const { currentProfile } = useProfile();
-  const displayName = currentProfile?.name || accountIdentity?.username || 'Movix';
+  const displayName = currentProfile?.name || accountIdentity?.username || 'CineHD';
   const displayAvatar = currentProfile?.avatar || accountIdentity?.avatar || DEFAULT_AVATAR;
   const returnTo = `${location.pathname}${location.search}`;
   const isAlreadyConnected = Boolean(authToken);
@@ -514,8 +514,8 @@ const OAuthAuthorizePage: React.FC = () => {
           <section className="min-w-0 rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-xl backdrop-blur sm:p-7">
             <div className="flex items-start justify-between gap-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
-                <img src={MOVIX_LOGO_SRC} alt="Movix" className="h-4 w-4 object-contain" />
-                <span className="text-xs font-medium text-white">Movix OAuth</span>
+                <img src={MOVIX_LOGO_SRC} alt="CineHD" className="h-4 w-4 object-contain" />
+                <span className="text-xs font-medium text-white">CineHD OAuth</span>
               </div>
               <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-2 text-red-200">
                 <ShieldCheck className="h-5 w-5" />

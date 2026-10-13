@@ -7,7 +7,7 @@ const SousTitresPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.sousTitres.title')} — Movix`;
+    document.title = `${t('help.sousTitres.title')} — CineHD`;
   }, [t]);
 
   const sections: TutoSection[] = [

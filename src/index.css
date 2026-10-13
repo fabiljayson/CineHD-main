@@ -383,8 +383,13 @@ html {
 }
 
 :root {
-  --primary-color: #dc2626;
-  --primary-hover: #b91c1c;
+  /* CineHD — jeton de marque : or sur noir (logo) */
+  --brand-gold: #c89028;
+  --brand-gold-bright: #d9a63a;
+  --brand-gold-dark: #a87820;
+  --brand-silver: #e1e1e1;
+  --primary-color: var(--brand-gold);
+  --primary-hover: var(--brand-gold-dark);
   --background-dark: #000000;
   --text-light: #f3f4f6;
   --text-muted: #9ca3af;
@@ -550,7 +555,7 @@ body {
 .btn-toggle {
   padding: 0.625rem 1.25rem;
   background-color: var(--primary-color);
-  color: var(--text-light);
+  color: #0a0a0a;
   border: none;
   border-radius: 0.5rem;
   font-size: 1rem;
@@ -564,7 +569,7 @@ body {
 .btn-toggle:hover {
   background-color: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+  box-shadow: 0 4px 12px rgba(200, 144, 40, 0.2);
 }
 
 .btn-toggle:active {
@@ -573,7 +578,7 @@ body {
 
 .ad-blocker-notice {
   background-color: var(--primary-color);
-  color: var(--text-light);
+  color: #0a0a0a;
   text-align: center;
   padding: 0.5rem 1rem;
   font-weight: 600;
@@ -698,20 +703,20 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(220, 38, 38, 0.5);
+  background-color: rgba(200, 144, 40, 0.5);
   /* Rouge semi-transparent */
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(220, 38, 38, 0.8);
+  background-color: rgba(200, 144, 40, 0.8);
   /* Rouge plus visible au survol */
 }
 
 /* Firefox */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(220, 38, 38, 0.5) rgba(0, 0, 0, 0.1);
+  scrollbar-color: rgba(200, 144, 40, 0.5) rgba(0, 0, 0, 0.1);
 }
 
 .scrollbar-hide {
@@ -1096,16 +1101,16 @@ body {
 
   0%,
   100% {
-    background-color: rgba(220, 38, 38, 0);
+    background-color: rgba(200, 144, 40, 0);
   }
 
   2%,
   5% {
-    background-color: rgba(220, 38, 38, 0.03);
+    background-color: rgba(200, 144, 40, 0.03);
   }
 
   3% {
-    background-color: rgba(220, 38, 38, 0.05);
+    background-color: rgba(200, 144, 40, 0.05);
   }
 }
 

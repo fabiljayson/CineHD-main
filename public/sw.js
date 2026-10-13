@@ -231,19 +231,19 @@ function renderRedirectPage(url) {
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       display: grid; place-items: center; }
     .wrap { text-align: center; padding: 1.5rem; max-width: 420px; }
-    .logo { font-size: 2rem; font-weight: 900; color: #dc2626; letter-spacing: 0.1em; margin-bottom: 1.5rem; }
+    .logo { font-size: 2rem; font-weight: 900; color: #C89028; letter-spacing: 0.1em; margin-bottom: 1.5rem; }
     .spinner { width: 40px; height: 40px; margin: 0 auto 1.5rem;
-      border: 3px solid rgba(255,255,255,.1); border-top-color: #dc2626;
+      border: 3px solid rgba(255,255,255,.1); border-top-color: #C89028;
       border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     p { margin: 0.5rem 0; color: #aaa; font-size: 0.9rem; line-height: 1.5; }
-    a { color: #dc2626; text-decoration: none; font-weight: 600; }
+    a { color: #C89028; text-decoration: none; font-weight: 600; }
     a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="logo">MOVIX</div>
+    <div class="logo">CINEHD</div>
     <div class="spinner"></div>
     <p>Redirection vers notre nouveau domaine…</p>
     <p><a href="${safe}">Cliquer ici si rien ne se passe</a></p>
@@ -273,7 +273,7 @@ function render503Page() {
     html, body { margin: 0; padding: 0; height: 100%; background: #000; color: #fff;
       font-family: system-ui, -apple-system, sans-serif; display: grid; place-items: center; }
     .wrap { text-align: center; padding: 1.5rem; max-width: 420px; }
-    .logo { font-size: 2rem; font-weight: 900; color: #dc2626; letter-spacing: 0.1em; margin-bottom: 1rem; }
+    .logo { font-size: 2rem; font-weight: 900; color: #C89028; letter-spacing: 0.1em; margin-bottom: 1rem; }
     h1 { font-size: 1.2rem; margin: 0 0 1rem; }
     p { margin: 0.5rem 0; color: #aaa; font-size: 0.9rem; line-height: 1.5; }
     a { display: inline-block; margin-top: 1rem; background: #229ED9; color: #fff;
@@ -282,7 +282,7 @@ function render503Page() {
 </head>
 <body>
   <div class="wrap">
-    <div class="logo">MOVIX</div>
+    <div class="logo">CINEHD</div>
     <h1>Site temporairement indisponible</h1>
     <p>Tous nos domaines connus sont inaccessibles depuis votre connexion.</p>
     <p>Rejoins notre canal Telegram pour recevoir l'adresse du nouveau domaine.</p>

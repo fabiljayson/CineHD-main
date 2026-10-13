@@ -5006,7 +5006,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
           // une requête OPTIONS que son serveur ne gère pas.
           const response = await fetch(
             downloadLink,
-            sub.provider === 'uqload' ? undefined : { headers: { 'User-Agent': 'Movix/1.0' } },
+            sub.provider === 'uqload' ? undefined : { headers: { 'User-Agent': 'CineHD/1.0' } },
           );
 
           if (!response.ok) {
@@ -6555,7 +6555,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
     return {
       url: src,
       contentType: resolveCastContentType(src, isSelectedKisskhMp4 || isMP4Source(src)),
-      title: title || tvShow?.name || 'Movix',
+      title: title || tvShow?.name || 'CineHD',
       poster: poster
         ? (poster.startsWith('http')
           ? poster
@@ -12319,7 +12319,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
                           onChange={handleVolumeChange} // Use updated handler
                           className="w-full accent-red-600 appearance-none h-1 rounded-full"
                           style={{
-                            background: `linear-gradient(to right, #dc2626 ${volume * 100}%, rgba(255, 255, 255, 0.2) ${volume * 100}%)`
+                            background: `linear-gradient(to right, #C89028 ${volume * 100}%, rgba(255, 255, 255, 0.2) ${volume * 100}%)`
                           }}
                         />
                       </div>
@@ -12348,7 +12348,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
                     <motion.div
                       animate={{
                         scale: studioOpen ? 0.85 : 1,
-                        color: studioOpen ? '#dc2626' : '#ffffff'
+                        color: studioOpen ? '#C89028' : '#ffffff'
                       }}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
@@ -12371,7 +12371,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
                   <motion.div
                     animate={{
                       scale: isWatchPartyActive ? 0.85 : 1,
-                      color: isWatchPartyActive ? '#dc2626' : '#ffffff'
+                      color: isWatchPartyActive ? '#C89028' : '#ffffff'
                     }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -12393,7 +12393,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
                   <motion.div
                     animate={{
                       scale: isPipActive ? 0.85 : 1,
-                      color: isPipActive ? '#dc2626' : '#ffffff'
+                      color: isPipActive ? '#C89028' : '#ffffff'
                     }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -12415,7 +12415,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
                   <motion.div
                     animate={{
                       scale: isLooping ? 0.85 : 1,
-                      color: isLooping ? '#dc2626' : '#ffffff'
+                      color: isLooping ? '#C89028' : '#ffffff'
                     }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -12497,7 +12497,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
                           maxWidth: `${isMobile ? 20 : 24}px`,
                           maxHeight: `${isMobile ? 20 : 24}px`,
                           overflow: 'hidden',
-                          ['--connected-color' as any]: '#dc2626',
+                          ['--connected-color' as any]: '#C89028',
                           ['--disconnected-color' as any]: '#ffffff'
                         }}
                       />
@@ -12547,7 +12547,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
                       <motion.div
                         animate={{
                           scale: (isAirPlaying || isCasting) ? 0.85 : 1,
-                          color: (isAirPlaying || isCasting) ? '#dc2626' : '#ffffff'
+                          color: (isAirPlaying || isCasting) ? '#C89028' : '#ffffff'
                         }}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}

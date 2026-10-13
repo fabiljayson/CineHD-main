@@ -97,7 +97,7 @@ const McpPage: React.FC = () => {
   const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = `${t('help.mcp.title')} — Movix`;
+    document.title = `${t('help.mcp.title')} — CineHD`;
   }, [t]);
 
   const copy = async (value: string) => {

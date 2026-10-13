@@ -19,7 +19,7 @@ export function WrappedLoading({ year, onClose }: { year: number; onClose: () =>
                     <button type="button" onClick={onClose} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white/90 transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" aria-label={t('wrappedStory.close')}>
                         <X className="h-5 w-5 text-white opacity-90 transition-[color,opacity]" />
                     </button>
-                    <p className="flex items-center gap-3 text-sm font-bold tracking-tight"><span className="font-['Archivo_Black']">MOVIX</span><span className="h-3 w-px bg-white/25" aria-hidden="true" /><span className="font-normal text-white/60">Wrapped {year}</span></p>
+                    <p className="flex items-center gap-3 text-sm font-bold tracking-tight"><span className="font-['Archivo_Black']">CINEHD</span><span className="h-3 w-px bg-white/25" aria-hidden="true" /><span className="font-normal text-white/60">Wrapped {year}</span></p>
                     <span className="w-11 shrink-0" aria-hidden="true" />
                 </header>
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))]">

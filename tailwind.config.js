@@ -3,6 +3,14 @@ export default {
   content: ["./BOTINDEXSECURITY.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      colors: {
+        brand: {
+          gold: "#c89028",
+          "gold-bright": "#d9a63a",
+          "gold-dark": "#a87820",
+          silver: "#e1e1e1",
+        },
+      },
       animation: {
         fadeIn: "fadeIn 0.5s ease-in-out",
         fadeOut: "fadeOut 0.5s ease-in-out",

@@ -106,7 +106,7 @@ const LegalDocumentPage: React.FC<LegalDocumentPageProps> = ({
   return (
     <SquareBackground
       squareSize={48}
-      borderColor="rgba(220, 38, 38, 0.12)"
+      borderColor="rgba(200, 144, 40, 0.12)"
       className="min-h-screen bg-black text-white"
     >
       <SEO

@@ -37,7 +37,7 @@ const SEO: React.FC<SEOProps> = (props) => {
       { lang: 'x-default', href: SITE_URL },
     ],
   } = props;
-  const siteName = 'Movix';
+  const siteName = 'CineHD';
   
   return (
     <Helmet>

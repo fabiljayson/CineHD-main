@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 535 262" width="535" height="262">
+  <title>CineHD</title>
+  <rect width="535" height="262" rx="24" fill="#000000"/>
+  <path d="M 238 48 L 238 116 L 300 82 Z" fill="none" stroke="#C89028" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <text x="267" y="212" text-anchor="middle" font-family="Archivo Black, Arial Black, sans-serif" font-size="86" letter-spacing="1"><tspan fill="#E1E1E1">CINE</tspan><tspan fill="#C89028" dx="14">HD</tspan></text>
+</svg>

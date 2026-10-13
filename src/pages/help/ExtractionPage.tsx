@@ -7,7 +7,7 @@ const ExtractionPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.extraction.title')} — Movix`;
+    document.title = `${t('help.extraction.title')} — CineHD`;
   }, [t]);
 
   const sections: TutoSection[] = [

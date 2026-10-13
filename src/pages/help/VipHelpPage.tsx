@@ -8,7 +8,7 @@ const VipHelpPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.vip.title')} — Movix`;
+    document.title = `${t('help.vip.title')} — CineHD`;
   }, [t]);
 
   const sections: TutoSection[] = [

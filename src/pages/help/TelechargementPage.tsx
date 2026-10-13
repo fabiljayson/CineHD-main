@@ -8,7 +8,7 @@ const TelechargementPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.telechargement.title')} — Movix`;
+    document.title = `${t('help.telechargement.title')} — CineHD`;
   }, [t]);
 
   const sections: TutoSection[] = [

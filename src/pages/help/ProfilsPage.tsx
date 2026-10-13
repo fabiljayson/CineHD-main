@@ -8,7 +8,7 @@ const ProfilsPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.profils.title')} — Movix`;
+    document.title = `${t('help.profils.title')} — CineHD`;
   }, [t]);
 
   const sections: TutoSection[] = [

@@ -385,7 +385,7 @@ const FloatingPlayer: React.FC = () => {
                 onMouseDown={(e) => e.stopPropagation()}
                 className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-red-600 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer hover:[&::-webkit-slider-thumb]:bg-red-500 hover:[&::-moz-range-thumb]:bg-red-500"
                 style={{
-                  background: `linear-gradient(to right, #dc2626 0%, #dc2626 ${(playbackTime / (duration || 1)) * 100}%, #4b5563 ${(playbackTime / (duration || 1)) * 100}%, #4b5563 100%)`
+                  background: `linear-gradient(to right, #C89028 0%, #C89028 ${(playbackTime / (duration || 1)) * 100}%, #4b5563 ${(playbackTime / (duration || 1)) * 100}%, #4b5563 100%)`
                 }}
               />
             </div>

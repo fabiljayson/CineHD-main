@@ -8,7 +8,7 @@ const InstallerPwaPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.installerPwa.title')} — Movix`;
+    document.title = `${t('help.installerPwa.title')} — CineHD`;
   }, [t]);
 
   const sections: TutoSection[] = [

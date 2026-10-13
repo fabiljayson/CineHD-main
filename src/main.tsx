@@ -13,6 +13,7 @@ import { installSegmentedSeasons } from './utils/segmentedSeasons'
 import { installManualEpisodes } from './utils/manualEpisodes'
 import './index.css'
 import './styles/light-mode.css'
+import '@fontsource/archivo-black/latin-400.css'
 import { initErrorTracking } from './utils/errorTracking'
 import { initFlexGapSupport } from './utils/flexGapSupport'
 
@@ -108,7 +109,7 @@ const MOVIX_CONSOLE_SAFETY_WARNING_LINES: MovixConsoleWarningLine[] = [
 
 const emitMovixConsoleSafetyWarning = () => {
   console.log(
-    '%c MOVIX SECURITY WARNING ',
+    '%c CINEHD SECURITY WARNING ',
     [
       'font-size: 16px',
       'font-weight: 900',

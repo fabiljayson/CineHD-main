@@ -1,6 +1,6 @@
 {
-  "name": "Movix",
-  "short_name": "Movix",
+  "name": "CineHD",
+  "short_name": "CineHD",
   "description": "Streaming de films et séries en français gratuit",
   "start_url": "/",
   "display": "standalone",

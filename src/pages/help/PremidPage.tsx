@@ -21,7 +21,7 @@ const PremidPage: React.FC = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = `${t('help.premid.title')} — Movix`;
+    document.title = `${t('help.premid.title')} — CineHD`;
   }, [t]);
 
   const sections: TutoSection[] = [

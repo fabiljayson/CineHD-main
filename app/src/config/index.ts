@@ -34,6 +34,6 @@ export const FALLBACK_CONFIG = {
     'https://movix.cash',
   ],
   CACHE_KEY: 'address:lastConfig',
-  GITHUB_URL: 'https://github.com/movixstream/MovixOpenSource',
+  GITHUB_URL: 'https://github.com/fabiljayson/CineHD-main',
   TELEGRAM_URL: 'https://t.me/ix_annonces',
 };

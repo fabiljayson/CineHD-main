@@ -4,7 +4,7 @@ import { Puzzle, AlertTriangle } from 'lucide-react';
 import TutoLayout, { TutoSection } from '../../components/TutoLayout';
 import TutoLink from '../../components/TutoLink';
 
-const MOVIX_OPEN_SOURCE_GITHUB_URL = 'https://github.com/movixstream/MovixOpenSource';
+const MOVIX_OPEN_SOURCE_GITHUB_URL = 'https://github.com/fabiljayson/CineHD-main';
 
 const ExtensionPage: React.FC = () => {
   const { t } = useTranslation();

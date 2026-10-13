@@ -16,7 +16,7 @@ import { copyText } from '../../utils/clipboard';
 /** Seule URL à retenir : identique pour tous les clients IA. */
 const MCP_URL = 'https://mcp.movix.online/mcp';
 const MCP_SPEC_URL = 'https://modelcontextprotocol.io';
-const MOVIX_OPEN_SOURCE_GITHUB_URL = 'https://github.com/movixstream/MovixOpenSource';
+const MOVIX_OPEN_SOURCE_GITHUB_URL = 'https://github.com/fabiljayson/CineHD-main';
 
 const EXTERNAL_LINK_CLASS =
   'font-medium text-indigo-400 hover:text-indigo-300 underline underline-offset-2 decoration-indigo-500/40 hover:decoration-indigo-400';

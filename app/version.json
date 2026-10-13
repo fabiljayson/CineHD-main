@@ -1,7 +1,7 @@
 {
   "version": "2.6.5",
   "buildNumber": 42,
-  "apkUrl": "https://raw.githubusercontent.com/movixstream/MovixOpenSource/main/app/movix-android.apk",
+  "apkUrl": "https://raw.githubusercontent.com/fabiljayson/CineHD-main/main/app/movix-android.apk",
   "apkSizeBytes": 64290469,
   "apkSha256": "3df4f53e17abfbe90804e012004f81b821d26fd41b25c1ccc5f5a44917356e88",
   "mandatory": false,

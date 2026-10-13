@@ -21,8 +21,8 @@ import BlurText from '../components/ui/blur-text';
 import ShinyText from '../components/ui/shiny-text';
 import AnimatedBorderCard from '../components/ui/animated-border-card';
 
-const APK_URL = 'https://github.com/movixstream/MovixOpenSource/raw/refs/heads/main/app/movix-android.apk';
-const IOS_GITHUB_URL = 'https://github.com/movixstream/MovixOpenSource/tree/main/app';
+const APK_URL = 'https://github.com/fabiljayson/CineHD-main/raw/refs/heads/main/app/movix-android.apk';
+const IOS_GITHUB_URL = 'https://github.com/fabiljayson/CineHD-main/tree/main/app';
 
 const features = [
   {

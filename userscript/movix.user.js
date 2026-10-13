@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         Movix Proxy Extension (Tampermonkey)
+// @name         CineHD Proxy Extension (Tampermonkey)
 // @namespace    https://movix.cash
 // @version      1.7.2
 // @description  Extension proxy pour Live TV Movix - Contourne CORS, injecte les headers et extrait les sources Nexus - version userscript Tampermonkey
-// @author       Movix
-// @updateURL    https://github.com/movixstream/MovixOpenSource/raw/refs/heads/main/userscript/movix.user.js
-// @downloadURL  https://github.com/movixstream/MovixOpenSource/raw/refs/heads/main/userscript/movix.user.js
+// @author       fabiljayson
+// @updateURL    https://github.com/fabiljayson/CineHD-main/raw/refs/heads/main/userscript/movix.user.js
+// @downloadURL  https://github.com/fabiljayson/CineHD-main/raw/refs/heads/main/userscript/movix.user.js
 // @match        http://localhost/*
 // @match        http://127.0.0.1/*
 // @match        https://localhost/*

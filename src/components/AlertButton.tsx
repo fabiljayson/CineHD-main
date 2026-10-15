@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Bell, BellRing } from 'lucide-react';
 import { AlertService } from '../services/alertService';
-import { AlertButtonProps } from '../types/alerts';
+import { AlertButtonProps, NotifyBeforeDays } from '../types/alerts';
 import AlertMenu from './AlertMenu';
 
 const AlertButton: React.FC<AlertButtonProps> = ({
@@ -40,7 +40,7 @@ const AlertButton: React.FC<AlertButtonProps> = ({
     }
   };
 
-  const handleConfirmAlert = (notifyBeforeDays: 0 | 1 | 2) => {
+  const handleConfirmAlert = (notifyBeforeDays: NotifyBeforeDays) => {
     const success = AlertService.addAlert(
       showId,
       showName,

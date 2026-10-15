@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html, body {
+    background-color: #faf7f2;
+    color: #1a1816;
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, .font-display { font-family: "Playfair Display", Georgia, serif; }
+}
+
 @layer utilities {
   /* Les anciens WebKit ignorent `dvh`. Ces classes gardent `vh` comme valeur
      de repli, tandis que les variantes responsive Tailwind restent libres de

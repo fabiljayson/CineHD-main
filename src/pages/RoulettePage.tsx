@@ -3,14 +3,15 @@ import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { Dices, Star, Calendar, RotateCcw, Info, ChevronDown, ChevronUp, Sparkles, X } from 'lucide-react';
-import { motion, AnimatePresence, useAnimation } from 'framer-motion';
-import type confettiType from 'canvas-confetti';
+import { motion, AnimatePresence } from 'framer-motion';
+type ConfettiLib = any;
 import { toast } from 'sonner';
 
-let confettiLib: typeof confettiType | null = null;
-const loadConfetti = async (): Promise<typeof confettiType> => {
+let confettiLib: ConfettiLib | null = null;
+const loadConfetti = async (): Promise<ConfettiLib> => {
   if (confettiLib) return confettiLib;
-  const mod = await import('canvas-confetti');
+  // @ts-ignore
+  const mod: any = await import('canvas-confetti');
   confettiLib = mod.default;
   return confettiLib;
 };
@@ -1335,7 +1336,7 @@ const RoulettePage: React.FC = () => {
                         name: item.name,
                         media_type: item.media_type,
                         poster_path: item.poster_path || '',
-                        backdrop_path: item.backdrop_path,
+                        backdrop_path: item.backdrop_path ?? undefined,
                         release_date: item.release_date,
                         first_air_date: item.first_air_date,
                         vote_average: item.vote_average,

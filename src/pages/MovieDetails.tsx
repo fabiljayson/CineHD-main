@@ -78,27 +78,6 @@ interface Movie {
   backdrop_path?: string;
 }
 
-interface KinocheckResponse {
-  youtube_video_id: string;
-}
-
-interface FrembedResponse {
-  status: number;
-  result: {
-    Total: number;
-    items: Array<{
-      title: string;
-      tmdb: string;
-      imdb: string;
-      year: string;
-      quality: string;
-      version: string;
-      poster: string;
-      link: string;
-    }>;
-  };
-}
-
 interface CastMember {
   id: number;
   name: string;
@@ -124,12 +103,6 @@ interface WatchStatus {
   watchlist: boolean;
   favorite: boolean;
   watched: boolean;
-}
-
-interface ExtractedVideoSource {
-  url: string;
-  quality: string;
-  label: string;
 }
 
 interface MovieExtended extends Movie {

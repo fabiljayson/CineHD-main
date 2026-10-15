@@ -309,7 +309,7 @@ const SelectContent: React.FC<SelectContentProps> = ({ className, children }) =>
                     className="flex flex-col"
                 >
                     <div
-                        ref={contentRef}
+                        ref={contentRef as React.RefObject<HTMLDivElement>}
                         className={cn(
                             "min-h-0 rounded-lg border border-white/10 bg-gray-900/95 text-white shadow-xl backdrop-blur-xl",
                             "max-h-80 overflow-y-auto overscroll-contain",

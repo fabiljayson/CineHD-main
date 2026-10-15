@@ -222,7 +222,7 @@ interface NightflixSource {
   label?: string;
 }
 
-type PlayerSourceType = 'primary' | 'vostfr' | 'videasy' | 'vidsrccc' | 'vidsrcsu' | 'vidsrcwtf1' | 'vidsrcwtf5' | 'multi' | 'omega' | 'darkino' | 'mp4' | 'coflix' | 'frembed' | 'custom' | 'nexus_hls' | 'nexus_file' | 'fstream' | 'wiflix' | 'j1f' | 'swiftflow' | 'viper' | 'vidmoly' | 'dropload' | 'adfree' | 'bravo' | 'kisskh' | number;
+type PlayerSourceType = 'primary' | 'vostfr' | 'videasy' | 'vidsrccc' | 'vidsrcsu' | 'vidsrcwtf1' | 'vidsrcwtf5' | 'multi' | 'omega' | 'darkino' | 'mp4' | 'coflix' | 'frembed' | 'custom' | 'nexus_hls' | 'nexus_file' | 'fstream' | 'wiflix' | 'j1f' | 'swiftflow' | 'swiftflux' | 'viper' | 'vidmoly' | 'dropload' | 'adfree' | 'bravo' | 'kisskh' | number;
 
 function formatPremidSourceDetail(...parts: Array<string | null | undefined>) {
   const normalizedParts = parts
@@ -490,7 +490,7 @@ const WatchMovie: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'fstream' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     // Stabilité UX (M4) : pas de prefsVersion en deps — pin update les prefs +
     // l'indicateur #1, mais l'ordre affiché reste stable jusqu'au prochain refresh.
   }, [fstreamSources]);
@@ -505,7 +505,7 @@ const WatchMovie: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'wiflix' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [wiflixSources]);
 
   const sortedJ1f = useMemo(() => {
@@ -518,7 +518,7 @@ const WatchMovie: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'j1f' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [j1fSources]);
 
   const sortedSwiftflow = useMemo(() => {
@@ -531,7 +531,7 @@ const WatchMovie: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'swiftflow' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [swiftflowSources]);
 
   // Omega / Coflix : les listes viennent de champs dérivés (`omegaData` / `coflixData`).
@@ -551,7 +551,7 @@ const WatchMovie: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'omega' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [omegaData]);
 
   const sortedCoflix = useMemo<Array<CoflixPlayer & { type: string }>>(() => {
@@ -566,7 +566,7 @@ const WatchMovie: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'coflix' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [coflixData]);
 
   // Viper : items `{ url, label, quality, language }`. Le champ `language`
@@ -581,7 +581,7 @@ const WatchMovie: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'viper' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [viperSources]);
 
   const currentSourceRef = useRef<string>('darkino');
@@ -1135,7 +1135,7 @@ const WatchMovie: React.FC = () => {
         // Pré-tri par priorité hoster (M4) avec fallback : si tous unknown,
         // on garde l'ordre brut (purstream c'est souvent un seul provider).
         const prefsBv0 = getSourcePriorityPrefs();
-        const annotatedBravo = rawBravo.map((s) => ({
+        const annotatedBravo = rawBravo.map((s: any) => ({
           ...s,
           type: (detectHoster(s.url || '', {
             patternOverrides: prefsBv0.patternOverrides,
@@ -1145,7 +1145,7 @@ const WatchMovie: React.FC = () => {
             customHosters: prefsBv0.customHosters,
           })) ?? 'unknown',
         }));
-        const allUnknown = annotatedBravo.every((s) => s.type === 'unknown');
+        const allUnknown = annotatedBravo.every((s: any) => s.type === 'unknown');
         localBravoSources = allUnknown
           ? rawBravo
           : (sortHostersByPriority(annotatedBravo, { category: 'moviesTv', topLevel: 'bravo' }) as typeof rawBravo);
@@ -1752,7 +1752,7 @@ const WatchMovie: React.FC = () => {
       // ce qui garde le coût faible et évite de faire ressortir tous ces états en props.
       // Retourne true si l'id a été géré avec succès, false sinon.
       const applyEmbedConfig = async (sourceId: TopLevelSourceId): Promise<boolean> => {
-        switch (sourceId) {
+        switch (sourceId as string) {
           case 'nexus_hls': {
             // Tri par priorité hoster (M4) — applique le pin user (ex. uqload first).
             const prefsNh = getSourcePriorityPrefs();
@@ -2080,7 +2080,7 @@ const WatchMovie: React.FC = () => {
         // film (vostfr = fallback final géré plus bas).
         const availability: SourceAvailability[] = [
           { id: 'nexus_hls', hasData: finalHlsSources.length > 0 },
-          { id: 'nexus_file', hasData: finalFileSources.length > 0 },
+          { id: 'nexus_file' as TopLevelSourceId, hasData: finalFileSources.length > 0 },
           { id: 'bravo', hasData: localBravoSources.length > 0 && canUseBravo },
           { id: 'mp4', hasData: fetchedMp4Sources.length > 0 },
           { id: 'darkino', hasData: !!(darkinoResult && typeof darkinoResult === 'object' && 'available' in darkinoResult && darkinoResult.available && darkinoResult.sources.length > 0) },
@@ -2109,7 +2109,7 @@ const WatchMovie: React.FC = () => {
         for (let i = 0; i < availList.length; i++) {
           const pick = pickAutoSelectedSource(availList);
           if (!pick) break;
-          // eslint-disable-next-line no-await-in-loop
+           
           if (await applyEmbedConfig(pick)) {
             applied = true;
             break;

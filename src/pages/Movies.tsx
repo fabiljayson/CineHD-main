@@ -13,6 +13,7 @@ import { useWrappedTracker } from '../hooks/useWrappedTracker';
 import { getTmdbLanguage } from '../i18n';
 import { readSessionStorage, writeSessionStorage } from '../utils/browserStorage';
 import { getMinimumCarouselCategoryItems, makeExclusiveCategories } from '../utils/exclusiveCategories';
+import { CURATED_STREAMABLE_MOVIES } from '../data/curatedStreamableMovies';
 
 // Nombre de sections à charger immédiatement
 const IMMEDIATE_LOAD_COUNT = 2;
@@ -844,6 +845,13 @@ const Movies: React.FC = () => {
       });
     }
 
+    // Curated "streamable now" shelf first
+    orderedCategories.unshift({
+      id: 'curated-streamable',
+      title: 'Dernières sorties streamables',
+      items: CURATED_STREAMABLE_MOVIES as unknown as Movie[]
+    });
+
     orderedCategories.push(...genreCategories);
 
     setCategories((makeExclusiveCategories(orderedCategories, {
@@ -948,7 +956,7 @@ const Movies: React.FC = () => {
             <LazySection index={0} immediateLoadCount={IMMEDIATE_LOAD_COUNT}>
               <EmblaCarousel
                 title={trendingTitle}
-                items={topMovies}
+                items={topMovies as any}
                 mediaType="top10"
                 showRanking={true}
               />
@@ -963,7 +971,7 @@ const Movies: React.FC = () => {
               <EmblaCarousel
                 key={category.id}
                 title={categoryTitles[catIndex]}
-                items={category.items}
+                items={category.items as any}
                 mediaType={category.id}
               />
             </LazySection>

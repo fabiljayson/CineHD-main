@@ -261,7 +261,7 @@ export function mergeSegmentedSeason(
     if (isUsableName(episode.name)) return episode.name.trim();
     const fallback = fallbackByNumber.get(numberOf(episode, index));
     if (fallback && isUsableName(fallback.name)) return fallback.name.trim();
-    return isUsableText(episode.name) ? episode.name.trim() : '';
+    return isUsableText(episode.name) ? (episode.name as string).trim() : '';
   };
 
   /** Synopsis exploitable : fr-FR d'abord, en-US ensuite. */
@@ -317,7 +317,7 @@ export function mergeSegmentedSeason(
    * `true` quand l'entrée n'est qu'une moitié d'épisode. Le suffixe du code de
    * production tranche en premier ; à défaut, la durée.
    */
-  const halves = source.map((episode, index) => {
+  const halves = source.map((_episode, index) => {
     const resolved = slotsPerEntry[index];
     if (!resolved) return shortRuntime[index];
     if (resolved.half) return true;

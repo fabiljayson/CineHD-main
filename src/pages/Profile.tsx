@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
-import { X, Camera, Info, Film, Heart, Eye, List, Trash2 as TrashIcon, Bell, BellRing, Clock, Edit3, Monitor, Smartphone, Tablet, Copy, Settings, Shield, Activity, Play, Snowflake, Share2, Link2, Loader2, Globe, GripVertical } from 'lucide-react';
+import { X, Camera, Info, Film, Heart, Eye, List, Trash2 as TrashIcon, Bell, BellRing, Clock, Edit3, Monitor, Smartphone, Tablet, Copy, Play, Share2, Link2, Loader2, Globe, GripVertical } from 'lucide-react';
 import { Plus, Trash2, ArrowLeft, Calendar, Edit2, MoreVertical, Pencil } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -777,8 +777,8 @@ const Profile: React.FC = () => {
 
     // Replace items with their updated versions if available
     const enrichedItems = items.map(item => {
-      if ((!item.title || !item.poster_path) && updatedItemMap.has(item.id)) {
-        return updatedItemMap.get(item.id)!;
+      if ((!item.title || !item.poster_path) && updatedItemMap.has(Number(item.id))) {
+        return updatedItemMap.get(Number(item.id))!;
       }
       return item;
     });
@@ -855,8 +855,8 @@ const Profile: React.FC = () => {
       const showsFromLegacy = new Map<number, WatchItem>();
       legacyEpisodes.forEach(ep => {
         if (!tvShowIdsInMainList.has(ep.id)) {
-          if (!showsFromLegacy.has(ep.id) || new Date(ep.addedAt) > new Date(showsFromLegacy.get(ep.id)!.addedAt)) {
-            showsFromLegacy.set(ep.id, {
+          if (!showsFromLegacy.has(Number(ep.id)) || new Date(ep.addedAt) > new Date(showsFromLegacy.get(Number(ep.id))!.addedAt)) {
+            showsFromLegacy.set(Number(ep.id), {
               id: ep.id,
               type: 'tv',
               title: ep.title || '',
@@ -3465,7 +3465,7 @@ const Profile: React.FC = () => {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 px-2 md:px-4 relative z-0">
         {itemsToDisplay.map(item => (
-          <AgeRestrictedMedia key={`in-progress-${item.id}`} item={{ ...item, media_type: 'tv' }}>
+          <AgeRestrictedMedia key={`in-progress-${item.id}`} item={{ ...item, media_type: 'tv' } as any}>
           <div
             key={`in-progress-${item.id}`}
             className="relative group bg-gray-900/70 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-colors border border-gray-800/50"

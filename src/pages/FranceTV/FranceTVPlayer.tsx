@@ -27,7 +27,7 @@ const loadShaka = async (): Promise<typeof ShakaType> => {
   // shaka-player is a CJS module; Vite/Rollup synthesizes a `default` namespace
   // for it. The previous code used `import shaka from 'shaka-player'` (default),
   // which is what mod.default returns here.
-  const dflt = (mod as { default?: typeof ShakaType }).default;
+  const dflt = (mod as unknown as { default?: typeof ShakaType }).default;
   ShakaLib = dflt ?? (mod as unknown as typeof ShakaType);
   return ShakaLib;
 };
@@ -87,8 +87,8 @@ const FranceTVPlayer: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
-  const shakaRef = useRef<ShakaType.Player | null>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const shakaRef = useRef<any>(null);
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [extracting, setExtracting] = useState(false);
@@ -248,7 +248,7 @@ const FranceTVPlayer: React.FC = () => {
   const initShakaPlayer = useCallback(async (manifestUrl: string, keys: string[]) => {
     if (!videoRef.current) return;
 
-    const shaka = await loadShaka();
+    const shaka = await loadShaka() as any;
     if (!videoRef.current) return;
 
     shaka.polyfill.installAll();
@@ -306,7 +306,7 @@ const FranceTVPlayer: React.FC = () => {
     }
   }, [safeAutoplay]);
 
-  const populateShakaControls = useCallback((player: ShakaType.Player) => {
+  const populateShakaControls = useCallback((player: any) => {
     const variants = player.getVariantTracks();
     const textTracks = player.getTextTracks();
 

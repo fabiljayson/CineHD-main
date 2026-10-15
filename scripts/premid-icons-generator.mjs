@@ -1,6 +1,6 @@
 // Générateur des pastilles rondes de la présence PreMiD (PreMid/assets/*.png,
 // publiées sur cdn.rcd.gg/PreMiD/websites/M/Movix/assets/ au merge dans le
-// store PreMiD). Usage : node others/premid-icons-generator.mjs
+// store PreMiD). Usage : node scripts/premid-icons-generator.mjs
 // Glyphe blanc sur cercle rouge Movix (#dc2626), 512x512, antialiasé par
 // suréchantillonnage 4x. Aucune dépendance : l'encodeur PNG utilise zlib.
 

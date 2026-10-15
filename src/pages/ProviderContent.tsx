@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
@@ -8,7 +8,6 @@ import { Loader, ChevronRight, Film, Tv } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
 import CarouselTitle from '../components/CarouselTitle';
 import EmblaCarousel from '../components/EmblaCarousel';
-import ContentRowSkeleton from '../components/skeletons/ContentRowSkeleton';
 import LazySection from '../components/LazySection';
 import { getTmdbLanguage } from '../i18n';
 import { getMinimumCarouselCategoryItems, makeExclusiveCategories } from '../utils/exclusiveCategories';
@@ -528,7 +527,7 @@ const ProviderCategoryRow: React.FC<ProviderCategoryRowProps> = React.memo(({
       <EmblaCarousel
         key={category.id}
         title={categoryHeader}
-        items={category.items}
+        items={category.items as any}
         mediaType={category.id}
       />
     </LazySection>
@@ -555,7 +554,7 @@ const ProviderContent: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<Media[]>([]);
   const [showSearch, setShowSearch] = useState(false);
-  const sliderIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const sliderIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hoveredTopContentIndex, setHoveredTopContentIndex] = useState<number | null>(null);
   const [hoveredCategoryItemsMap, setHoveredCategoryItemsMap] = useState<Record<string, boolean>>({});
   const top10RowRef = useRef<HTMLDivElement>(null);
@@ -1284,7 +1283,7 @@ const ProviderContent: React.FC = () => {
                     <LazySection index={0} immediateLoadCount={IMMEDIATE_LOAD_COUNT}>
                       <EmblaCarousel
                         title={trendingTitle}
-                        items={topContent}
+                        items={topContent as any}
                         mediaType="top10"
                         showRanking={true}
                       />

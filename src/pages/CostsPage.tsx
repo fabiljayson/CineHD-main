@@ -61,7 +61,7 @@ const MONTHLY_TOTAL = SECTIONS.flatMap((section) => section.items).reduce(
     return {
       ...total,
       amount: total.amount + item.amount * factor,
-      maxAmount: total.maxAmount + (item.maxAmount ?? item.amount) * factor,
+      maxAmount: (total.maxAmount ?? 0) + (item.maxAmount ?? item.amount) * factor,
     };
   },
   { key: 'total', amount: 0, maxAmount: 0, currency: 'EUR' as const, approximate: true },

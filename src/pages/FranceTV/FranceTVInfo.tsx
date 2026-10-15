@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Clock, Film, Tv2, Users, Award, ChevronDown, Loader2, AlertCircle, Crown, Play } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Clock, Film, Tv2, Users, Award, Loader2, AlertCircle, Crown, Play } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { isUserVip } from '../../utils/authUtils';

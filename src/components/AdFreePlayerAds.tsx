@@ -182,7 +182,7 @@ const AdFreePlayerAds: React.FC<AdFreePlayerAdsProps> = ({
     if (!shouldShow || popupMode !== 'normal') return;
 
     const lenis = (
-      window as Window & { lenis?: { stop: () => void; start: () => void } }
+      (window as unknown as Window & { lenis?: { stop: () => void; start: () => void } })
     ).lenis;
     if (lenis) lenis.stop();
 

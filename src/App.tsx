@@ -15,9 +15,9 @@ import { TurnstileProvider } from './context/TurnstileContext';
 import { LightModeProvider, useLightMode } from './context/LightModeContext';
 
 import NotFound from './pages/NotFound';
-// NOTE perf : les imports globaux de video.js/dist/video-js.css et videojs-custom.css
-// ont été supprimés — VideoJS/VideoJSPlayer ne sont montés nulle part et ces composants
-// importent déjà leur propre CSS s'ils sont réactivés un jour.
+// NOTE perf : le wrapper Video.js (VideoJS/VideoJSPlayer) n'était monté nulle part.
+// Les composants, leur CSS et les dépendances video.js / @types/video.js ont été retirés.
+// Le lecteur repose sur hls.js (HLSPlayer) ; dashjs/mpegts.js/shaka restent pour Live TV et FranceTV.
 import axios from 'axios';
 import Footer from './components/Footer';
 import { AlertService } from './services/alertService';

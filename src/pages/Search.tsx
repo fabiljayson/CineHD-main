@@ -864,7 +864,7 @@ const Search: React.FC = () => {
                                                             : 'bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-white/30'
                                                             }`}
                                                     >
-                                                        <span>{'flagCode' in preset ? <ReactCountryFlag countryCode={preset.flagCode} svg style={{ width: '1.2em', height: '1.2em', borderRadius: '2px' }} /> : preset.emoji}</span>
+                                                        <span>{'flagCode' in preset ? <ReactCountryFlag countryCode={preset.flagCode as string} svg style={{ width: '1.2em', height: '1.2em', borderRadius: '2px' }} /> : preset.emoji}</span>
                                                         <span>{preset.label}</span>
                                                     </motion.button>
                                                 ))}

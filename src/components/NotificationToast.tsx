@@ -14,8 +14,8 @@ const NotificationToast: React.FC<NotificationToastProps> = ({
   const [isVisible, setIsVisible] = useState(true);
   const [progress, setProgress] = useState(100);
   const [isExiting, setIsExiting] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auto-dismiss after 15 seconds
   useEffect(() => {

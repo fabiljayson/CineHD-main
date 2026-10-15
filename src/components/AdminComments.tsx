@@ -117,7 +117,7 @@ const AdminIconButton: React.FC<AdminIconButtonProps> = ({
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             className={className}
-            {...props}
+            {...(props as any)}
         >
             {children}
         </motion.button>
@@ -1091,7 +1091,7 @@ const AdminComments: React.FC = () => {
                         <span className="text-xs text-white/40">{bans.length}/{bansTotal}</span>
                     )}
                     <div className="flex gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => fetchBans(true)} disabled={bansLoading}>
+                        <Button variant="secondary" size="sm" onClick={() => fetchBans()} disabled={bansLoading}>
                             <RefreshCw className={`h-4 w-4 mr-1.5 ${bansLoading ? 'animate-spin' : ''}`} />
                             {t('admin.refresh')}
                         </Button>

@@ -9,7 +9,6 @@ import { getTmdbLanguage } from '../i18n';
 import { motion } from 'framer-motion';
 import { SquareBackground } from '../components/ui/square-background';
 import ShinyText from '../components/ui/shiny-text';
-import BlurText from '../components/ui/blur-text';
 import AnimatedBorderCard from '../components/ui/animated-border-card';
 import { useAgeRestrictedContent } from '../hooks/useAgeRestrictedContent';
 

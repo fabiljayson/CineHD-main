@@ -139,7 +139,7 @@ const AdminStats = () => {
                 <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
                 <XAxis dataKey="date" tickFormatter={formatDayLabel} stroke={CHART_COLORS.axis} fontSize={11} tickMargin={8} minTickGap={24} />
                 <YAxis allowDecimals={false} stroke={CHART_COLORS.axis} fontSize={11} width={32} />
-                <Tooltip contentStyle={tooltipStyle} labelFormatter={formatDayLabel} />
+                <Tooltip contentStyle={tooltipStyle} labelFormatter={formatDayLabel as any} />
                 <Area type="monotone" dataKey="count" name={t('admin.stats.registrations', 'Inscriptions')} stroke={CHART_COLORS.registrations} strokeWidth={2} fill="url(#gReg)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -153,7 +153,7 @@ const AdminStats = () => {
                 <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
                 <XAxis dataKey="date" tickFormatter={formatDayLabel} stroke={CHART_COLORS.axis} fontSize={11} tickMargin={8} minTickGap={24} />
                 <YAxis allowDecimals={false} stroke={CHART_COLORS.axis} fontSize={11} width={32} />
-                <Tooltip contentStyle={tooltipStyle} labelFormatter={formatDayLabel} />
+                <Tooltip contentStyle={tooltipStyle} labelFormatter={formatDayLabel as any} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Line type="monotone" dataKey="sessions" name={t('admin.stats.logins', 'Connexions')} stroke={CHART_COLORS.sessions} strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="dau" name="DAU" stroke={CHART_COLORS.dau} strokeWidth={2} dot={false} />
@@ -185,7 +185,7 @@ const AdminStats = () => {
                 <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
                 <XAxis dataKey="date" tickFormatter={formatDayLabel} stroke={CHART_COLORS.axis} fontSize={11} tickMargin={8} minTickGap={24} />
                 <YAxis allowDecimals={false} stroke={CHART_COLORS.axis} fontSize={11} width={32} />
-                <Tooltip contentStyle={tooltipStyle} labelFormatter={formatDayLabel} />
+                <Tooltip contentStyle={tooltipStyle} labelFormatter={formatDayLabel as any} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Bar dataKey="comments" name={t('admin.stats.comments', 'Commentaires')} fill={CHART_COLORS.comments} radius={[3, 3, 0, 0]} />
                 <Bar dataKey="lists" name={t('admin.stats.lists', 'Listes')} fill={CHART_COLORS.lists} radius={[3, 3, 0, 0]} />

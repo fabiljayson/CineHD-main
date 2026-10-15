@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Share2, Facebook, Twitter, Link as LinkIcon, Check, X } from 'lucide-react';
 import { useLightMode } from '../context/LightModeContext';
 import { copyText } from '../utils/clipboard';

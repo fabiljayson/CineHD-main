@@ -10,7 +10,7 @@ const SnowContext = createContext<SnowContextType | undefined>(undefined);
 export const SnowProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSnowEnabled, setIsSnowEnabled] = useState(() => {
     const saved = localStorage.getItem('snow_enabled');
-    return saved ? JSON.parse(saved) : false;
+    return saved ? (JSON.parse(saved) as boolean) : false;
   });
 
   useEffect(() => {

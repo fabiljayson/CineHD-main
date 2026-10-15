@@ -191,7 +191,7 @@ const AprilFoolsAdminPage: React.FC = () => {
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    const lenis = (window as Window & { lenis?: { stop: () => void; start: () => void } }).lenis;
+    const lenis = (window as unknown as Window & { lenis?: { stop: () => void; start: () => void } }).lenis;
     if (lenis) {
       lenis.stop();
     }
@@ -387,7 +387,7 @@ const AprilFoolsAdminPage: React.FC = () => {
                 <div className="hidden rounded-3xl border border-white/10 bg-white/5 p-5">
                   <p className="mb-4 text-sm font-semibold text-white">{t('aprilAdmin.links.listTitle')}</p>
                   <div className="space-y-3">
-                    {[].map((link) => (
+                    {[].map((link: any) => (
                       <div key={link.id} className="rounded-2xl border border-white/10 bg-black/30 p-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>

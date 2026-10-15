@@ -100,7 +100,7 @@ export const useOptimizedFilter = ({ items, initialFilters }: UseOptimizedFilter
   const endDayMs = normalizeDateToDay(filters.dateRange?.end);
 
   const filteredItems = useMemo(() => {
-    let result = indexedItems.filter((indexedItem) => {
+    const result = indexedItems.filter((indexedItem) => {
       const { item, normalizedSearchText, addedAtDayMs } = indexedItem;
 
       if (filters.typeFilter !== 'all' && item.type !== filters.typeFilter) {

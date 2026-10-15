@@ -767,7 +767,7 @@ export const buildCalendarOccurrences = async (
     });
 
     const built = await mapLimited(alerts, async (alert) => {
-      const show = await getShow(showCache, alert.showId);
+      const show = await getShow(showCache, Number(alert.showId));
       return {
         key: `alerts:${alert.id}`,
         source: 'alerts' as const,

@@ -260,7 +260,7 @@ const WatchPartyCreate: React.FC = () => {
     selectedValue: string;
   }> = [
       {
-        id: 'nightflix',
+        id: 'nightflix' as DefaultSourceFamily,
         label: 'Nightflix',
         options: (mediaInfo.nightflixSources || []).map((source, index) => ({
           value: source.src,
@@ -269,7 +269,7 @@ const WatchPartyCreate: React.FC = () => {
         selectedValue: mediaInfo.nightflixSources?.find((source) => source.src === mediaInfo.src)?.src || mediaInfo.nightflixSources?.[0]?.src || ''
       },
       {
-        id: 'nexus',
+        id: 'nexus' as DefaultSourceFamily,
         label: 'Nexus',
         options: (mediaInfo.nexusSources || []).map((source, index) => ({
           value: source.url,
@@ -278,7 +278,7 @@ const WatchPartyCreate: React.FC = () => {
         selectedValue: mediaInfo.currentNexusSource?.url || mediaInfo.nexusSources?.find((source) => source.url === mediaInfo.src)?.url || mediaInfo.nexusSources?.[0]?.url || ''
       },
       {
-        id: 'bravo',
+        id: 'bravo' as DefaultSourceFamily,
         label: 'Bravo',
         options: bravoSources.map((source, index) => ({
           value: source.url,
@@ -287,7 +287,7 @@ const WatchPartyCreate: React.FC = () => {
         selectedValue: mediaInfo.currentBravoSource?.url || bravoSources.find((source) => source.url === mediaInfo.src)?.url || bravoSources[0]?.url || ''
       },
       {
-        id: 'mp4',
+        id: 'mp4' as DefaultSourceFamily,
         label: 'MP4 / Fichier',
         options: mp4Sources.map((source, index) => ({
           value: source.url,

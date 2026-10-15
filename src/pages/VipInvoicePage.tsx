@@ -140,7 +140,8 @@ const VipInvoicePage: React.FC = () => {
 
     let cancelled = false;
     (async () => {
-      const qrcodeMod = await import('qrcode');
+      // @ts-ignore
+      const qrcodeMod: any = await import('qrcode');
       const QRCode = qrcodeMod.default;
       try {
         const url = await QRCode.toDataURL(invoice.qrPayload, {

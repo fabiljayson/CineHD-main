@@ -254,7 +254,7 @@ interface EpisodeInfo {
   vote_average?: number;
 }
 
-type PlayerSourceType = 'darkino' | 'mp4' | 'm3u8' | 'frembed' | 'custom' | 'vostfr' | 'omega' | 'coflix' | 'fstream' | 'wiflix' | 'j1f' | 'swiftflow' | 'viper' | 'vox' | string | number; // Allow string for embed types
+type PlayerSourceType = 'darkino' | 'mp4' | 'm3u8' | 'frembed' | 'custom' | 'vostfr' | 'nexus_file' | 'nexus_hls' | 'omega' | 'coflix' | 'fstream' | 'wiflix' | 'j1f' | 'swiftflow' | 'viper' | 'vox' | string | number; // Allow string for embed types
 
 function formatPremidSourceDetail(...parts: Array<string | null | undefined>) {
   const normalizedParts = parts
@@ -644,7 +644,7 @@ const WatchTv: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'fstream' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   // Stabilité UX (M4) : pas de prefsVersion en deps — pin update les prefs et
   // l'indicateur #1, mais l'ordre affiché reste stable jusqu'au prochain refresh.
   }, [fstreamSources]);
@@ -659,7 +659,7 @@ const WatchTv: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'wiflix' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [wiflixSources]);
 
   const sortedJ1f = useMemo(() => {
@@ -672,7 +672,7 @@ const WatchTv: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'j1f' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [j1fSources]);
 
   const sortedSwiftflow = useMemo(() => {
@@ -685,7 +685,7 @@ const WatchTv: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'swiftflow' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [swiftflowSources]);
 
   // Omega / Coflix : les listes viennent de champs dérivés (`omegaData` / `coflixData`).
@@ -704,7 +704,7 @@ const WatchTv: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'omega' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [omegaData, seasonNumber, episodeNumber]);
 
   const sortedCoflix = useMemo<Array<CoflixPlayer & { type: string }>>(() => {
@@ -719,7 +719,7 @@ const WatchTv: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'coflix' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [coflixData]);
 
   // Viper : items `{ url, label, quality, language }`. Le champ `language`
@@ -734,7 +734,7 @@ const WatchTv: React.FC = () => {
       }) ?? 'unknown',
     }));
     return sortHostersByPriority(annotated, { category: 'moviesTv', topLevel: 'viper' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [viperSources]);
 
   // Ref to track the current source type to avoid issues with state updates
@@ -1615,7 +1615,7 @@ const WatchTv: React.FC = () => {
             }));
           // Pré-tri par priorité hoster (M4) avec fallback raw si tous unknown.
           const prefsBv0 = getSourcePriorityPrefs();
-          const annotatedBravo = rawBravo.map((s) => ({
+          const annotatedBravo = rawBravo.map((s: any) => ({
             ...s,
             type: (detectHoster(s.url || '', {
               patternOverrides: prefsBv0.patternOverrides,
@@ -1625,7 +1625,7 @@ const WatchTv: React.FC = () => {
               customHosters: prefsBv0.customHosters,
             })) ?? 'unknown',
           }));
-          const allUnknown = annotatedBravo.every((s) => s.type === 'unknown');
+          const allUnknown = annotatedBravo.every((s: any) => s.type === 'unknown');
           localBravoSources = allUnknown
             ? rawBravo
             : (sortHostersByPriority(annotatedBravo, { category: 'moviesTv', topLevel: 'bravo' }) as typeof rawBravo);
@@ -2246,7 +2246,7 @@ const WatchTv: React.FC = () => {
         // Helper : applique la config d'embed pour l'id choisi. Close sur toutes les
         // variables locales de `initialFetch`. Retourne true si géré.
         const applyEmbedConfig = (sourceId: TopLevelSourceId): boolean => {
-          switch (sourceId) {
+          switch (sourceId as string) {
             case 'nexus_hls': {
               console.log('✅ Selecting NEXUS HLS as primary source');
               const prefsNh = getSourcePriorityPrefs();
@@ -2614,7 +2614,7 @@ const WatchTv: React.FC = () => {
           // Priority-driven auto-select. Availability construite à partir des sources locales.
           const availability: SourceAvailability[] = [
             { id: 'nexus_hls', hasData: finalHlsSources.length > 0 },
-            { id: 'nexus_file', hasData: finalFileSources.length > 0 },
+            { id: 'nexus_file' as TopLevelSourceId, hasData: finalFileSources.length > 0 },
             { id: 'bravo', hasData: localBravoSources.length > 0 && canUseBravo },
             { id: 'mp4', hasData: fetchedMp4Sources.length > 0 },
             { id: 'darkino', hasData: !!(darkinoResult && darkinoResult.available && darkinoResult.sources.length > 0) },

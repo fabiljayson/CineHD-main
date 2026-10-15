@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Film, Search, Grid, List, Heart, Bookmark, Plus } from 'lucide-react';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import AddToListMenu from '../components/AddToListMenu';
 import { SquareBackground } from '../components/ui/square-background';
 import ShinyText from '../components/ui/shiny-text';

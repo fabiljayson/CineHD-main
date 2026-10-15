@@ -163,7 +163,7 @@ type WebCastMediaSession = {
 
 function getWebMedia(session: WebCastSession): WebCastMediaSession | null {
   return session.getMediaSession?.()
-    ?? (Array.isArray(session.media) ? session.media.at(-1) ?? null : null)
+    ?? (Array.isArray(session.media) ? session.media[session.media.length - 1] ?? null : null)
     ?? null;
 }
 

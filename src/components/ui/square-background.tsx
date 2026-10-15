@@ -704,7 +704,7 @@ export const SquareBackground: React.FC<SquareBackgroundProps> = ({
     return (
         <div
             ref={containerRef}
-            className={cn('relative overflow-hidden bg-black', className)}
+            className={cn('relative overflow-hidden bg-transparent', className)}
             {...props}
         >
             {showCssGrid && (

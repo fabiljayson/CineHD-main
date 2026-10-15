@@ -300,8 +300,8 @@ const WatchPartyRoom: React.FC = () => {
   const lastPlaybackEventTypeRef = useRef<string | null>(null);
   const lastSeekSourceTimeRef = useRef<number>(0); // Stores the position *before* a host seek
   const initialFetchDoneRef = useRef(false);
-  const continuousSyncIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const attemptReconnectRef = useRef<NodeJS.Timeout | null>(null);
+  const continuousSyncIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const attemptReconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastKnownMainMediaIdentity = useRef<string | null>(null); // Ref to track main media identity
   const isSyncingRef = useRef(false); // Guard contre les boucles de feedback play/pause
   const syncWorkerRef = useRef<Worker | null>(null);
@@ -312,7 +312,7 @@ const WatchPartyRoom: React.FC = () => {
   const masterPlaybackStateRef = useRef<PlaybackState | null>(null);
   const syncProbeSequenceRef = useRef(0);
   const syncProbeTimersRef = useRef<number[]>([]);
-  const localSyncIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const localSyncIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const canControlPlayback = isCurrentUserHost || coHosts.includes(userId) || controlMode === 'democratic';
 

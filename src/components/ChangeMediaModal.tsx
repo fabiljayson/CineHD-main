@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Film, Tv, Star, Calendar, Loader2, ArrowRight, X } from 'lucide-react';
+import { Search, Film, Tv, Star, Loader2, ArrowRight, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import ReusableModal from './ui/reusable-modal';

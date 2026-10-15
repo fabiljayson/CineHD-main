@@ -257,7 +257,7 @@ const SmoothScroll = () => {
           stopRaf();
           lenis.destroy();
           lenis = null;
-          delete (window as typeof window & { lenis?: Lenis }).lenis;
+          (window as any).lenis = undefined;
           document.documentElement.style.scrollBehavior = 'auto';
         }
         return;
@@ -311,7 +311,7 @@ const SmoothScroll = () => {
         stopRaf();
         lenis.destroy();
         lenis = null;
-        delete (window as typeof window & { lenis?: Lenis }).lenis;
+        (window as any).lenis = undefined;
       }
       initLenis();
     };
@@ -372,7 +372,7 @@ const SmoothScroll = () => {
 
       if (lenis) {
         lenis.destroy();
-        delete (window as typeof window & { lenis?: Lenis }).lenis;
+        (window as any).lenis = undefined;
       }
 
       window.removeEventListener('storage', handleStorageChange);

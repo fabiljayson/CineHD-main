@@ -61,6 +61,7 @@ const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || '';
 interface TVShow {
   id?: string | number;
   name: string;
+  original_name?: string;
   overview: string;
   poster_path: string;
   backdrop_path: string;

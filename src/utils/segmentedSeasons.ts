@@ -31,7 +31,7 @@
  * `SEGMENTED_SHOWS` ne paie strictement rien : une regex sur l'URL, et on rend
  * la réponse telle quelle.
  */
-import type { AxiosInstance, AxiosResponse } from 'axios';
+import type { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
 import {
   mergeSegmentedSeason,
   type MergedEpisode,
@@ -53,7 +53,7 @@ const FALLBACK_LANGUAGE = 'en-US';
  * fusionnée, sinon la table de repli serait elle-même recollée et les titres ne
  * correspondraient plus aux numéros d'épisodes TMDB.
  */
-interface SegmentedRequestConfig {
+interface SegmentedRequestConfig extends AxiosRequestConfig {
   __movixSegmentedRaw?: boolean;
 }
 

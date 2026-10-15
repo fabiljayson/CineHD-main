@@ -391,19 +391,19 @@ const LiveTVPlayer: React.FC<LiveTVPlayerProps> = ({
     const hlsRef = useRef<HlsType | null>(null);
     const dashRef = useRef<any>(null);
     const mpegtsRef = useRef<any>(null); // Ref for mpegts player
-    const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+    const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
     const hls404RetryRef = useRef(0);
     const hls458RetryRef = useRef(0);
     const levelParsingRetryRef = useRef(0);
     const currentCastUrlRef = useRef<string | null>(null);
 
     // Watchdog refs for stall detection & auto-recovery
-    const watchdogRef = useRef<NodeJS.Timeout | null>(null);
+    const watchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastTimeRef = useRef<number>(0);
     const stallCountRef = useRef<number>(0);
-    const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const bufferAppendRetryRef = useRef<number>(0);
-    const hlsRecoveryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const hlsRecoveryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hlsRecoveryInFlightRef = useRef(false);
     const userPausedRef = useRef(false);
     const streamsRef = useRef<Stream[]>([]);
@@ -691,7 +691,7 @@ const LiveTVPlayer: React.FC<LiveTVPlayerProps> = ({
         const prevHtmlOverflow = document.documentElement.style.overflow;
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
-        const lenis = (window as Window & { lenis?: { stop: () => void; start: () => void } }).lenis;
+        const lenis = (window as unknown as Window & { lenis?: { stop: () => void; start: () => void } }).lenis;
         lenis?.stop();
         return () => {
             document.body.style.overflow = prevBodyOverflow;

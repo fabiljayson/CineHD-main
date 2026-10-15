@@ -84,7 +84,7 @@ const NotificationsPopup: React.FC<NotificationsPopupProps> = ({ onClose, onNoti
 
     // La fermeture lors du clic extérieur est gérée par le Header
     // Pas besoin de gérer ça ici pour éviter les conflits
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   const loadMoreNotifications = useCallback(async () => {

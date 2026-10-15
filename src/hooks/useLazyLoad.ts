@@ -104,7 +104,7 @@ export function useLazyLoad<T = unknown>(
     const [error, setError] = useState<Error | null>(null);
 
     const observerRef = useRef<IntersectionObserver | null>(null);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Fonction pour déclencher manuellement le chargement
     const triggerLoad = useCallback(() => {

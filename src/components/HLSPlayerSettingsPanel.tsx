@@ -6,7 +6,6 @@ import { useLightMode } from '../context/LightModeContext';
 import { ChevronRight, ExternalLink, Gauge, Loader2 } from 'lucide-react';
 import ReactCountryFlag from 'react-country-flag';
 import { Select, SelectTrigger, SelectContent, SelectItem } from '@/components/ui/select';
-import CustomDropdown from './CustomDropdown';
 import { computeFacets, filterTracks } from '../services/subtitles/index.ts';
 import type { SubtitleFilters, SubtitleTrack } from '../services/subtitles/index.ts';
 import { SubtitleStyleControls } from './subtitles/SubtitleStyleControls';
@@ -457,7 +456,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
     [sortedNexusHlsMemo],
   );
   const seekStreamingNexusGroupsMemo = useMemo(
-    () => groupSeekStreamingSources(seekStreamingNexusMemo),
+    () => groupSeekStreamingSources(seekStreamingNexusMemo as any),
     [seekStreamingNexusMemo],
   );
   const otherNexusHlsMemo = useMemo(
@@ -672,7 +671,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                     />
 
                     {/* Sources HLS d'abord */}
-                    {sourceGroups.map((group, groupIndex) => (
+                    {sourceGroups.map((group: any, groupIndex: number) => (
                       <div key={`group_${groupIndex}`} className="mb-6">
                         <div className="flex items-center justify-between gap-2 mb-2 px-2">
                           <h4 className="text-gray-400 text-xs uppercase tracking-wider">{group.title}</h4>
@@ -695,7 +694,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                           )}
                         </div>
 
-                        {group.sources.map(source => {
+                        {group.sources.map((source: any) => {
                           // Skip rendering individual VOSTFR sources here, they are handled in the dropdown
                           if (source.type === 'vostfr') return null;
 
@@ -703,11 +702,11 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                           // Updated isActive logic for HLS sources
                           if (source.type === 'darkino_main') {
                             // Main Darkino button is active if any child Darkino source is playing
-                            isActive = darkinoSources.some(ds => ds.m3u8 === src);
+                            isActive = darkinoSources.some((ds: any) => ds.m3u8 === src);
                           } else if (source.type === 'nexus_main') {
                             // Main Nexus button is active if any child Nexus source is playing
-                            isActive = (nexusHlsSources && nexusHlsSources.some(ns => ns.url === src)) ||
-                              (nexusFileSources && nexusFileSources.some(ns => ns.url === src));
+                            isActive = (nexusHlsSources && nexusHlsSources.some((ns: any) => ns.url === src)) ||
+                              (nexusFileSources && nexusFileSources.some((ns: any) => ns.url === src));
                           } else if (source.type === 'mp4') {
                             isActive = src === source.url; // Direct comparison for MP4
                           } else if (source.type === 'swiftflux') {
@@ -721,12 +720,12 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                             isActive = src === source.url;
                           } else if (source.type === 'viper_main') {
                             // Main Viper button is active if any viper source is active
-                            isActive = viperSources.some(vs => vs.url === embedUrl);
+                            isActive = viperSources.some((vs: any) => vs.url === embedUrl);
                           } else if (source.type === 'vox_main') {
                             // Main Vox button is active if any vox source is active
-                            isActive = voxSources.some(vs => vs.link === embedUrl);
+                            isActive = voxSources.some((vs: any) => vs.link === embedUrl);
                           } else if (source.type === 'bravo_main') {
-                            isActive = purstreamSources.some(ps => ps.url === src);
+                            isActive = purstreamSources.some((ps: any) => ps.url === src);
                           } else {
                             // Existing logic for embed sources
                             isActive = !!source.isActive || (onlyQualityMenu && embedType === source.type && embedUrl === source.url);
@@ -822,7 +821,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                                             >
                                               <div className="min-w-0 flex flex-1 flex-col">
                                                 <span className={isDarkinoSourceActive ? 'text-red-600 font-medium' : 'text-white'}>
-                                                  {darkiSource.label || darkiSource.quality || `Source ${index + 1}`}
+                                                  {String(darkiSource.label ?? darkiSource.quality ?? `Source ${index + 1}`)}
                                                   {pinnedHosterId === darkiSource.type && darkiSource.type !== 'unknown' && (
                                                     <span className="ml-2 text-xs text-amber-400 font-semibold">#1</span>
                                                   )}
@@ -873,7 +872,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                                             : t('watch.seekStreaming')}
                                           serverTitle={t('watch.server')}
                                           getServerLabel={(number) => t('watch.serverNumber', { number })}
-                                          headerAction={renderHosterPin(group[0]?.type)}
+                                          headerAction={renderHosterPin((group[0] as { type?: string } | undefined)?.type)}
                                           renderSourceMeta={(source, active) => renderSourceQualityMeta(
                                             source.url,
                                             active,
@@ -1380,7 +1379,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                                             >
                                               <div className="flex flex-col">
                                                 <span className={isVoxSourceActive ? 'text-red-600 font-medium' : 'text-white'}>
-                                                  {vSource.name}
+                                                  {String(vSource.name ?? '')}
                                                   {pinnedHosterId === vSource.type && vSource.type !== 'unknown' && (
                                                     <span className="ml-2 text-xs text-amber-400 font-semibold">#1</span>
                                                   )}
@@ -1485,7 +1484,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                                               >
                                                 <div className="min-w-0 flex flex-1 flex-col">
                                                   <span className={isBravoActive ? 'text-red-600 font-medium' : 'text-white'}>
-                                                    {bravoSource.label}
+                                                    {String(bravoSource.label ?? '')}
                                                     {pinnedHosterId === bravoSource.type && bravoSource.type !== 'unknown' && (
                                                       <span className="ml-2 text-xs text-amber-400 font-semibold">#1</span>
                                                     )}
@@ -1534,14 +1533,14 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                                             >
                                               <div className="flex flex-col">
                                                 <span className={`${isViperSourceActive ? 'text-red-500 font-medium' : 'text-gray-300'}`}>
-                                                  {vSource.label}
+                                                  {String(vSource.label ?? '')}
                                                   {pinnedHosterId === vSource.type && vSource.type !== 'unknown' && (
                                                     <span className="ml-2 text-[10px] text-amber-400 font-semibold">#1</span>
                                                   )}
                                                 </span>
                                                 <div className="flex gap-2">
-                                                  {vSource.language && <span className="text-[10px] text-gray-500 uppercase">{vSource.language}</span>}
-                                                  {vSource.quality && <span className="text-[10px] text-gray-500">{vSource.quality}</span>}
+                                                   {Boolean(vSource.language) && <span className="text-[10px] text-gray-500 uppercase">{String(vSource.language)}</span>}
+                                                   {Boolean(vSource.quality) && <span className="text-[10px] text-gray-500">{String(vSource.quality)}</span>}
                                                 </div>
                                               </div>
                                               {isViperSourceActive && <div className="w-2 h-2 rounded-full bg-red-500"></div>}
@@ -1697,7 +1696,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                     transition={getTransition({ duration: 0.25 })}
                     className="pr-2"
                   >
-                    {audioTracks.map((track) => (
+                    {audioTracks.map((track: any) => (
                       <button
                         key={track.id}
                         onClick={() => handleAudioTrackChange(track.id)}
@@ -1743,7 +1742,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                     {subtitles.length > 0 ? (
                       <div className="mb-4">
                         <h4 className="text-gray-400 text-xs uppercase tracking-wider mb-2 px-2">{t('watch.builtInSubtitles')}</h4>
-                        {subtitles.map((track, idx) => {
+                        {subtitles.map((track: any, idx: number) => {
                           // Key on idx, not language: two tracks can share a language
                           // (e.g. "Français (forced)" + "Français"), and a language-based
                           // id collides so both rows would show "Actif" and only the first

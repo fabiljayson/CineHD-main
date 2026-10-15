@@ -1,4 +1,5 @@
 // src/utils/sourcePriorityPrefs.ts
+import { BUILTIN_HOSTER_PATTERNS } from './hosterRegistry';
 import {
   TOP_LEVEL_SOURCE_IDS, BUILTIN_HOSTER_IDS, LANGUAGE_IDS,
   DEPRECATED_SOURCE_IDS, DEPRECATED_HOSTER_IDS,
@@ -150,11 +151,7 @@ function isValidPrefs(obj: unknown): obj is PersistedSourcePriorityPrefs {
 function migrateV1toV2(
   parsed: LegacySourcePriorityPrefs<1>,
 ): LegacySourcePriorityPrefs<2> {
-  // Import dynamique synchrone : le module est déjà chargé côté runtime.
-  // (Le cycle d'imports théorique est rompu en pratique car hosterRegistry
-  // n'appelle JAMAIS getSourcePriorityPrefs au import-time.)
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { BUILTIN_HOSTER_PATTERNS } = require('./hosterRegistry') as typeof import('./hosterRegistry');
+  // hosterRegistry ne consomme sourcePriorityPrefs qu'au runtime, jamais à l'import.
 
   const migratedOverrides: SourcePriorityPrefs['patternOverrides'] = {};
   for (const [id, userPatterns] of Object.entries(parsed.patternOverrides ?? {})) {

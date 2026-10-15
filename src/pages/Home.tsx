@@ -8,18 +8,23 @@ import CatalogSkeleton from '../components/skeletons/CatalogSkeleton';
 
 import TelegramPromotion from '../components/TelegramPromotion';
 import HeroSlider from '../components/HeroSlider';
+import CinemaHero from '../components/CinemaHero';
+import EditorialHero from '../components/EditorialHero';
+import CineHDLoadingScreen from '../components/CineHDLoadingScreen';
+import HomeBackground from '../components/HomeBackground';
 import EmblaCarousel from '../components/EmblaCarousel';
 import EmblaCarouselPlatforms from '../components/EmblaCarouselPlatforms';
 import { useWrappedTracker } from '../hooks/useWrappedTracker';
+import { useScrollBackground } from '../hooks/useScrollBackground';
 import LazySection from '../components/LazySection';
 import { SquareBackground } from '../components/ui/square-background';
 import { SITE_URL } from '../config/runtime';
 import { getTmdbLanguage } from '../i18n';
-import { encodeId } from '../utils/idEncoder';
 import { getPersonalizedRecommendations, isRecommendationsEnabled, PersonalizedRecommendations } from '../services/recommendationService';
 import CarouselTitle from '../components/CarouselTitle';
 import ConfirmDialog from '../components/ui/confirm-dialog';
 import { readLocalStorage } from '../utils/browserStorage';
+import { HOME_BACKGROUNDS } from '../data/backgroundImages';
 
 // Nombre de sections à charger immédiatement (les premières sont prioritaires)
 const IMMEDIATE_LOAD_COUNT = 3;
@@ -176,32 +181,17 @@ const homeStyles = `
   z-index: 1;
 }
 
+/* Editorial section heading */
 .section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  position: relative;
-  background: linear-gradient(90deg, #ffffff, #e2e2e2);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.5px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(1.55rem, 2.6vw, 2.25rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #f7f8f9;
   padding-bottom: 0.5rem;
-  text-transform: uppercase;
   display: inline-block;
-  animation: homeFadeInTitle 0.8s ease-out forwards;
-  /* Ciblé plutôt que \`all\` : le dégradé de fond n'a rien à faire dans une
-     transition — il est découpé sur le texte et son interpolation coûte un
-     repaint à chaque frame. */
-  transition: transform 0.3s ease, text-shadow 0.3s ease;
-}
-
-.section-title:hover {
-  background: linear-gradient(90deg, #ff3333, #ff9999);
-  -webkit-background-clip: text;
-  background-clip: text;
-  transform: translateY(-2px);
-  text-shadow: 0px 4px 8px rgba(255, 51, 51, 0.4);
+  position: relative;
 }
 
 .section-title::after {
@@ -210,26 +200,14 @@ const homeStyles = `
   left: 0;
   bottom: 0;
   width: 40px;
-  height: 3px;
-  background: linear-gradient(90deg, #f11 0%, #f66 100%);
-  border-radius: 3px;
+  height: 1px;
+  background: #c89028;
   transform-origin: left;
-  /* \`backwards\` et non \`forwards\`. Une valeur figée par une animation
-     l'emporte sur toute règle normale, survol compris : le trait restait
-     bloqué à 40px une fois l'animation finie, mais s'étirait si on passait la
-     souris pendant le délai de 0.3s. D'où un comportement qui dépendait du
-     moment. \`backwards\` ne tient que l'état de départ pendant le délai,
-     puis rend la main aux règles CSS.                                      */
   animation: homeExpandWidth 0.6s ease-out 0.3s backwards;
-  transition: width 0.3s ease, background 0.3s ease;
 }
 
 .section-title:hover::after {
-  /* Borné. \`width: 100%\` se rapportait à la largeur du titre : sur
-     « PARCE QUE VOUS AVEZ REGARDÉ … » en capitales, le trait devenait une
-     barre rouge démesurée. */
   width: 72px;
-  background: linear-gradient(90deg, #ff3333, #ff9999);
 }
 
 @keyframes homeFadeInTitle {
@@ -240,6 +218,17 @@ const homeStyles = `
 @keyframes homeExpandWidth {
   0% { width: 0; }
   100% { width: 40px; }
+}
+
+
+/* ── Fade doux des sections au fur et à mesure du scroll ───────────── */
+@keyframes homeSectionFade {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.home-section {
+  animation: homeSectionFade 0.6s ease-out both;
 }
 `;
 
@@ -357,6 +346,7 @@ const Home: React.FC = () => {
   const { t } = useTranslation();
   const tmdbLanguage = getTmdbLanguage();
   const [loading, setLoading] = useState(true);
+  const [cinematicLoadingVisible, setCinematicLoadingVisible] = useState(true);
   const [heroItems, setHeroItems] = useState<Media[]>([]);
   const [trending, setTrending] = useState<Media[]>([]);
   const [popularMovies, setPopularMovies] = useState<Media[]>([]);
@@ -373,6 +363,15 @@ const Home: React.FC = () => {
   const [recommendations, setRecommendations] = useState<Media[]>([]);
   const [personalizedReco, setPersonalizedReco] = useState<PersonalizedRecommendations | null>(null);
   const fetchControllerRef = useRef<AbortController | null>(null);
+  React.useEffect(() => {
+    if (loading) {
+      setCinematicLoadingVisible(true);
+    } else {
+      const timer = window.setTimeout(() => setCinematicLoadingVisible(false), 7000);
+      return () => window.clearTimeout(timer);
+    }
+  }, [loading]);
+  const homeBackgroundIndex = useScrollBackground(HOME_BACKGROUNDS.length);
 
   // Track page visit for Movix Wrapped
   useWrappedTracker({
@@ -1146,17 +1145,13 @@ const Home: React.FC = () => {
     { id: 356, src: "https://u.cubeupload.com/mystic/2Tc1P3Ac8M479naPp1kY.png", video: "https://media.tenor.com/ag74wyAzYkMAAAPo/dc-comics-dceu.mp4", alt: "DC Comics", route: "/provider/356", label: t('home.filmsAndSeries', { count: 98 }) },
   ], [t]);
 
-  if (loading) {
-    return (
-      <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" className="w-full min-h-screen bg-black text-white">
-        <style dangerouslySetInnerHTML={{ __html: homeStyles }} />
-        <CatalogSkeleton variant="home" showPlatforms={!streamingPlatformsHidden} />
-      </SquareBackground>
-    );
+  if (cinematicLoadingVisible) {
+    return <CineHDLoadingScreen ready={!loading && !cinematicLoadingVisible} />;
   }
 
   return (
-    <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" className="w-full min-h-screen bg-black text-white">
+    <SquareBackground squareSize={48} borderColor="rgba(0, 0, 0, 0)" mode="static" className="w-full min-h-screen bg-transparent text-white">
+      <HomeBackground images={HOME_BACKGROUNDS} activeIndex={homeBackgroundIndex} />
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -1175,9 +1170,7 @@ const Home: React.FC = () => {
         ) : (
           <>
             {heroItems.length > 0 && (
-              <div className="relative w-full pt-16 md:pt-20 lg:pt-24">
-                <HeroSlider items={heroItems} />
-              </div>
+              <EditorialHero items={heroItems as any} />
             )}
 
             {!streamingPlatformsHidden && (
@@ -1219,7 +1212,7 @@ const Home: React.FC = () => {
                   <LazySection index={idx + 2} immediateLoadCount={IMMEDIATE_LOAD_COUNT}>
                     <EmblaCarousel
                       title={becauseYouWatchedTitles[idx]}
-                      items={group.items}
+                      items={group.items as any}
                       mediaType="mixed"
                     />
                   </LazySection>
@@ -1232,7 +1225,7 @@ const Home: React.FC = () => {
                   <LazySection index={idx + 5} immediateLoadCount={IMMEDIATE_LOAD_COUNT}>
                     <EmblaCarousel
                       title={topGenresTitles[idx]}
-                      items={group.items}
+                      items={group.items as any}
                       mediaType="mixed"
                     />
                   </LazySection>
@@ -1245,7 +1238,7 @@ const Home: React.FC = () => {
                   <LazySection index={8} immediateLoadCount={IMMEDIATE_LOAD_COUNT}>
                     <EmblaCarousel
                       title={usersAlsoWatchedTitle}
-                      items={personalizedReco.usersAlsoWatched}
+                      items={personalizedReco.usersAlsoWatched as any}
                       mediaType="mixed"
                     />
                   </LazySection>

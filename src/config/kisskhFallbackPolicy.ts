@@ -1,4 +1,4 @@
-import policyJson from '../../config/kisskhFallbackPolicy.json';
+import policyJson from './kisskhFallbackPolicy.json';
 
 export interface KisskhFallbackPolicy {
   readonly version: 1;

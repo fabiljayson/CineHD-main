@@ -303,7 +303,7 @@ const LoginBip39: React.FC<LoginBip39Props> = ({ mode = 'login' }) => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => { navigate('/create-account'); }}
+                  onClick={() => { navigate('/login?tab=create'); }}
                   disabled={isLoading}
                   className="w-full rounded-xl border border-white/10 bg-white/5 py-3 font-medium text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
                 >

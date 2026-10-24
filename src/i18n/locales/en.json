@@ -681,7 +681,7 @@
   },
   "footer": {
     "copyright": "© {{year}} CineHD. All rights reserved.",
-    "credits": "Made with ❤️ by <author>@mysticsaba</author> · Project started at age 14",
+    "credits": "Made with love by <author>@mysticsaba</author> · Project started at age 14",
     "navigation": "Footer navigation",
     "movix": "CineHD",
     "about": "About CineHD",
@@ -692,7 +692,7 @@
     "legal": "Legal",
     "contact": "Contact",
     "discord": "Discord",
-    "telegram": "Telegram",
+    "whatsapp": "WhatsApp",
     "description": "Your favorite streaming platform",
     "contentTitle": "About the content",
     "contentText": "CineHD indexes content available from third-party services. Its availability depends on those services.",
@@ -730,6 +730,15 @@
       "watch": "Watch",
       "play": "Play",
       "moreInfo": "More Info",
+      "info": "Info",
+      "nowPlaying": "Now Playing",
+      "noOverview": "No overview available.",
+      "rating": "Rating",
+      "release": "Year",
+      "type": "Type",
+      "genres": "Genres",
+      "series": "Series",
+      "movie": "Movie",
       "addToList": "Add to My List",
       "specialEventAnnouncement": "On CineHD on August 27 between 9 PM and 10 PM"
     },
@@ -753,7 +762,7 @@
     "errorLoadingData": "Error loading data.",
     "errorLoadingMain": "Error loading main data.",
     "perEpisode": "episode",
-    "filmsAndSeries": "{{count}} MOVIES & SERIES",
+    "filmsAndSeries": "{{count}} movies & series",
     "becauseYouWatched": "Because you watched {{title}}",
     "popularInGenre": "Popular in {{genre}}",
     "forYou": "For you",
@@ -1020,7 +1029,7 @@
     "antiSpoilConfig": "Configure anti-spoiler settings",
     "antiSpoil": "Anti-Spoiler",
     "tvShowDefaultTitle": "TV Show - CineHD",
-    "choosePlayer": "👉 Please choose a player",
+    "choosePlayer": "Please choose a player",
     "playerOptionsBelow": "from the options below.",
     "nightflixRecommended": "Nightflix player is available and recommended for this episode!",
     "tryDifferentPlayers": "Try different players if one doesn't work.",
@@ -3979,9 +3988,9 @@
     "accessForLifePrice": "Access CineHD VIP for only 5€ for life and enjoy:",
     "prioritySupport": "Priority support",
     "getAccessClicks": "Get your access in a few clicks:",
-    "joinTelegramForVip": "To get VIP access (5€/year), join our Telegram.",
-    "contactTelegramForVip": "To get VIP access (5€ for life), contact mysticsaba on Telegram.",
-    "donateForKey": "Make a donation to get your CineHD VIP key, or contact us on Telegram.",
+    "vip.joinWhatsAppForVip": "To get VIP access (5€/year), join our WhatsApp.",
+    "vip.contactWhatsAppForVip": "To get VIP access (5€ for life), contact mysticsaba on WhatsApp.",
+    "donateForKey": "Make a donation to get your CineHD VIP key, or contact us on WhatsApp.",
     "quality4k": "Quality up to 4K HDR",
     "multiLangSubtitles": "Multi-language subtitles",
     "multipleLanguages": "Multiple languages available",
@@ -4007,9 +4016,9 @@
     "perfectOffer": "The perfect offer for those who don't want to bother with ad blocker installation and DNS changes.",
     "howToSubscribe": "How to subscribe?",
     "contactToActivate": "Contact us directly to activate your VIP access.",
-    "telegramChannel": "Telegram Channel (t.me/ix_annonces)",
+    "vip.whatsappChannel": "WhatsApp Channel (+237 678 42 69 69)",
     "discordContact": "Discord: mysticsaba_alt",
-    "telegramPersonal": "Or on personal Telegram:",
+    "vip.whatsappPersonal": "Or on personal WhatsApp:",
     "supportMessage": "VIPs keep the site alive! Servers, internal proxies, and testing new features in development... All of this costs money, and every contribution helps us keep going 💛",
     "backToHome": "Back to Home",
     "errors": {
@@ -4767,7 +4776,7 @@
     "rightObjection": "Right to object to processing",
     "contact": "Contact",
     "contactText": "For any questions regarding this privacy policy or to exercise your rights, you can contact us:",
-    "joinTelegram": "Join our Telegram group",
+    "privacy.joinWhatsApp": "Join our WhatsApp group",
     "modifications": "Modifications",
     "modificationsText": "We may update this privacy policy from time to time. We will notify you of any significant changes through a notification on our platform. We encourage you to review this page regularly."
   },
@@ -4821,7 +4830,7 @@
     "passionProject": "A passion project",
     "passionProjectDesc": "CineHD was started at 14, out of passion for development and streaming. Every feature was designed to simplify users' lives. No marketing budget, just word of mouth.",
     "community": "The community",
-    "communityDesc": "Today, CineHD is an active community on Discord and Telegram. User feedback guides every update. It's a living project that constantly evolves.",
+    "communityDesc": "Today, CineHD is an active community on WhatsApp. User feedback guides every update. It's a living project that constantly evolves.",
     "alwaysFurther": "Always further",
     "alwaysFurtherDesc": "Watch parties, shared lists, CineGraph, release alerts, multiple profiles, browser extension... CineHD keeps growing to offer the best free streaming experience.",
     "allYouNeed": "Everything you need",
@@ -4925,7 +4934,7 @@
     "twitter": "Twitter",
     "facebook": "Facebook",
     "whatsapp": "WhatsApp",
-    "telegram": "Telegram",
+    "share.whatsapp": "WhatsApp",
     "reddit": "Reddit",
     "email": "Email"
   },
@@ -5467,13 +5476,13 @@
     "title": "Support",
     "description": "Need help? Contact us!",
     "discord": "Join Discord",
-    "telegram": "Join Telegram",
+    "support.whatsapp": "Join WhatsApp",
     "email": "Send an email",
     "faq": "FAQ",
     "likeOurSite": "Do you like our site?",
     "wantToSupport": "Want to support us?",
     "shareTikTok": "Share the site, make a TikTok video!",
-    "tikTokReward": "If your TikTok video gets 4000+ views, we'll give you a VIP key! Contact us on Telegram or Discord: mysticsaba_alt!"
+    "tikTokReward": "If your TikTok video gets 4000+ views, we'll give you a VIP key! Contact us on WhatsApp: +237 678 42 69 69!"
   },
   "markdownToolbar": {
     "guideTitle": "Formatting guide",
@@ -5678,22 +5687,22 @@
     "clickIfNotRedirected": "Click here if you are not redirected",
     "newAddress": "New address",
     "ourNewAddress": "Our new address is",
-    "joinTelegramNews": "Join our Telegram channel for the latest news."
+    "redirect.joinWhatsAppNews": "Join our WhatsApp channel for the latest news."
   },
-  "telegram": {
-    "promotionTitle": "Join our Telegram channel",
+  "whatsapp": {
+    "promotionTitle": "Join our WhatsApp channel",
     "promotionDescription": "Latest news, site updates and real-time announcements.",
     "promotionJoin": "Join",
-    "joinChannel": "Join Telegram",
+    "joinChannel": "Join WhatsApp",
     "description": "Stay informed about the latest updates",
     "notNow": "Not now",
     "joinCommunity": "Join the community",
-    "officialAnnouncements": "All official announcements, support and discussions are on <strong>Telegram</strong>.",
+    "officialAnnouncements": "All official announcements, support and discussions are on <strong>WhatsApp</strong>.",
     "joinUsNow": "Join us so you don't miss a thing.",
-    "joinTelegram": "Join Telegram",
-    "announcementTitle": "New Telegram channel",
-    "announcementBody": "Our new Telegram is <strong>t.me/ix_annonces</strong>. A big announcement is waiting for you there: all the new features, the logo change and more.",
-    "announcementJoin": "Join the Telegram",
+    "joinWhatsApp": "Join WhatsApp",
+    "announcementTitle": "We've moved to WhatsApp",
+    "announcementBody": "The Telegram channel is gone. For support, new addresses and everything else, reach us on <strong>WhatsApp</strong>.",
+    "announcementJoin": "Open WhatsApp",
     "announcementLater": "Later"
   },
   "discord": {
@@ -5774,7 +5783,7 @@
     "searchResults": "Results for",
     "retry": "Retry",
     "resultsAvailable": "{{total}} results available",
-    "tvSeriesEmoji": "📺 Series",
+    "tvSeriesEmoji": "Series",
     "previous": "Previous",
     "next": "Next",
     "loading": "Loading {{provider}}...",
@@ -5785,7 +5794,7 @@
     "grid": "Grid",
     "list": "List",
     "filters": "Filters",
-    "filmsEmoji": "🎬 Movies",
+    "filmsEmoji": "Movies",
     "ratingDesc": "Rating ↓",
     "ratingAsc": "Rating ↑",
     "releaseDateDesc": "Release date ↓",
@@ -6160,7 +6169,7 @@
       "autoBuyNoticeTitle": "CineHD invoice + AutoBuy checkout",
       "autoBuyNoticeDescription": "CineHD keeps a single invoice. AutoBuy handles the checkout, then you return to this invoice for the VIP key or gift delivery. Use exactly the same email on CineHD and on AutoBuy.",
       "saveUrlTitle": "Save your invoice URL as soon as it is created",
-      "saveUrlDescription": "This URL is the only page that lets you track the payment, recover your VIP key or your gift link. If you lose it, you will need Telegram support.",
+      "saveUrlDescription": "This URL is the only page that lets you track the payment, recover your VIP key or your gift link. If you lose it, you will need WhatsApp support.",
       "summaryTitle": "Summary",
       "amountLabel": "Amount",
       "paymentLabel": "Payment",
@@ -6190,8 +6199,8 @@
       "autoBuyNextStep3": "3. After payment, AutoBuy sends you back to CineHD and the invoice is rechecked.",
       "autoBuyNextStep4": "4. The VIP key or gift URL appears on this invoice as soon as the order is detected.",
       "supportTitle": "Support",
-      "supportDescription": "If you lose the invoice URL, if the payment is not detected, or if you need manual validation, contact Telegram support.",
-      "supportButton": "Open Telegram support",
+      "supportDescription": "If you lose the invoice URL, if the payment is not detected, or if you need manual validation, contact WhatsApp support.",
+      "supportButton": "Open WhatsApp support",
       "turnstileTitle": "Security check",
       "turnstileDescription": "Complete Turnstile before creating the invoice."
     },
@@ -6260,7 +6269,7 @@
       "loadingTitle": "Payment",
       "loadingDescription": "No payment detected yet. CineHD is loading your invoice details.",
       "saveUrlTitle": "Save this URL carefully",
-      "saveUrlDescription": "This page is the official tracker for your invoice. If you lose it before delivery, you will need Telegram support.",
+      "saveUrlDescription": "This page is the official tracker for your invoice. If you lose it before delivery, you will need WhatsApp support.",
       "exactAmountTitle": "Exact amount",
       "exactAmountDescription": "Send this exact amount",
       "checkoutAmountTitle": "Checkout amount",
@@ -6308,7 +6317,7 @@
       "keepPageSubtitle": "It acts as both receipt and delivery page",
       "keepPageText1": "You can come back later with this same URL to resume tracking.",
       "keepPageText2": "If you leave without saving it and without browser history, support will have to intervene manually.",
-      "supportButton": "Contact Telegram support",
+      "supportButton": "Contact WhatsApp support",
       "notFoundDescription": "This URL does not match any invoice. If you expected an active invoice, contact support.",
       "loadError": "Unable to load this invoice",
       "checkInProgress": "Verification in progress...",
@@ -6335,8 +6344,8 @@
       "supportEyebrow": "CineHD VIP",
       "supportTitle": "Keep it safe",
       "supportText1": "Never share this key once the gift has been unsealed.",
-      "supportText2": "If you run into an activation issue or if the gift page looks wrong, contact Telegram support.",
-      "supportButton": "Telegram support",
+      "supportText2": "If you run into an activation issue or if the gift page looks wrong, contact WhatsApp support.",
+      "supportButton": "WhatsApp support",
       "notFoundDescription": "This gift link does not exist or is no longer valid.",
       "loadError": "Unable to load this gift",
       "unsealSuccess": "The gift has been unsealed.",
@@ -6470,7 +6479,7 @@
           "The VIP area processes invoice and payment data such as public invoice identifier, unique crypto address, expected amount, status, confirmations, transaction hash, gifts and VIP keys.",
           "Hashed IP fingerprints are used in VIP flows for fraud prevention around invoice creation or gift opening.",
           "In case of operational errors, some technical diagnostic elements may be sent to internal support tools, especially through Discord webhooks.",
-          "If you use Discord, Telegram or the official bot for support, your identifiers, messages, tickets, transcripts or payment references may be processed in that context."
+          "If you use WhatsApp or the official bot for support, your identifiers, messages, tickets, transcripts or payment references may be processed in that context."
         ]
       },
       "thirdParties": {
@@ -6510,7 +6519,7 @@
         "settings": "Settings",
         "terms": "Terms of service",
         "email": "Email",
-        "telegram": "Telegram"
+        "privacyPolicyPage.supportCard.actions.whatsapp": "WhatsApp"
       }
     },
     "footerNote": "This policy reflects the observable behavior of the CineHD code as of March 29, 2026. If a future change adds, removes or changes a significant data flow, this page should be aligned again with the real implementation."
@@ -6617,7 +6626,7 @@
       "actions": {
         "privacy": "Privacy",
         "contact": "Contact CineHD",
-        "telegram": "Telegram"
+        "termsOfServicePage.supportCard.actions.whatsapp": "WhatsApp"
       }
     },
     "footerNote": "These terms describe the general rules governing the use of CineHD as of September 20, 2026. Fraudulent, abusive or technically harmful behavior may trigger immediate restrictions even if a precise case is not listed word for word above."
@@ -7243,14 +7252,14 @@
     "otherChangeTonDns": "changetondns.fr — step-by-step tutorial (FR)",
     "otherMirrors": "Active mirrors — list on rentry.co",
     "otherMirrorsMovixHealth": "Active mirrors — also listed on movix.online",
-    "otherTelegram": "Telegram support @ix_annonces",
+    "helpDns.otherWhatsApp": "WhatsApp support +237 678 42 69 69",
     "backCta": "Back"
   },
   "help": {
     "common": {
       "back": "Back to hub",
       "backToHub": "Back to tutorials hub",
-      "contactTelegram": "Contact support on Telegram"
+      "help.common.contactWhatsApp": "Contact support on WhatsApp"
     },
     "glossary": {
       "seed": "Secret 12-word phrase (BIP39 standard) that serves as the unique key to your CineHD account. No one server-side knows it — if you lose it, the account is permanently lost.",
@@ -7269,7 +7278,7 @@
       "clearSearch": "Clear search",
       "foundIn": "Found in:",
       "noResults": "No tutorial matches your search.",
-      "bottomCta": "Can't find what you need? Reach out on Telegram.",
+      "bottomCta": "Can't find what you need? Reach out on WhatsApp.",
       "cardCaMarchePlusTitle": "Nothing works anymore",
       "cardCaMarchePlusSub": "The 4 most common causes, in the order to try them.",
       "cardDnsTitle": "My ISP is blocking CineHD",
@@ -7428,7 +7437,7 @@
       "preventTitle": "Prevent, now",
       "preventBody": "If you still have your seed: copy it into a password manager (Bitwarden, 1Password, Proton Pass) and also print it on paper. Never share with anyone — not even CineHD support (we will NEVER ask).",
       "supportTitle": "Support",
-      "supportBody": "Telegram support can help with session issues, login, OAuth, but can do NOTHING about a lost seed. That's not a strict policy, it's a technical impossibility."
+      "supportBody": "WhatsApp support can help with session issues, login, OAuth, but can do NOTHING about a lost seed. That's not a strict policy, it's a technical impossibility."
     },
     "lierCompte": {
       "title": "Link Discord / Google to your BIP39 account",
@@ -7504,7 +7513,7 @@
     "openSource": {
       "title": "CineHD is open-source",
       "heroSub": "All the code is public on GitHub. No black box, no lock-in to the official server: fork, audit, self-host, contribute.",
-      "introBody": "CineHD is published open-source on <1>GitHub</1> under the <2>CC BY-NC 4.0</2> license (Creative Commons Attribution-NonCommercial). In practice: the code is free to read, modify, host, and redistribute — as long as you credit CineHD and don't use it commercially. No hidden trackers, no silent telemetry: everything the client and the server do is verifiable.",
+      "introBody": "CineHD is published open-source on <1>GitHub</1> under the <2>MIT</2> license. In practice: the code is free to read, modify, host, and redistribute — commercially included — as long as you keep the copyright notice. No hidden trackers, no silent telemetry: everything the client and the server do is verifiable.",
       "contentTitle": "What's in the repo?",
       "contentBody": "The <1>CineHD</1> monorepo contains everything: the React/Vite frontend (src/ folder), the Node.js and Python APIs (API/ folder — Express for the main one, aiohttp for the embed proxies, Socket.IO for WatchParty), the Chrome MV3 / Firefox MV2 / Tampermonkey userscript extensions (extension/ and userscript/ folders), the Android WebView app (app/ folder), the WatchParty sync engine written in Rust compiled to WebAssembly (wasm/watchparty-sync/ folder), the Cloudflare Workers for CORS relays (cloudflareproxy/ folder), and the Discord Rich Presence plugin (PreMid/ folder).",
       "whyTitle": "Why open-source?",
@@ -7514,7 +7523,7 @@
       "contribTitle": "Contribute",
       "contribBody": "PRs are welcome on the <1>GitHub repo</1>. Bugs, translations (especially English — French is the primary language, many EN strings still need polish), new sources, UX improvements, new tutorials to add to the hub: all helpful. For small fixes, PR directly. For big architecture changes, open an issue first so we can talk it through before you spend three days on it.",
       "limitsTitle": "What the license does NOT allow",
-      "limitsBody": "The <1>CC BY-NC 4.0</1> license forbids commercial use. In practice: no reselling access, no monetization via aggressive ads, no disguised clone behind a paywall. Free self-hosting for you and your friends: yes. Paid self-hosting to make money: no. Attribution (\"based on CineHD, link to the repo\") is also mandatory — silent forks are forbidden."
+      "limitsBody": "The <1>MIT</1> license covers the code: use it, modify it, host it, even sell it — as long as the copyright notice stays in place. It grants no rights to the CineHD name, logo, or the hosted service and its catalog: those remain ours. The credits listed in NOTICE must be preserved when you redistribute."
     },
     "appMobile": {
       "title": "Android mobile app",
@@ -7547,8 +7556,8 @@
       "cause3CtaMovixHealth": "View on movix.online",
       "cause3CtaRentry": "View on rentry.co",
       "cause4Title": "Bug or broken source",
-      "cause4Body": "If nothing works despite the above, it's likely a CineHD bug or a source down on the provider side. Report it on Telegram.",
-      "cause4Cta": "Telegram support"
+      "cause4Body": "If nothing works despite the above, it's likely a CineHD bug or a source down on the provider side. Report it on WhatsApp.",
+      "cause4Cta": "WhatsApp support"
     },
     "premid": {
       "title": "PreMiD extension (Discord Rich Presence)",
@@ -7629,7 +7638,7 @@
       "invoicesTitle": "Invoices and history",
       "invoicesBody": "All your VIP transactions show up on <1>/vip/invoices</1> — amount, date, method, status (pending / confirmed / expired), and a link to the public detail (/vip/invoice/:publicId) if you want to share proof of payment (e.g. for support).",
       "limitsTitle": "Limits and refunds",
-      "limitsBody": "No refunds possible: crypto or card, once the payment is validated it's final. We always recommend starting with the €5 pack for your first purchase — it's a low-cost test to confirm VIP activates properly on your account before committing to a longer pack. If you'd rather test before paying, reach out to Telegram support: we can enable a free ~3-day trial so you can see what VIP looks like on your account before deciding."
+      "limitsBody": "No refunds possible: crypto or card, once the payment is validated it's final. We always recommend starting with the €5 pack for your first purchase — it's a low-cost test to confirm VIP activates properly on your account before committing to a longer pack. If you'd rather test before paying, reach out to WhatsApp support: we can enable a free ~3-day trial so you can see what VIP looks like on your account before deciding."
     },
     "debrid": {
       "title": "Debrid 1fichier links",
@@ -7678,11 +7687,11 @@
       "officialListTitle": "Where to see the official list",
       "officialListBody": "Two places publish the canonical alive-mirror list: <1>movix.online</1> (domain status with real-time up/down indicator) and <2>rentry.co/movix</2> (raw list, edited by the CineHD team, always current). If you doubt a URL claiming to be CineHD, check it against one of these — anything NOT on the list is a fake (sacrificial domains designed to fool anti-piracy bots, or phishing attempts).",
       "newDeviceTitle": "New phone / new browser — the redirect doesn't kick in",
-      "newDeviceBody": "The service worker can only redirect you if it's been installed at least once before the block. On a brand-new device that has never visited {{currentDomain}}, if the domain is already ISP-blocked, you'll hit an ISP error page with no redirect. Solution: open movix.online or rentry.co/movix from any browser (those pages are hosted outside the ISP block), grab an alive mirror, and visit it. Or join <1>Telegram @ix_annonces</1> where the list is always up to date.",
+      "newDeviceBody": "The service worker can only redirect you if it's been installed at least once before the block. On a brand-new device that has never visited {{currentDomain}}, if the domain is already ISP-blocked, you'll hit an ISP error page with no redirect. Solution: open movix.online or rentry.co/movix from any browser (those pages are hosted outside the ISP block), grab an alive mirror, and visit it. Or join <1>WhatsApp +237 678 42 69 69</1> where the list is always up to date.",
       "reliabilityTitle": "How often things change",
       "reliabilityBody": "A domain can go down overnight (new ARCOM order) or stay stable for months. The team rotates multiple domains in parallel — when one goes down, another takes over automatically. The rentry.co list is updated within 24h of any change.",
       "limitsTitle": "Limits",
-      "limitsBody": "The service worker caches its internal config for 24h — so if you add a brand-new mirror on rentry, existing clients see it within 24h max. If your ISP ALSO blocks rentry.co or movix.online (rare but possible), the fallback breaks entirely: route through Telegram or use an alternate DNS like 1.1.1.1 (see the DNS tutorial). The service worker doesn't always work in private browsing — use a regular tab."
+      "limitsBody": "The service worker caches its internal config for 24h — so if you add a brand-new mirror on rentry, existing clients see it within 24h max. If your ISP ALSO blocks rentry.co or movix.online (rare but possible), the fallback breaks entirely: route through WhatsApp or use an alternate DNS like 1.1.1.1 (see the DNS tutorial). The service worker doesn't always work in private browsing — use a regular tab."
     },
     "liveTv": {
       "title": "Live TV — channels and live sports",
@@ -7880,5 +7889,104 @@
       "thanks": "Thanks for the feedback — this is what helps us improve the hub.",
       "error": "Submission failed. Try again in a moment."
     }
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Enter your CineHD code, or create your account in a few seconds.",
+    "tabCode": "I have a code",
+    "tabCreate": "Create account",
+    "codeLabel": "Access code",
+    "codePlaceholder": "CINE-XXXXX-XXXXX-XXXXX",
+    "codeHint": "Your code was issued once your payment was approved. It works on every device.",
+    "codeSubmit": "Sign in",
+    "codeConnecting": "Signing in…",
+    "codeTooShort": "This code is too short.",
+    "codeInvalid": "Invalid code. Check it or contact support.",
+    "alreadyTitle": "Already have an account?",
+    "alreadyBody": "Your code replaces the password: reach your profile from any device.",
+    "createTitle": "Create a CineHD account",
+    "createIntro": "Pick a plan, pay by mobile money, then receive your sign-in code on WhatsApp.",
+    "choosePlan": "1. Pick your plan",
+    "planWeek": "1 week",
+    "planMonth": "1 month",
+    "planYear": "1 year",
+    "planDays": "Unlimited access for {{days}} days",
+    "amountLabel": "2. Amount you are sending",
+    "amountValue": "{{amount}} FCFA",
+    "amountHint": "The listed price is the asking price. You can slide down to the minimum shown.",
+    "amountBelowFloor": "The amount must stay above {{floor}} FCFA.",
+    "amountBelowFloorJoke": "Gar tu derange nous on mange seulement les cailloux?",
+    "methodLabel": "3. Payment method",
+    "methodSendTo": "Send {{amount}} FCFA to this number, then note the reference from the SMS.",
+    "methodNumber": "Receiving number",
+    "methodMissing": "No payment method is available right now. Write to us on WhatsApp to get a number.",
+    "msisdnLabel": "4. Your mobile money number",
+    "msisdnPlaceholder": "6XXXXXXXX",
+    "msisdnHint": "The number you are sending the money from.",
+    "referenceLabel": "5. Transaction reference",
+    "referencePlaceholder": "MP241015.1432.A12345",
+    "referenceHint": "It appears in the confirmation SMS from your operator.",
+    "usernameLabel": "6. Preferred username",
+    "usernamePlaceholder": "Your CineHD username",
+    "usernameHint": "3 to 32 characters.",
+    "submit": "Send my request",
+    "submitting": "Sending…",
+    "createdTitle": "Request sent",
+    "createdBody": "As soon as the payment is checked, your code is sent to you on WhatsApp. Keep this reference safe.",
+    "createdReference": "Your reference",
+    "createdAmount": "Amount announced",
+    "checkStatus": "Check my request status",
+    "statusChecking": "Checking…",
+    "statusPending": "Your request is waiting for approval.",
+    "statusApproved": "Payment approved. Your code was sent to you on WhatsApp.",
+    "statusRejected": "Request refused. Write to support on WhatsApp to learn more.",
+    "statusNotFound": "No request matches this reference and this number.",
+    "anotherRequest": "Make another request",
+    "supportTitle": "A question before paying?",
+    "supportBody": "CineHD support answers on WhatsApp.",
+    "supportLink": "Write on WhatsApp",
+    "errorNetwork": "Connection failed. Try again in a moment.",
+    "errorGeneric": "Something went wrong. Please try again."
+  },
+  "accountRequests": {
+    "sectionTitle": "Account requests",
+    "sectionDesc": "Approve mobile money accounts and issue sign-in codes",
+    "loadError": "Unable to load the requests.",
+    "allStatuses": "All requests",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Refused",
+    "searchPlaceholder": "Reference, number or username…",
+    "empty": "No request for this filter.",
+    "total": "{{count}} request(s)",
+    "pageSummary": "Page {{page}} - {{total}} results",
+    "reference": "Reference",
+    "plan": "Plan",
+    "amount": "Amount",
+    "method": "Method",
+    "payer": "Payer number",
+    "username": "Username",
+    "submittedAt": "Submitted on",
+    "note": "Reason",
+    "approve": "Approve",
+    "reject": "Refuse",
+    "regenerate": "Regenerate code",
+    "approveTitle": "Sign-in code",
+    "approveWarning": "This code is shown once only: pass it to the buyer on WhatsApp.",
+    "approveCopy": "Copy the code",
+    "approveCopied": "Code copied.",
+    "approveDone": "Request approved.",
+    "rejectTitle": "Refuse the request",
+    "rejectNote": "Reason (optional)",
+    "rejectConfirm": "Confirm refusal",
+    "rejectDone": "Request refused.",
+    "regenerateWarning": "A new code is generated: the previous one stops working immediately.",
+    "regenerateConfirm": "Generate a new code",
+    "regenerated": "New code generated.",
+    "planWeek": "1 week",
+    "planMonth": "1 month",
+    "planYear": "1 year",
+    "methodMtn": "MTN MoMo",
+    "methodOrange": "Orange Money"
   }
 }

@@ -13,6 +13,7 @@ import {
   Sparkles,
   Sprout,
   Users,
+  Wallet,
   Wrench
 } from 'lucide-react';
 
@@ -26,6 +27,7 @@ import AdminSharedLists from './AdminSharedLists';
 import AdminTeam from './AdminTeam';
 import StreamingLinksManager from './StreamingLinksManager';
 import VipInvoicesManager from './VipInvoicesManager';
+import AccountRequestsManager from './AccountRequestsManager';
 import VipKeysManager from './VipKeysManager';
 import AnimatedBorderCard from './ui/animated-border-card';
 import ShinyText from './ui/shiny-text';
@@ -34,6 +36,7 @@ type AdminSection =
   | 'links'
   | 'vip-keys'
   | 'vip-invoices'
+  | 'account-requests'
   | 'oauth-apps'
   | 'wishboard'
   | 'link-submissions'
@@ -93,6 +96,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ role }) => {
         icon: Sparkles,
         accent: 'text-yellow-300',
         highlight: '234 179 8'
+      },
+      {
+        id: 'account-requests',
+        title: t('accountRequests.sectionTitle'),
+        description: t('accountRequests.sectionDesc'),
+        icon: Wallet,
+        accent: 'text-brand-gold',
+        highlight: '200 144 40'
       },
       {
         id: 'oauth-apps',
@@ -241,6 +252,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ role }) => {
             {t('vipDonations.admin.dashboardTitle')}
           </h2>
           <VipInvoicesManager />
+        </div>
+      ) : activeSection === 'account-requests' && role === 'admin' ? (
+        <div>
+          <h2 className="mb-6 flex items-center gap-3 text-2xl font-bold text-white">
+            <Wallet className="h-6 w-6 text-brand-gold" />
+            {t('accountRequests.sectionTitle')}
+          </h2>
+          <AccountRequestsManager />
         </div>
       ) : (
         <AnimatedBorderCard

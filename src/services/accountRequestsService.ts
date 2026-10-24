@@ -1,0 +1,265 @@
+import { MAIN_API } from '../config/runtime';
+import type { ResolvedAuthResponse } from '../utils/accountAuth';
+import { getSessionCreationHeaders } from '../utils/sessionClientId';
+
+export type AccountPlanId = 'week' | 'month' | 'year';
+export type AccountPaymentMethodId = 'mtn_momo' | 'orange_money';
+export type AccountRequestStatus = 'pending' | 'approved' | 'rejected';
+
+export interface AccountPlan {
+  id: AccountPlanId;
+  days: number;
+  maxFcfa: number;
+  floorFcfa: number;
+  sliderMinFcfa: number;
+}
+
+export interface AccountPaymentMethod {
+  id: AccountPaymentMethodId;
+  label: string;
+  number: string;
+}
+
+export interface AccountPlansPayload {
+  currency: string;
+  plans: AccountPlan[];
+  methods: AccountPaymentMethod[];
+}
+
+export interface AccountRequestSummary {
+  id: number;
+  reference: string;
+  planId: AccountPlanId;
+  amountFcfa: number;
+  paymentMethod: AccountPaymentMethodId;
+  payerMsisdn: string;
+  username: string;
+  status: AccountRequestStatus;
+  adminNote?: string | null;
+  credentialId?: number | null;
+  reviewedAt?: string | null;
+  reviewedBy?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface CreateAccountRequestInput {
+  planId: AccountPlanId;
+  amountFcfa: number;
+  paymentMethod: AccountPaymentMethodId;
+  payerMsisdn: string;
+  reference: string;
+  username: string;
+  turnstileToken?: string;
+}
+
+export interface AccountLoginResponse extends ResolvedAuthResponse {
+  userId: string;
+  userProfile?: { id?: string; username?: string; avatar?: string; provider?: string } | null;
+  message?: string;
+}
+
+export interface AccountRequestListPage {
+  requests: AccountRequestSummary[];
+  total: number;
+  page: number;
+  hasMore: boolean;
+}
+
+interface JsonResponse {
+  success?: boolean;
+  error?: string;
+}
+
+type ApiError = Error & { statusCode?: number };
+
+function createApiError(message: string, statusCode?: number): ApiError {
+  const error = new Error(message) as ApiError;
+  if (statusCode !== undefined) error.statusCode = statusCode;
+  return error;
+}
+
+function getAuthToken(): string | null {
+  try {
+    return localStorage.getItem('auth_token');
+  } catch {
+    return null;
+  }
+}
+
+function mergeRequestHeaders(headers?: HeadersInit, includeAuth = false): Headers {
+  const mergedHeaders = new Headers(headers);
+  const token = includeAuth ? getAuthToken() : null;
+  if (token && !mergedHeaders.has('Authorization')) {
+    mergedHeaders.set('Authorization', `Bearer ${token}`);
+  }
+  return mergedHeaders;
+}
+
+async function requestJson<T>(path: string, init?: RequestInit, includeAuth = false): Promise<T> {
+  const response = await fetch(`${MAIN_API}${path}`, {
+    ...init,
+    headers: mergeRequestHeaders(init?.headers, includeAuth),
+  });
+
+  const data = (await response.json().catch(() => ({}))) as JsonResponse & T;
+
+  if (!response.ok) {
+    throw createApiError((data as JsonResponse)?.error || 'Erreur réseau', response.status);
+  }
+
+  return data as T;
+}
+
+/**
+ * Repli de développement uniquement.
+ *
+ * Sans Main API joignable (`VITE_MAIN_API` vide, et aucun proxy `/api` dans
+ * `vite.config.ts`), `getAccountPlans()` échoue et l'onglet `create` se
+ * rendait entièrement vide : sans offre, il n'y a ni carte, ni curseur, ni
+ * moyen de paiement — juste un titre et une erreur. Ce repli reprend à
+ * l'identique `PLANS` de `API/Mainapi/utils/accountPlans.js` pour que la
+ * maquette soit jugeable sans backend.
+ *
+ * Garde-fous :
+ * - `import.meta.env.DEV` est évalué à `false` en production, ce bloc est donc
+ *   éliminé au tree-shaking et rien ne shipping en mock.
+ * - Il se déclenche sur un échec réseau **et** sur une réponse vide : le SPA
+ *   fallback de Vite répond `200 text/html` sur `/api/...` inconnu, donc
+ *   `requestJson` ne lève rien (`.json()` rend `{}`, `response.ok` reste vrai)
+ *   — sans ce second contrôle on retomberait sur le rendu vide d'origine.
+ * - Les numéros de collecte restent des placeholders littéraux (`6XX XX XX XX`)
+ *   et non des chiffres : on n'affiche jamais un numéro où envoyer de l'argent.
+ */
+const DEV_PLANS_FALLBACK: AccountPlansPayload = {
+  currency: 'XAF',
+  plans: [
+    { id: 'week', days: 7, maxFcfa: 1500, floorFcfa: 1300, sliderMinFcfa: 650 },
+    { id: 'month', days: 31, maxFcfa: 5500, floorFcfa: 3800, sliderMinFcfa: 1900 },
+    { id: 'year', days: 365, maxFcfa: 16000, floorFcfa: 13800, sliderMinFcfa: 6900 },
+  ],
+  methods: [
+    { id: 'mtn_momo', label: 'MTN MoMo', number: '6XX XX XX XX' },
+    { id: 'orange_money', label: 'Orange Money', number: '6XX XX XX XX' },
+  ],
+};
+
+const normalizePlansPayload = (data: Partial<AccountPlansPayload> | null | undefined): AccountPlansPayload => ({
+  currency: data?.currency || 'XAF',
+  plans: Array.isArray(data?.plans) ? data.plans : [],
+  methods: Array.isArray(data?.methods) ? data.methods : [],
+});
+
+/** Offres + numéros de collecte réellement configurés côté serveur. */
+export async function getAccountPlans(): Promise<AccountPlansPayload> {
+  try {
+    const payload = normalizePlansPayload(
+      await requestJson<Partial<AccountPlansPayload>>('/api/account-requests/plans')
+    );
+
+    // 200 + HTML : aucune offre réelle n'a été servie.
+    if (import.meta.env.DEV && payload.plans.length === 0) {
+      console.warn('[accountRequests] Réponse vide sur /plans — repli de dév sur les offres figées.');
+      return DEV_PLANS_FALLBACK;
+    }
+
+    return payload;
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn('[accountRequests] Main API injoignable — repli de dév sur les offres figées.', error);
+      return DEV_PLANS_FALLBACK;
+    }
+    throw error;
+  }
+}
+
+export async function createAccountRequest(input: CreateAccountRequestInput): Promise<AccountRequestSummary> {
+  const data = await requestJson<{ request: AccountRequestSummary }>('/api/account-requests', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  return data.request;
+}
+
+/** État d'une demande — le serveur ne renvoie jamais le code de connexion. */
+export async function getAccountRequestStatus(input: {
+  reference: string;
+  payerMsisdn: string;
+}): Promise<AccountRequestStatus> {
+  const data = await requestJson<{ status: AccountRequestStatus }>('/api/account-requests/status', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  return data.status;
+}
+
+/** Connexion par code : renvoie une session résolue classique (bip39). */
+export async function loginWithAccountCode(input: {
+  code: string;
+  turnstileToken?: string;
+}): Promise<AccountLoginResponse> {
+  const data = await requestJson<AccountLoginResponse>('/api/auth/account/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Reprise de la session du même navigateur (voir routes/authRoutes.js).
+      ...getSessionCreationHeaders(),
+    },
+    body: JSON.stringify({ code: input.code, turnstileToken: input.turnstileToken }),
+  });
+  return data;
+}
+
+// === Administration ===
+
+export async function listAccountRequests(params: {
+  status?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+} = {}): Promise<AccountRequestListPage> {
+  const query = new URLSearchParams();
+  if (params.status && params.status !== 'all') query.set('status', params.status);
+  if (params.search) query.set('search', params.search);
+  if (params.page) query.set('page', String(params.page));
+  if (params.limit) query.set('limit', String(params.limit));
+
+  const suffix = query.toString() ? `?${query.toString()}` : '';
+  return requestJson<AccountRequestListPage>(`/api/admin/account-requests${suffix}`, {}, true);
+}
+
+export async function adminApproveAccountRequest(
+  id: number
+): Promise<{ request: AccountRequestSummary; code: string; userId: string }> {
+  const data = await requestJson<{ request: AccountRequestSummary; code: string; userId: string }>(
+    `/api/admin/account-requests/${id}/approve`,
+    { method: 'POST' },
+    true
+  );
+  return data;
+}
+
+export async function adminRejectAccountRequest(
+  id: number,
+  note?: string
+): Promise<{ request: AccountRequestSummary }> {
+  return requestJson<{ request: AccountRequestSummary }>(
+    `/api/admin/account-requests/${id}/reject`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ note: note || '' }),
+    },
+    true
+  );
+}
+
+export async function adminRegenerateAccountCode(id: number): Promise<{ request: AccountRequestSummary; code: string }> {
+  return requestJson<{ request: AccountRequestSummary; code: string }>(
+    `/api/admin/account-requests/${id}/regenerate-code`,
+    { method: 'POST' },
+    true
+  );
+}

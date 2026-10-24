@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, User, List, Star, Check, ChevronDown, Crown, Settings, Shield } from 'lucide-react';
+import { LogOut, User, List, Star, Check, ChevronDown, Crown, Settings, Shield, UserPlus } from 'lucide-react';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import { googleAuth } from '../services/googleAuth';
-import { discordAuth } from '../services/discordAuth';
 import { useVipModal } from '../context/VipModalContext';
 import ProfileSwitcher from './ProfileSwitcher';
 import { isUserVip } from '../utils/authUtils';
@@ -149,10 +148,6 @@ const ProfileMenu: React.FC = () => {
     setIsOpen(false);
     // Redirection simple (pas besoin de reload explicite)
     window.location.href = '/';
-  };
-
-  const handleLogin = () => {
-    discordAuth.login();
   };
 
   const handleGoogleLogin = () => {
@@ -356,22 +351,6 @@ const ProfileMenu: React.FC = () => {
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={handleLogin}
-                      className="flex items-center justify-center gap-3 w-full px-4 py-3 max-md:py-4 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-lg transition-colors shadow-md"
-                    >
-                      <div className="flex items-center justify-center w-7 h-7 max-md:w-8 max-md:h-8 bg-white rounded-full p-0.5">
-                        <img 
-                          src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png"
-                          alt="Discord"
-                          className="w-5 h-5 max-md:w-6 max-md:h-6 object-contain"
-                        />
-                      </div>
-                      <span className="font-medium max-md:text-base">{t('auth.loginWithDiscord')}</span>
-                    </motion.button>
-                    
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
                       onClick={handleGoogleLogin}
                       className="flex items-center justify-center gap-3 w-full px-4 py-3 max-md:py-4 bg-white hover:bg-gray-100 text-gray-800 rounded-lg transition-colors shadow-md"
                     >
@@ -398,6 +377,17 @@ const ProfileMenu: React.FC = () => {
                       </div>
                       <span className="font-medium max-md:text-base">{t('auth.secretPhrase')}</span>
                     </motion.button>
+
+                    <Link
+                      to="/login?tab=create"
+                      className="flex items-center justify-center gap-3 w-full px-4 py-3 max-md:py-4 bg-brand-gold/15 hover:bg-brand-gold/25 text-amber-100 rounded-lg transition-colors shadow-md border border-brand-gold/40"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <div className="flex items-center justify-center w-7 h-7 max-md:w-8 max-md:h-8 bg-brand-gold/20 rounded-full p-0.5">
+                        <UserPlus className="w-5 h-5 max-md:w-6 max-md:h-6" />
+                      </div>
+                      <span className="font-medium max-md:text-base">{t('auth.createAccount')}</span>
+                    </Link>
 
                     <Link
                       to="/settings"

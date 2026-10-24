@@ -74,6 +74,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/auth',                    loader: lz(() => import('../components/DiscordAuth')) },
   { path: '/auth/google',             loader: lz(() => import('../components/GoogleAuth')) },
   { path: '/oauth/authorize',         loader: lz(() => import('../pages/OAuthAuthorizePage')) },
+  { path: '/login',                   loader: lz(() => import('../pages/Login')) },
   { path: '/profile',                 loader: lz(() => import('../pages/Profile')), guard: 'private' },
   { path: '/profile-management',      loader: lz(() => import('../pages/ProfileManagement')) },
   { path: '/alerts',                  loader: lz(() => import('../pages/AlertsPage')) },

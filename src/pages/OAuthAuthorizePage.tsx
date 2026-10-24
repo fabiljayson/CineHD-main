@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Bell, BellPlus, BookmarkMinus, BookmarkPlus, ChevronDown, Crown, ExternalLink, Eye, EyeOff, FilePenLine, FolderPlus, FolderX, Heart, HeartHandshake, HeartOff, History, Library, List, ListChecks, ListMinus, ListPlus, PlayCircle, ShieldCheck, Star, StarOff, UserRound, UserRoundCog } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { discordAuth } from '../services/discordAuth';
 import { googleAuth } from '../services/googleAuth';
 import { broadcastAuthChange, clearPendingAuthAction, clearStoredAuthSession, setPendingAuthAuthorize } from '../utils/accountAuth';
 import { useProfile } from '../context/ProfileContext';
@@ -422,16 +421,7 @@ const OAuthAuthorizePage: React.FC = () => {
     });
   }, [preview?.request.scopes, t]);
 
-  const handleProviderLogin = (provider: 'discord' | 'google') => {
-    if (provider === 'discord') {
-      discordAuth.login({
-        mode: 'authorize',
-        returnTo,
-        clientId: preview?.client.clientId,
-      });
-      return;
-    }
-
+  const handleGoogleLogin = () => {
     googleAuth.login({
       mode: 'authorize',
       returnTo,
@@ -439,7 +429,7 @@ const OAuthAuthorizePage: React.FC = () => {
     });
   };
 
-  const handleBip39Route = (targetPath: '/login-bip39' | '/create-account') => {
+  const handleBip39Route = (targetPath: '/login-bip39' | '/login?tab=create') => {
     setPendingAuthAuthorize(returnTo, preview?.client.clientId);
     window.location.replace(targetPath);
   };
@@ -720,14 +710,7 @@ const OAuthAuthorizePage: React.FC = () => {
 
                 <div className="mt-5 space-y-2.5">
                   <Button
-                    onClick={() => handleProviderLogin('discord')}
-                    disabled={!preview}
-                    className="w-full justify-center bg-[#5865F2] py-2.5 hover:bg-[#4752C4]"
-                  >
-                    {t('auth.loginWithDiscord')}
-                  </Button>
-                  <Button
-                    onClick={() => handleProviderLogin('google')}
+                    onClick={handleGoogleLogin}
                     disabled={!preview}
                     className="w-full justify-center bg-white py-2.5 text-gray-900 hover:bg-gray-100"
                   >
@@ -742,7 +725,7 @@ const OAuthAuthorizePage: React.FC = () => {
                     {t('oauthAuthorize.loginWithBip39')}
                   </Button>
                   <Button
-                    onClick={() => handleBip39Route('/create-account')}
+                    onClick={() => handleBip39Route('/login?tab=create')}
                     disabled={!preview}
                     variant="outline"
                     className="w-full justify-center border-white/15 bg-transparent py-2.5"

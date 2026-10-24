@@ -16,8 +16,10 @@ const { ipKeyGenerator } = require('express-rate-limit');
 const { issueJwt, getAuthIfValid } = require('../middleware/auth');
 const { getPool } = require('../mysqlPool');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
+const { getTrustedClientIp } = require('../utils/clientIp');
 const { verifyTurnstileFromRequest } = require('../utils/turnstile');
 const { getSessionDeviceInfo } = require('../utils/sessionDeviceInfo');
+const { normalizeAccountCode, hashAccountCode } = require('../utils/accountCredentials');
 const {
   SUPPORTED_PROVIDERS,
   isSupportedProvider,
@@ -40,7 +42,7 @@ const authRateLimit = rateLimit({
     success: false,
     error: 'Trop de tentatives de connexion. Réessayez dans 15 minutes.'
   },
-  keyGenerator: (req) => req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',')[0].trim() || ipKeyGenerator(req.ip),
+  keyGenerator: (req) => getTrustedClientIp(req) || ipKeyGenerator(req.ip),
   validate: { xForwardedForHeader: false, ip: false }
 });
 
@@ -562,6 +564,82 @@ router.post('/bip39/login', authRateLimit, ...authBodyParsers, async (req, res) 
     });
   } catch (error) {
     console.error('Error logging in with BIP39:', error);
+    res.status(500).json({ success: false, error: 'Erreur lors de la connexion' });
+  }
+});
+
+// POST /account/login
+// Connexion par le code délivré après validation d'une demande de paiement
+// mobile money (routes/accountRequests.js). Le code tient lieu de mot de passe :
+// seule son empreinte est stockée (account_credentials.code_hash), et la
+// session émise est identique à n'importe quelle autre session bip39 —
+// indépendante de l'appareil, réutilisable sur tous les navigateurs.
+router.post('/account/login', authRateLimit, ...authBodyParsers, async (req, res) => {
+  try {
+    const { code, turnstileToken } = req.body || {};
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ success: false, error: 'Code requis' });
+    }
+
+    const turnstileResult = await verifyTurnstileFromRequest(req, turnstileToken);
+    if (!turnstileResult.valid) {
+      return res.status(turnstileResult.status).json({ success: false, error: turnstileResult.error });
+    }
+
+    const pool = getPool();
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Service temporairement indisponible' });
+    }
+
+    const normalizedCode = normalizeAccountCode(code);
+    if (normalizedCode.length < 8) {
+      return res.status(401).json({ success: false, error: 'Code invalide' });
+    }
+
+    const [credentialRows] = await pool.execute(
+      'SELECT id, user_id, username, active FROM account_credentials WHERE code_hash = ? LIMIT 1',
+      [hashAccountCode(normalizedCode)]
+    );
+
+    const credential = credentialRows[0];
+    if (!credential || Number(credential.active) !== 1) {
+      return res.status(401).json({ success: false, error: 'Code invalide' });
+    }
+
+    const userId = String(credential.user_id);
+    const { readUserData } = getSyncModule();
+    const storedUserData = await readUserData('bip39', userId) || {};
+    const storedAuth = parseStoredAuth(storedUserData);
+    const userProfile = {
+      id: userId,
+      username: storedAuth?.userProfile?.username || credential.username || `Utilisateur-${userId.substring(0, 8)}`,
+      avatar: storedAuth?.userProfile?.avatar || DEFAULT_AVATAR,
+      provider: 'bip39',
+      createdAt: storedAuth?.userProfile?.createdAt || new Date().toISOString(),
+    };
+
+    const payload = await finalizeResolvedSession(req, {
+      provider: 'bip39',
+      providerUserId: userId,
+      fallbackUserType: 'bip39',
+      sourceAuthData: { userProfile, provider: 'bip39' },
+      externalUser: {
+        id: userId,
+        username: userProfile.username,
+        avatar: userProfile.avatar,
+      },
+    });
+
+    await pool.execute('UPDATE account_credentials SET last_login_at = NOW() WHERE id = ?', [credential.id]);
+
+    return res.status(200).json({
+      ...payload,
+      userId: payload.account.userId,
+      userProfile: payload.authData.userProfile,
+      message: 'Connexion réussie',
+    });
+  } catch (error) {
+    console.error('Error logging in with account code:', error);
     res.status(500).json({ success: false, error: 'Erreur lors de la connexion' });
   }
 });

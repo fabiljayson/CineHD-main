@@ -235,6 +235,12 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Type de vote invalide' });
     }
 
+    // profileId est stocké en base lors de l'INSERT : format strict pour
+    // empêcher toute valeur inattendue de polluer la table likes.
+    if (profileId && !/^[A-Za-z0-9_-]{1,64}$/.test(String(profileId))) {
+      return res.status(400).json({ error: 'profileId invalide' });
+    }
+
     const userId = req.user.userId;
     const userType = req.user.userType;
 

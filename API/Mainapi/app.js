@@ -224,7 +224,18 @@ axiosHelpers.configure({
 
 // === Create Express app ===
 const vipDonationsRoutes = require('./routes/vipDonations');
+const { trustProxy } = require('./utils/clientIp');
 const app = express();
+
+// Ne pas exposer la version d'Express (fingerprinting).
+app.disable('x-powered-by');
+
+// Client IP de confiance : headers CF-Connecting-IP/X-Forwarded-For uniquement
+// si le pair TCP est Cloudflare, sinon comptage de hops via TRUST_PROXY_HOPS.
+// Voir utils/clientIp.js — sans cela, les rate limiters sont contournables en
+// spoofant ces headers (brute force login compris).
+app.set('trust proxy', trustProxy);
+
 app.use(require('./utils/diagnostics').middleware);
 
 // === Mount middleware in correct order ===
@@ -494,6 +505,7 @@ app.use('/api', require('./routes/debrid'));
 app.use('/api', require('./routes/admin'));
 app.use('/api', vipDonationsRouter);
 app.use('/api', vipPayblisRouter);
+app.use('/api', require('./routes/accountRequests'));
 app.use('/api/darkiworld', darkiworldRouter);
 app.use('/api/drama', voirdramaRouter);
 app.use('/api/ftv', francetvRouter);
@@ -682,6 +694,10 @@ const appReady = (async () => {
       app.use("/api/wrapped", wrappedRouter);
       console.log("Wrapped routes initialized successfully");
     });
+
+    // Les routeurs ci-dessus sont montés APRÈS le handler d'erreur initial :
+    // re-enregistrer le handler unique pour qu'ils y aboutissent aussi.
+    app.use(unifiedErrorHandler);
   } catch (error) {
     console.error("MySQL connection error:", error.message);
     throw error;
@@ -710,7 +726,11 @@ function getAppPool() {
 })();
 
 // === Unified error handler ===
-app.use((err, req, res, next) => {
+// Fonction nommée : enregistrée ICI (couvre les routeurs montés
+// synchronevement) et de nouveau à la fin de appReady (couvre les routeurs
+// montés de façon asynchrone), sinon ces derniers tombent sur le handler
+// par défaut d'Express qui expose les stack traces en développement.
+function unifiedErrorHandler(err, req, res, next) {
   // Origin present mais hors whitelist : reponse CORS propre (403), pas une 500.
   // Les headers Access-Control-Allow-* ne sont pas poses, donc le navigateur
   // bloque la reponse de toute facon.
@@ -721,12 +741,23 @@ app.use((err, req, res, next) => {
     });
   }
 
-  console.error("Erreur globale:", err);
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  // Log complet côté serveur, reponse generique au client : ne jamais exposer
+  // err.message / stack (fuites de details internes, SQL, chemins, hosts).
+  console.error(
+    "Erreur globale:",
+    req.method,
+    req.originalUrl,
+    err && err.stack ? err.stack : err
+  );
   res.status(500).json({
+    success: false,
     error: "Erreur serveur interne",
-    message: err.message,
-    path: req.path,
   });
-});
+}
+app.use(unifiedErrorHandler);
 
 module.exports = { app, appReady, getAppPool };

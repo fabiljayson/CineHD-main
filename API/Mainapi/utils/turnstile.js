@@ -25,6 +25,7 @@
 
 const axios = require('axios');
 const { isAdminRequest } = require('../middleware/auth');
+const { getTrustedClientIp } = require('./clientIp');
 
 const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
 const TURNSTILE_INVISIBLE_SECRETKEY = process.env.TURNSTILE_INVISIBLE_SECRETKEY;
@@ -106,6 +107,9 @@ async function verifyTurnstile(token, ip, secretKey) {
   }
 }
 
+// Avertissement « non configuré » émis une seule fois en dev.
+let warnedTurnstileUnconfigured = false;
+
 /**
  * Vérifie le token Turnstile à partir d'une requête Express.
  * Retourne { valid: true } si OK, ou { valid: false, status, error } si échec.
@@ -129,7 +133,20 @@ async function verifyTurnstile(token, ip, secretKey) {
  */
 async function verifyTurnstileFromRequest(req, turnstileToken, kind = 'visible') {
   const key = turnstileSecretFor(req, kind);
-  if (!key) return { valid: true };
+  if (!key) {
+    // Non configuré : en production c'est une faute de deploiement — on
+    // refuse (fail-closed) plutot que d'ouvrir la porte a tout le monde.
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('[Turnstile] Clé secrète absente en production — vérification REFUSÉE (fail-closed). Configurer TURNSTILE_SECRET_KEY.');
+      return { valid: false, reason: 'turnstile_not_configured' };
+    }
+    // Dev : on continue sans vérification, mais on le fait remarquer une fois.
+    if (!warnedTurnstileUnconfigured) {
+      warnedTurnstileUnconfigured = true;
+      console.warn('[Turnstile] Clé secrète absente — vérification désactivée (hors production).');
+    }
+    return { valid: true };
+  }
 
   if (await isAdminRequest(req)) return { valid: true, bypassed: true };
 
@@ -137,7 +154,7 @@ async function verifyTurnstileFromRequest(req, turnstileToken, kind = 'visible')
     return { valid: false, status: 400, error: 'Vérification de sécurité requise' };
   }
 
-  const ip = req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+  const ip = getTrustedClientIp(req) || req.ip;
   const isValid = await verifyTurnstile(turnstileToken, ip, key);
 
   if (!isValid) {

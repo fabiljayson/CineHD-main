@@ -22,6 +22,7 @@ const { safeWriteFile, safeWriteJsonFile } = require('../utils/safeFile');
 const { readAccountData } = require('../utils/accountDataCache');
 const { logSyncErrorToDiscord } = require('../utils/discord');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
+const { getTrustedClientIp } = require('../utils/clientIp');
 const {
   ALLOWED_SYNC_USER_TYPES,
   SYNC_LIMITS,
@@ -66,7 +67,7 @@ const syncRateLimit = rateLimit({
     success: false,
     error: 'Trop de synchronisations en peu de temps. Reessayez dans une minute.'
   },
-  keyGenerator: (req) => req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',')[0].trim() || ipKeyGenerator(req.ip),
+  keyGenerator: (req) => getTrustedClientIp(req) || ipKeyGenerator(req.ip),
   validate: { xForwardedForHeader: false, ip: false }
 });
 
@@ -81,7 +82,7 @@ const statsRateLimit = rateLimit({
     success: false,
     error: 'Trop de requetes de statistiques. Reessayez dans une minute.'
   },
-  keyGenerator: (req) => req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',')[0].trim() || ipKeyGenerator(req.ip),
+  keyGenerator: (req) => getTrustedClientIp(req) || ipKeyGenerator(req.ip),
   validate: { xForwardedForHeader: false, ip: false }
 });
 

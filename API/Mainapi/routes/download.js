@@ -19,6 +19,9 @@ const M3U8_CACHE_EXPIRY_MS = 8 * 60 * 60 * 1000;
 const DOWNLOAD_EXTRACTION_CONCURRENCY = 4;
 const DOWNLOAD_REFRESH_FAILURE_COOLDOWN_MS = 2 * 60 * 1000;
 const DOWNLOAD_REFRESH_STATE_LIMIT = 500;
+// Un manifeste m3u8 est du texte : 2 Mo suffisent largement (au-delà, c'est une
+// réponse anormale qu'on refuse de télécharger).
+const M3U8_MAX_RESPONSE_BYTES = 2 * 1024 * 1024; // 2 Mo
 const runDownloadRefresh = createSingleFlight();
 const downloadRefreshCooldowns = new Map();
 
@@ -117,6 +120,8 @@ const validateM3u8Url = async (m3u8Url, _useProxy = false, logContext = {}) => {
         'Sec-Fetch-Site': 'cross-site'
       },
       timeout: 2000,
+      maxContentLength: M3U8_MAX_RESPONSE_BYTES,
+      maxBodyLength: M3U8_MAX_RESPONSE_BYTES,
       validateStatus: (status) => status === 200,
       decompress: true
     });

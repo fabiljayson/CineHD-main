@@ -17,6 +17,7 @@ const { verifyAccessKey, invalidateVipCache } = require('../checkVip');
 const { buildResolvedMaps } = require('../utils/embedExtraction');
 const { ANIME_SAMA_CACHE_DIR } = require('../utils/cacheManager');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
+const { getTrustedClientIp } = require('../utils/clientIp');
 const { logDownloadLinkAction } = require('../utils/downloadLinksHistory');
 const { resolveAdminIdentity } = require('../utils/adminIdentity');
 const { readUserData } = require('./sync');
@@ -96,7 +97,7 @@ const vipCodeRateLimit = rateLimit({
     success: false,
     error: 'Trop de tentatives de vérification. Réessayez dans 15 minutes.'
   },
-  keyGenerator: (req) => req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',')[0].trim() || ipKeyGenerator(req.ip),
+  keyGenerator: (req) => getTrustedClientIp(req) || ipKeyGenerator(req.ip),
   validate: { xForwardedForHeader: false, ip: false }
 });
 

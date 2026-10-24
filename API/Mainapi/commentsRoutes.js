@@ -1,4 +1,4 @@
-﻿﻿const express = require("express");
+﻿const express = require("express");
 const router = express.Router();
 const fs = require("fs").promises;
 const path = require("path");
@@ -9,6 +9,7 @@ const { verifyAccessKey } = require("./checkVip");
 // Réutiliser l'instance Redis partagée au lieu d'en créer une nouvelle (évite les fuites mémoire)
 const { redis } = require("./config/redis");
 const { verifyTurnstileFromRequest } = require("./utils/turnstile");
+const { getTrustedClientIp } = require("./utils/clientIp");
 // Signalement d'une proposition de sequence deposee depuis le lecteur : elle
 // n'a rien d'un commentaire, mais elle se modere au meme endroit, avec les
 // memes etats et les memes notifications. Voir `target_type = 'segment'`.
@@ -379,8 +380,7 @@ const writeRateLimit = rateLimit({
   keyGenerator: (req) => {
     if (req.user) return `u:${req.user.userType}:${req.user.userId}`;
     return (
-      req.headers["cf-connecting-ip"] ||
-      req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+      getTrustedClientIp(req) ||
       ipKeyGenerator(req.ip)
     );
   },
@@ -1047,12 +1047,11 @@ async function hardDeleteCommentCascade(commentId) {
 }
 
 // Fonction pour récupérer l'adresse IP de la requête
-// Priorité : cf-connecting-ip (Cloudflare, impossible à spoof) > x-real-ip > x-forwarded-for > fallbacks
+// Délègue à getTrustedClientIp : cf-connecting-ip / x-forwarded-for ne sont
+// crus que si le pair TCP est Cloudflare (ou TRUST_PROXY_HOPS configuré).
 function getClientIp(req) {
   return (
-    req.headers["cf-connecting-ip"] ||
-    req.headers["x-real-ip"] ||
-    req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+    getTrustedClientIp(req) ||
     req.ip ||
     req.connection?.remoteAddress ||
     req.socket?.remoteAddress ||
@@ -3182,8 +3181,7 @@ const reportRateLimit = rateLimit({
   legacyHeaders: false,
   message: { error: "Trop de signalements. Réessayez dans 15 minutes." },
   keyGenerator: (req) =>
-    req.headers["cf-connecting-ip"] ||
-    req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+    getTrustedClientIp(req) ||
     ipKeyGenerator(req.ip),
   validate: {
     xForwardedForHeader: false,

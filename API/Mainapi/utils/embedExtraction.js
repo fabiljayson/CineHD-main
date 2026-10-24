@@ -84,8 +84,16 @@ const COMPILED_PATTERNS = Object.entries(HOSTER_PATTERNS).map(([hoster, patterns
 
 function detectHoster(url) {
     if (typeof url !== 'string' || !url) return null;
+    // Matching sur l'hôte uniquement : testé sur l'URL complète, une regex
+    // d'hébergeur se laissait spoofée par le chemin/la query d'un domaine étranger.
+    let target = url;
+    try {
+        target = new URL(url).hostname;
+    } catch {
+        // URL non parsable : on retombe sur la chaîne brute.
+    }
     for (const { hoster, regexes } of COMPILED_PATTERNS) {
-        if (regexes.some((regex) => regex.test(url))) return hoster;
+        if (regexes.some((regex) => regex.test(target))) return hoster;
     }
     return null;
 }

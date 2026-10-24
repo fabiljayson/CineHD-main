@@ -11,6 +11,14 @@ function securityHeaders(req, res, next) {
   res.setHeader('X-XSS-Protection', '0'); // Disabled per OWASP recommendation (use CSP instead)
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // HSTS : inoffensif sur une réponse HTTP (le navigateur l'ignore), appliqué
+  // dès qu'une réponse passe en HTTPS via le proxy/Cloudflare.
+  if (req.secure || req.get('x-forwarded-proto') === 'https') {
+    res.setHeader(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains'
+    );
+  }
   next();
 }
 
@@ -81,12 +89,18 @@ function domainRestriction(req, res, next) {
   const checkDomain = (url) => {
     try {
       if (!url) return false;
-      const hostname = new URL(url).hostname;
+      const parsed = new URL(url);
+      const hostname = parsed.hostname;
       // Allow exact matches or subdomains if needed (here we list full domains)
       return allowedDomains.some(domain => {
-         // Handle localhost with port special case if needed, or just match hostname
-         if (domain.includes(':')) return url.includes(domain);
-         return hostname === domain || hostname.endsWith('.' + domain);
+        // "localhost:3000" : comparer host+port, jamais la sous-chaîne brute de
+        // l'URL (un Referer du type https://evil.com/?x=localhost:3000 passait
+        // le test d'inclusion).
+        if (domain.includes(':')) {
+          const [host, port] = domain.split(':');
+          return hostname === host && parsed.port === port;
+        }
+        return hostname === domain || hostname.endsWith('.' + domain);
       });
     } catch (e) {
       return false;

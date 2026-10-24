@@ -268,7 +268,10 @@ function createWishboardRouter(mysqlPool, redis) {
     router.get('/', async (req, res) => {
         try {
             const { page = 1, limit = 20, search, media_type, status, sort = 'votes_desc' } = req.query;
-            const offset = (parseInt(page) - 1) * parseInt(limit);
+            // Pagination publique bornée : entiers positifs, limit plafonné à 50 (fallback sur défaut si garbage).
+            const pageNum = Math.max(1, parseInt(page) || 1);
+            const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 20));
+            const offset = (pageNum - 1) * limitNum;
             const profileId = getProfileId(req);
 
             let whereConditions = ['1=1'];
@@ -324,7 +327,7 @@ function createWishboardRouter(mysqlPool, redis) {
             // Get requests
             const [requests] = await mysqlPool.execute(
                 `SELECT * FROM wishboard_requests WHERE ${whereClause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`,
-                [...whereParams, parseInt(limit), offset]
+                [...whereParams, limitNum, offset]
             );
 
             // Check vote status and get public notes for each request
@@ -521,6 +524,13 @@ function createWishboardRouter(mysqlPool, redis) {
                 [requestId, userId, profileId]
             );
 
+            // vote_count alimente le tri public : on le resynchronise avec le
+            // réel nombre de votes après chaque insertion (jamais maintenu avant).
+            await mysqlPool.execute(
+                'UPDATE wishboard_requests SET vote_count = (SELECT COUNT(*) FROM wishboard_votes WHERE request_id = ?) WHERE id = ?',
+                [requestId, requestId]
+            );
+
             res.json({ message: 'Vote enregistré' });
         } catch (error) {
             console.error('Error voting:', error);
@@ -548,6 +558,12 @@ function createWishboardRouter(mysqlPool, redis) {
             await mysqlPool.execute(
                 'DELETE FROM wishboard_votes WHERE request_id = ? AND user_id = ?',
                 [requestId, userId]
+            );
+
+            // Resynchronisation de vote_count après retrait du vote.
+            await mysqlPool.execute(
+                'UPDATE wishboard_requests SET vote_count = (SELECT COUNT(*) FROM wishboard_votes WHERE request_id = ?) WHERE id = ?',
+                [requestId, requestId]
             );
 
             res.json({ message: 'Vote retiré' });

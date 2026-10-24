@@ -25,6 +25,7 @@ const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
+const { getTrustedClientIp } = require('../utils/clientIp');
 const { requireVip } = require('../checkVip');
 const {
     decodeSignedToken,
@@ -62,8 +63,7 @@ const DEBRID_TIMEOUT_MS = 60000;
 // Rate limiting
 // ---------------------------------------------------------------------------
 const getRateLimitKey = (req) =>
-    req.headers['cf-connecting-ip'] ||
-    req.headers['x-forwarded-for']?.split(',')[0].trim() ||
+    getTrustedClientIp(req) ||
     ipKeyGenerator(req.ip);
 
 function buildRateLimit({ prefix, windowMs, max, message }) {

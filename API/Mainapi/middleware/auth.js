@@ -30,13 +30,19 @@ if (!JWT_SECRET) {
   process.exit(1);
 }
 
+// Durée de vie des JWT de session. Sans `exp`, un jeton est valable
+// éternellement : la seule parade à un vol de token serait la table
+// user_sessions, sautée en cas d'indisponibilité MySQL (fail-open ci-dessous).
+// 30 jours par défaut (aligné sur la durée OAuth), surchargeable par env.
+// Un échéancier impose re-login côté client, pas de refresh token ici.
+const JWT_EXPIRES_IN = process.env.SESSION_JWT_EXPIRES_IN || '30d';
+
 function issueJwt(userType, userId, sessionId, authMethod = null) {
-  // Issue a token without expiration (no exp claim)
   const payload = { sub: userId, userType, sessionId };
   if (AUTH_METHODS.includes(authMethod)) {
     payload.authMethod = authMethod;
   }
-  return jwt.sign(payload, JWT_SECRET, { algorithm: 'HS256' });
+  return jwt.sign(payload, JWT_SECRET, { algorithm: 'HS256', expiresIn: JWT_EXPIRES_IN });
 }
 
 function parseStoredAuth(rawValue) {
@@ -221,9 +227,16 @@ async function validateAuthRequest(req) {
     }
 
     const hasBackingAccount = await validateBackingAccount(userType, userId);
-    if (hasBackingAccount === false) {
-      console.warn(`[AUTH] Account backing data missing for userType=${userType}, userId=${userId}. Purging session ${sessionId}.`);
-      purgeSessionRecord(sessionId, userId, userType);
+    // false  -> compte supprimé / sans identité stockée : purger la session
+    // null   -> lecture du compte en erreur (I/O disque) : indéterminé, on
+    //           refuse sans purger (erreur peut être transitoire)
+    // On refuse dans les deux cas : ne jamais laisser passer un compte dont
+    // l'existence n'a pas pu être confirmée.
+    if (hasBackingAccount !== true) {
+      console.warn(`[AUTH] Account backing data missing or unreadable for userType=${userType}, userId=${userId}${hasBackingAccount === false ? `. Purging session ${sessionId}` : ''}.`);
+      if (hasBackingAccount === false) {
+        purgeSessionRecord(sessionId, userId, userType);
+      }
       return null;
     }
 

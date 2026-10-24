@@ -276,7 +276,8 @@ function getCpasmalAgent(proxy) {
       hostname: proxy.host,
       port: proxy.port,
       protocol: "socks:",
-      tls: { rejectUnauthorized: false },
+      // Risque MITM : vérification TLS du proxy active par défaut ; PROXY_TLS_INSECURE=1 la désactive (usage diagnostique uniquement).
+      tls: { rejectUnauthorized: process.env.PROXY_TLS_INSECURE !== "1" },
       ...agentOpts,
     };
 

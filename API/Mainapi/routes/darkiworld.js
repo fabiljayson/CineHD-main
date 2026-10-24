@@ -54,7 +54,7 @@ function poisonDecodeResponse(id) {
     id: String(id),
     provider: 'direct',
     embed_url: {
-      lien: 'https://t.me/ix_annonces',
+      lien: 'https://wa.me/237678426969?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20CineHD.',
       taille: null,
       created_at: null,
     },

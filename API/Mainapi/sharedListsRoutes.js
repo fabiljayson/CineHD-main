@@ -298,6 +298,21 @@ const requireAdmin = async (req, res, next) => {
   }
 };
 
+// === Helper: lecture discrète d'une éventuelle identité JWT ===
+// Route publique : l'auth n'est jamais requise, elle sert uniquement à
+// prouver la propriété d'une liste (liste modérée, par exemple).
+function getOptionalAuthUser(req) {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return null;
+    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
+    if (!['oauth', 'bip39'].includes(decoded.userType) || !decoded.sub) return null;
+    return { userId: decoded.sub, userType: decoded.userType };
+  } catch {
+    return null;
+  }
+}
+
 // === Helper: vérifier que le profileId appartient bien à l'utilisateur ===
 async function verifyProfileOwnership(userId, userType, profileId) {
   try {
@@ -647,12 +662,24 @@ router.get('/list/:shareCode', async (req, res) => {
 
     // Pas de cache : chercher dans MySQL
     const shareRecord = await dbGet(
-      'SELECT user_id, user_type, profile_id, list_id, is_public_in_catalog FROM shared_lists WHERE share_code = ?',
+      'SELECT user_id, user_type, profile_id, list_id, is_public_in_catalog, moderation_flagged FROM shared_lists WHERE share_code = ?',
       [shareCode]
     );
 
     if (!shareRecord) {
       return res.status(404).json({ error: 'Liste partagée non trouvée ou expirée' });
+    }
+
+    // IDOR : une liste modérée (retirée du catalogue) n'est plus lisible par
+    // simple détention du code de partage — seul son propriétaire y accède encore.
+    if (shareRecord.moderation_flagged) {
+      const caller = getOptionalAuthUser(req);
+      const isOwner = !!caller
+        && caller.userId === shareRecord.user_id
+        && caller.userType === shareRecord.user_type;
+      if (!isOwner) {
+        return res.status(404).json({ error: 'Liste partagée non trouvée ou expirée' });
+      }
     }
 
     // Reconstruire et mettre en cache

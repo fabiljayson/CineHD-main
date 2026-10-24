@@ -208,6 +208,11 @@ router.get('/api/search', async (req, res) => {
   try {
     const { title } = req.query;
     if (!title) return res.status(400).json({ error: 'Le parametre title est requis' });
+    // Garde-fou longueur/format : le titre part dans des appels upstream et des
+    // clés de cache — on refuse tout ce qui n'est pas une chaîne raisonnable.
+    if (typeof title !== 'string' || title.length > 200) {
+      return res.status(400).json({ success: false, error: 'Invalid title' });
+    }
     const sanitizedTitle = String(title).replace(/\//g, '').trim();
     if (!sanitizedTitle) return res.status(400).json({ error: 'Le parametre title est invalide' });
 

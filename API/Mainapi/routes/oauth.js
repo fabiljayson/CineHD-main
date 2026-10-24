@@ -4,6 +4,7 @@ const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
+const { getTrustedClientIp } = require('../utils/clientIp');
 const { getAuthIfValid } = require('../middleware/auth');
 const { getPool } = require('../mysqlPool');
 const {
@@ -47,8 +48,7 @@ const setNoStore = (req, res, next) => {
 // pour éviter qu'un user IPv6 contourne la limite. Sans ça : `ValidationError`
 // au boot (warning, mais bruit dans les logs).
 const oauthRateLimitKey = (req) =>
-  req.headers['cf-connecting-ip']
-    || req.headers['x-forwarded-for']?.split(',')[0].trim()
+  getTrustedClientIp(req)
     || ipKeyGenerator(req.ip);
 
 const oauthPreviewLimiter = rateLimit({

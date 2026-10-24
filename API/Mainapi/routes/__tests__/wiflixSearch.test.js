@@ -9,7 +9,9 @@ const cheerio = require('cheerio');
 const filename = path.resolve(__dirname, '../wiflix.js');
 const source = fs.readFileSync(filename, 'utf8');
 const start = source.indexOf('const normalizeString =');
-const end = source.indexOf('// === Release Date Extraction ===', start);
+// Le marqueur `// === Release Date Extraction ===` n'existe plus : la section
+// de recherche s'arrête maintenant à l'extraction des lecteurs.
+const end = source.indexOf('// === Player Extraction ===', start);
 assert.ok(start > 0 && end > start);
 const searchSource = source.slice(start, end) + '\nglobalThis.search = searchWiflixMovie;';
 const base = 'https://source.test';
@@ -23,11 +25,18 @@ function card(title, href, season = null) {
 async function search(title, html) {
   const context = vm.createContext({
     cheerio,
+    // `URL` n'existe pas dans un contexte vm vierge : le filtre d'origine de
+    // `searchWiflixMovie` lève sinon un ReferenceError avalé par son
+    // `catch { return; }`, ce qui rejette silencieusement chaque candidat.
+    URL,
     WIFLIX_BASE_URL: base,
     makeWiflixSearchRequest: async (_home, _url, options) => {
       assert.equal(new URLSearchParams(options.data).get('story'), title);
       return { data: html };
     },
+    // Télémétrie de rafraîchissement : appelée par la section de recherche,
+    // sans effet sur le résultat retourné.
+    refreshStep() {},
     console: { log() {}, error() {} },
   });
   vm.runInContext(searchSource, context, { filename });

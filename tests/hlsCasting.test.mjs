@@ -60,6 +60,9 @@ test('Cast envoie le master contenant la piste française séparée, pas la vari
   const buildSource = sourceFunction(player, 'buildCurrentCastSource', {
     useCallback: fn => fn, src: masterUrl, parseM3u8Manifest, selectBestStream, preferFrenchAudioVariant,
     resolveCastContentType: () => 'application/vnd.apple.mpegurl', isSelectedKisskhMp4: false,
+    // Variable libre de `buildCurrentCastSource` : la source testée n'est pas
+    // un MP4, on le déclare ici plutôt que d'importer le composant entier.
+    isMP4Source: () => false,
     title: 'Test', tvShow: undefined, poster: undefined,
     videoRef: { current: { currentTime: 42 } }, buildCurrentCastTracks: async () => [],
   });

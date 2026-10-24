@@ -3,23 +3,48 @@ import test from 'node:test';
 import { sourceFunction } from './helpers/sourceFunction.mjs';
 
 test('les logos restent affichés lorsque le cache de session est plein', async () => {
-  let logos: Record<string, string | null> = {};
-  const fetchLogos = sourceFunction('src/components/HeroSlider.tsx', 'fetchLogos', {
-    sessionStorage: { getItem: () => null, setItem() { throw new DOMException('Full', 'QuotaExceededError'); } },
-    logoCache: { current: {} }, items: [{ media_type: 'movie', id: 42 }],
-    axios: { get: async () => ({ data: { logos: [{ file_path: '/logo.png', iso_639_1: 'fr' }] } }) },
-    TMDB_API_KEY: 'test', setLogoUrls: (value: typeof logos) => { logos = value; }, cancelled: false,
+  const memoryCache = new Map([['movie_42_fr', {
+    logoUrl: 'https://image.tmdb.org/t/p/w300/logo.png', posterUrl: null,
+  }]]);
+  // L'écriture sessionStorage est best-effort : une erreur de quota ne doit
+  // jamais remonter, sinon le handler pagehide / le differeur de persistance
+  // lèverait hors du cycle React.
+  const persistCache = sourceFunction('src/hooks/useTmdbImages.ts', 'persistCache', {
+    cacheWriteTimer: undefined, cacheWriteIdle: undefined, clearTimeout: () => {},
+    window: { cancelIdleCallback: undefined },
+    memoryCache, memoryCacheTimestamp: Date.now(),
+    sessionStorage: { setItem() { throw new DOMException('Full', 'QuotaExceededError'); } },
+    CACHE_KEY: 'movix_tmdb_images_cache_v7',
+    CACHE_TIMESTAMP_KEY: 'movix_tmdb_images_cache_v7_timestamp',
   });
-  await assert.doesNotReject(fetchLogos());
-  assert.equal(logos[42], 'https://image.tmdb.org/t/p/w500/logo.png');
+  assert.doesNotThrow(persistCache);
+
+  // L'affichage lit la copie mémoire : elle doit rester servable.
+  const getCache = sourceFunction('src/hooks/useTmdbImages.ts', 'getCache', {
+    memoryCache, memoryCacheTimestamp: Date.now(), CACHE_DURATION_MS: 24 * 60 * 60 * 1000,
+    sessionStorage: { getItem: () => null },
+    CACHE_KEY: 'movix_tmdb_images_cache_v7',
+    CACHE_TIMESTAMP_KEY: 'movix_tmdb_images_cache_v7_timestamp',
+    trimCache: () => {}, normalizeEntry: (raw: unknown) => raw,
+  });
+  assert.equal(getCache().get('movie_42_fr')?.logoUrl, 'https://image.tmdb.org/t/p/w300/logo.png');
 });
 
 test('un cache de logos invalide ne bloque pas leur chargement', async () => {
-  const fetchLogos = sourceFunction('src/components/HeroSlider.tsx', 'fetchLogos', {
-    sessionStorage: { getItem: (key: string) => key.endsWith('timestamp') ? String(Date.now()) : '{invalid', setItem() {} },
-    logoCache: { current: {} }, items: [], setLogoUrls() {}, cancelled: false,
+  const getCache = sourceFunction('src/hooks/useTmdbImages.ts', 'getCache', {
+    memoryCache: null, memoryCacheTimestamp: 0, CACHE_DURATION_MS: 24 * 60 * 60 * 1000,
+    sessionStorage: {
+      getItem: (key: string) => key.endsWith('timestamp') ? String(Date.now()) : '{invalid',
+      setItem() {},
+    },
+    CACHE_KEY: 'movix_tmdb_images_cache_v7',
+    CACHE_TIMESTAMP_KEY: 'movix_tmdb_images_cache_v7_timestamp',
+    trimCache: () => {}, normalizeEntry: (raw: unknown) => raw,
   });
-  await assert.doesNotReject(fetchLogos());
+  let cache: Map<string, unknown> | undefined;
+  assert.doesNotThrow(() => { cache = getCache(); });
+  // Un blob corrompu est jeté, pas propagé : on repart d'un cache vide.
+  assert.equal(cache?.size, 0);
 });
 
 test('une liste non enregistrée ne change pas le statut affiché et signale le refus', () => {

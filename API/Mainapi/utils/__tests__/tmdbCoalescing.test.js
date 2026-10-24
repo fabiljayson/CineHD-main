@@ -16,6 +16,9 @@ function loadTmdbCache({ axios, redis }) {
     if (request === 'axios') return axios;
     if (request === '../config/redis') return { redis };
     if (request === './singleFlight') return { createSingleFlight };
+    // Télémétrie de rafraîchissement : sans effet ici, ce qui reste volontaire —
+    // ces tests portent sur la mutualisation des transports, pas sur les métriques.
+    if (request === './sourceRefreshTelemetry') return { refreshStep() {}, withRefreshDiagnostics: (_fn) => _fn, reportRefreshFailure() {}, recordRefreshResult() {} };
     throw new Error(`Dépendance non simulée : ${request}`);
   }, module);
   return module.exports;

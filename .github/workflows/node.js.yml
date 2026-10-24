@@ -16,7 +16,9 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        # vite@8 déclare `"node": "^20.19.0 || >=22.12.0"` : Node 18 ne peut
+        # même pas charger la config, il est retiré de la matrice.
+        node-version: [20.x, 22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -27,5 +29,12 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+    - name: Build
+      run: npm run build --if-present
+      env:
+        # vite.config.ts refuse de démarrer sans origine publique : elle sert à
+        # résoudre le Service Worker, le sitemap et les liens sociaux. CI n'a pas
+        # de .env, on fournit donc une valeur de build non secrète.
+        VITE_SITE_URL: https://cinehd.example
+    - name: Test
+      run: npm test

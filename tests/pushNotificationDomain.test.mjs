@@ -8,7 +8,20 @@ const sendPushSource = routesSource.slice(
   routesSource.indexOf('async function sendPushToUser('),
   routesSource.indexOf('async function createNotification('),
 );
-const workerSource = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
+// `public/sw.js` est de la source ESM : Vite la bundle en IIFE pour dist/sw.js.
+// Le test évalue la source brute dans un VM, qui n'accepte pas `import` — on
+// retire l'en-tête d'import et on fournit les symboles manquants dans le
+// contexte. Ceux-ci ne sont pas le sujet de ces scénarios (notifications et
+// bascule de domaine), seul `installMediaColorServiceWorker` s'exécute à
+// l'évaluation, au niveau module.
+const mediaColorStubs = {
+  installMediaColorServiceWorker: () => {},
+  handleTmdbImage: async () => new Response(''),
+  MEDIA_COLOR_CACHE_NAME: 'movix-media-color',
+  TMDB_IMAGE_CACHE_NAME: 'movix-tmdb-images',
+};
+const workerSource = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8')
+  .replace(/^import\s*\{[^}]*\}\s*from\s*['"][^'"]+['"];?\s*/m, '');
 const OLD_ORIGIN = 'https://movix-old.test';
 const NEW_ORIGIN = 'https://movix-new.test';
 
@@ -53,6 +66,7 @@ function worker(windowClients = []) {
   vm.runInNewContext(workerSource, {
     URL,
     clients,
+    ...mediaColorStubs,
     __MOVIX_DEFAULT_MIRRORS__: [],
     __MOVIX_CONFIG_URL__: 'https://config.example.test/mirrors',
     self: {

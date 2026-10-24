@@ -46,6 +46,11 @@ function harness({ cached = null, request, tmdb = { name: 'Chicago Fire', first_
     '../utils/tmdbCache': { fetchTmdbDetails: async () => tmdb },
     '../utils/redisLock': { acquireRedisLock: async () => ({ release: async () => {} }) },
     '../utils/sourceRefresh': { createSourceRefresh },
+    // Télémétrie de rafraîchissement : sans effet sur l'extraction testée.
+    '../utils/sourceRefreshTelemetry': {
+      refreshStep() {}, reportRefreshFailure() {}, recordRefreshResult() {},
+      withRefreshDiagnostics: (fn) => fn,
+    },
     '../utils/sharedSourceWork': require('../../utils/sharedSourceWork'),
     '../utils/concurrency': require('../../utils/concurrency'),
   };

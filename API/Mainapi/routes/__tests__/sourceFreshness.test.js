@@ -47,6 +47,12 @@ function loadRoute(relative, stubs, suffix = '', timerOverrides = {}) {
       buildM3u8Map: async () => ({}),
       respondWithResolvedSources: async (_req, res, data) => res.json(data)
     },
+    // Télémétrie de rafraîchissement : enregistrée mais sans effet, les tests
+    // de fraîcheur vérifient les délais de cache, pas les métriques.
+    '../utils/sourceRefreshTelemetry': {
+      refreshStep() {}, reportRefreshFailure() {}, recordRefreshResult() {},
+      withRefreshDiagnostics: (fn) => fn,
+    },
   };
   const requireStub = (name) => {
     if (Object.hasOwn(stubs, name)) return stubs[name];

@@ -1,4 +1,4 @@
-import { safePlay } from './safePlay';
+import { safePlay } from './safePlay.ts';
 
 /**
  * Plein écran du lecteur, et sa survie d'un épisode à l'autre.

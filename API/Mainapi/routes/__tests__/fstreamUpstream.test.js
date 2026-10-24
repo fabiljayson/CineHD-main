@@ -52,6 +52,9 @@ test('les recherches FStream se mutualisent en préservant la variante AJAX sans
       await new Promise(resolve => setImmediate(resolve));
       return { status: 200, data: html };
     },
+    // Télémétrie de rafraîchissement : sans effet sur le résultat de recherche.
+    refreshStep() {},
+    withRefreshDiagnostics: (fn) => fn,
     console,
   });
   vm.runInContext(fragment('async function searchFStream(', '// get_seasons.php (ajax')
@@ -81,6 +84,9 @@ test('les données statiques gardent leur version pendant 30 secondes puis voien
     withFStreamProxy: (_entry, request) => request({}),
     buildFStreamCookieHeader: () => '', parseEpisodesPayload: value => value,
     axios: async config => { urls.push(config.url); return { status: 200, data: { episodes: time >= 30_000 ? [1, 2] : [1] } }; },
+    // Télémétrie de rafraîchissement : sans effet sur le cache de la page.
+    refreshStep() {},
+    withRefreshDiagnostics: (fn) => fn,
     console,
   });
   vm.runInContext(fragment('async function fetchEpisodesFromStaticJs(', 'async function fetchEpisodesFromApi(')

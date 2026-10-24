@@ -4,6 +4,7 @@ export const SUBTITLE_STYLE_PREVIEW_EVENT = 'movix:subtitle-style-preview';
 export const SUBTITLE_GUIDE_RATIOS = [1 / 4, 1 / 3, 1 / 2, 2 / 3, 3 / 4] as const;
 
 export type SubtitleFontSizeMode = 'auto' | 'manual';
+export type SubtitleMaxWidthMode = 'auto' | 'manual';
 export type SubtitleEdgeStyle = 'shadow' | 'outline' | 'none';
 export type SubtitleFontFamily =
   | 'standard'
@@ -48,9 +49,26 @@ export interface SubtitlePreferences {
   fontFamily: SubtitleFontFamily;
   fontWeight: SubtitleFontWeight;
   delay: number;
+  /**
+   * Largeur max du bloc de sous-titres.
+   *
+   * `auto` = largeur intrinsèque pilotée par le rendu (`SUBTITLE_AUTO_MAX_WIDTH_PERCENT`),
+   * `manual` = largeur choisie par l'utilisateur dans `maxWidthPercent`.
+   * Un `maxWidthPercent` de 100 sans mode explicite vient d'un ancien stockage
+   * qui ne connaissait pas le champ : on le migre en `auto` plutôt que de
+   * figer manuellement une pleine largeur que l'utilisateur n'a pas choisie.
+   */
+  maxWidthMode: SubtitleMaxWidthMode;
+  maxWidthPercent: number;
 }
 
 export type SubtitlePreferencePatch = Partial<Omit<SubtitlePreferences, 'version'>>;
+
+/** Largeur retenue quand `maxWidthMode` est `auto`. */
+export const SUBTITLE_AUTO_MAX_WIDTH_PERCENT = 80;
+
+/** Plancher de `maxWidthPercent` en mode `manual` — aligné sur `getSubtitleSafeWidthCss`. */
+export const SUBTITLE_MIN_MAX_WIDTH_PERCENT = 20;
 
 export const DEFAULT_SUBTITLE_PREFERENCES: Readonly<SubtitlePreferences> = Object.freeze({
   version: 3,
@@ -67,6 +85,8 @@ export const DEFAULT_SUBTITLE_PREFERENCES: Readonly<SubtitlePreferences> = Objec
   edgeSizePx: 2,
   fontWeight: 700,
   delay: 0,
+  maxWidthMode: 'auto',
+  maxWidthPercent: SUBTITLE_AUTO_MAX_WIDTH_PERCENT,
 });
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -248,13 +268,42 @@ export function normalizeSubtitlePreferences(value: unknown): SubtitlePreference
     ? raw.backgroundOpacity
     : legacyBackground ?? DEFAULT_SUBTITLE_PREFERENCES.backgroundOpacity;
   const normalizedBackgroundOpacity = clamp(Number.isFinite(backgroundOpacity) ? backgroundOpacity : 0.4, 0, 1);
+  // `maxWidthMode` absent ou invalide : on le déduit de la valeur. Un 100 %
+  // stocké sans mode vient d'un format antérieur qui ne connaissait pas le
+  // champ — c'est la valeur par défaut, pas un choix explicite, donc `auto`.
+  const rawMaxWidthPercent = raw.maxWidthPercent;
+  const isManualMaxWidthPercent = typeof rawMaxWidthPercent === 'number'
+    && Number.isFinite(rawMaxWidthPercent)
+    && rawMaxWidthPercent !== 100
+    && rawMaxWidthPercent >= SUBTITLE_MIN_MAX_WIDTH_PERCENT
+    && rawMaxWidthPercent <= 100;
+  const maxWidthMode: SubtitleMaxWidthMode = raw.maxWidthMode === 'manual'
+    ? 'manual'
+    : raw.maxWidthMode === 'auto'
+      ? 'auto'
+      : isManualMaxWidthPercent ? 'manual' : 'auto';
+  const maxWidthPercent = maxWidthMode === 'auto'
+    ? SUBTITLE_AUTO_MAX_WIDTH_PERCENT
+    : clamp(
+      typeof rawMaxWidthPercent === 'number' && Number.isFinite(rawMaxWidthPercent)
+        ? rawMaxWidthPercent
+        : 100,
+      SUBTITLE_MIN_MAX_WIDTH_PERCENT,
+      100,
+    );
   const fontWeight = raw.fontWeight === 'bold'
     ? 700
     : raw.fontWeight === 'normal'
       ? 400
       : typeof raw.fontWeight === 'number' && Number.isFinite(raw.fontWeight)
         ? raw.fontWeight
-        : DEFAULT_SUBTITLE_PREFERENCES.fontWeight;
+        // Un poids nommé inconnu ('heavy', 'semibold'…) est invalide : on
+        // retombe sur le poids initial CSS (`normal` = 400), pas sur le défaut
+        // du produit. Un champ absent garde, lui, ce défaut — il exprime le
+        // choix par défaut, pas une donnée corrompue.
+        : typeof raw.fontWeight === 'string'
+          ? 400
+          : DEFAULT_SUBTITLE_PREFERENCES.fontWeight;
   return {
     version: 3,
     fontSizeMode: raw.fontSizeMode === 'manual' || (raw.fontSizeMode === undefined && hasStoredFontSize) ? 'manual' : 'auto',
@@ -280,6 +329,8 @@ export function normalizeSubtitlePreferences(value: unknown): SubtitlePreference
       : 'standard',
     fontWeight: clamp(Math.round(fontWeight), 100, 900),
     delay: clamp(typeof raw.delay === 'number' && Number.isFinite(raw.delay) ? raw.delay : 0, -10, 10),
+    maxWidthMode,
+    maxWidthPercent,
   };
 }
 

@@ -62,12 +62,19 @@ for (const duration of [NaN, Infinity, 100]) {
       get currentTime() { return position; },
       set currentTime(value: number) { assert.ok(Number.isFinite(value)); position = value; },
     };
-    const handleKeyPress = sourceFunction('src/components/HLSPlayer.tsx', 'handleKeyPress', {
-      video, HTMLInputElement: class {}, HTMLTextAreaElement: class {}, HTMLElement: class {},
-      document: { activeElement: null }, isSourceMenuTarget: () => false, isLocked: false,
+    const handler = sourceFunction('src/components/HLSPlayer.tsx', 'handlePlayerKeyDownRef.current', {
+      videoRef: { current: video }, containerRef: { current: { contains: () => false } },
+      HTMLInputElement: class {}, HTMLTextAreaElement: class {}, HTMLElement: class {},
+      document: { activeElement: null, body: {}, documentElement: {} },
+      isSourceMenuTarget: () => false, isLocked: false,
+      getPlayerNavigationKey: (event: { key: string }) => event.key,
+      onlyQualityMenu: false, isCasting: false, showControls: false,
+      showSettings: false, showCastMenu: false, showInternalEpisodesMenu: false,
+      showStreamInfo: false, showShortcutsHelp: false, studioOpen: false,
+      controls: false,
     }, 'Image suivante');
     for (const key of ['.', ',', '5', 'End']) {
-      assert.doesNotThrow(() => handleKeyPress({ key, code: key, target: null, preventDefault() {} }));
+      assert.doesNotThrow(() => handler({ key, code: key, target: null, preventDefault() {} }));
     }
     assert.equal(position, Number.isFinite(duration) ? 100 : 10);
   });

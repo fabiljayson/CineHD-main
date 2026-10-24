@@ -41,7 +41,9 @@ export async function fetchJsonWithTimeout(
     signal.addEventListener('abort', forwardAbort, { once: true });
   }
 
-  const timer = window.setTimeout(() => {
+  // `globalThis` plutôt que `window` : ce module est partagé et s'exécute aussi
+  // hors navigateur (tests Node), où `window` n'existe pas.
+  const timer = globalThis.setTimeout(() => {
     controller.abort(new DOMException(`${label} timed out after ${timeoutMs}ms`, 'TimeoutError'));
   }, timeoutMs);
 
@@ -55,7 +57,7 @@ export async function fetchJsonWithTimeout(
     }
     return await response.json();
   } finally {
-    window.clearTimeout(timer);
+    globalThis.clearTimeout(timer);
     signal.removeEventListener('abort', forwardAbort);
   }
 }

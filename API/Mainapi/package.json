@@ -16,7 +16,7 @@
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "axios": "^1.11.0",
     "axios-cookiejar-support": "^6.0.4",
-    "better-sqlite3": "^12.5.0",
+    "better-sqlite3": "^13.0.3",
     "bip32": "^5.0.1",
     "bip39": "^3.1.0",
     "bitcoinjs-lib": "^7.0.1",

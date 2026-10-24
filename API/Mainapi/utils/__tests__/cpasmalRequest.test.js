@@ -10,7 +10,9 @@ const socksProxy = { host: 'socks-proxy.test', port: 1080, auth: 'user:secret' }
 function fixture({ dedicated = [], shared = [httpProxy], transport }) {
   const filename = path.resolve(__dirname, '../proxyManager.js');
   const source = fs.readFileSync(filename, 'utf8');
-  const start = source.indexOf('async function makeCpasmalRequest(');
+  // `cpasmalProxyCooldowns` est déclaré juste avant `makeCpasmalRequest` :
+  // démarrer la extraction à la fonction laisserait la carte hors du fragment.
+  const start = source.indexOf('const cpasmalProxyCooldowns = new Map();');
   const end = source.indexOf('// Fonction AnimeSama', start);
   const calls = [];
   const context = {

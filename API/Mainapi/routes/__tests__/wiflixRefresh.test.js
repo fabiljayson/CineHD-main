@@ -32,12 +32,18 @@ async function fixture(t, fetcher, { initial = good } = {}) {
       acquireRedisLock: async () => {
         if (busy) return null;
         busy = true;
-        return { release: async () => { busy = false; } };
+        // Le bail est renouvelé toutes les 20 s pendant le scrape : sans
+        // `renew`, la publication lève, est attrapée par le catch, et aucun
+        // cache n'est écrit.
+        return { renew: async () => true, release: async () => { busy = false; } };
       },
       getFromCacheNoExpiration: async (_dir, _key, bypassMemory) => { assert.equal(bypassMemory, true); return read(); },
       fetchCinestreamMovieData: scrape,
       fetchWiflixTvData: async (id, _season, previous) => scrape(id, previous),
       saveToCache: async (_dir, _key, data) => { writes++; await fs.writeFile(file, JSON.stringify(data)); return true; },
+      // Le rafraîchissement différé repose sur setInterval/clearInterval :
+      // le contexte vm ne les expose pas d'eux-mêmes.
+      setInterval, clearInterval, setTimeout, clearTimeout,
       console: { error() {} },
     });
     vm.runInContext(source.slice(start, end) + '\nglobalThis.update = updateWiflixCache;', context, { filename });

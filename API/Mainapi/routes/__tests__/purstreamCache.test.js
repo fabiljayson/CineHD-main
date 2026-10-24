@@ -64,6 +64,14 @@ function createFixture(type, { negativeMapping = false, streamCache, stale = fal
     },
     '../utils/proxyManager': { pickRandomProxy: () => null },
     '../utils/mediaSigning': {},
+    // Rafraîchissement partagé avec Wiflix : le test fournit son propre
+    // `shouldUpdateCache` via configure(), l'état réel n'est donc jamais lu ici.
+    '../utils/wiflixRefreshState': { createWiflixRefreshState: () => ({}) },
+    // Télémétrie sans effet — hors sujet pour un test de politique de cache.
+    '../utils/sourceRefreshTelemetry': { refreshStep() {}, reportRefreshFailure() {}, recordRefreshResult() {}, withRefreshDiagnostics: (fn) => fn },
+    // Redis absent de ce test : le route est piloté par configure() et ne doit
+    // jamais toucher au partage inter-workers.
+    '../config/redis': { redis: null },
   };
   const routeModule = { exports: {} };
   vm.compileFunction(routeSource, ['require', 'module', 'console'], { filename: routePath })((request) => {

@@ -14,6 +14,33 @@ export function sourceFunction(file, name, bindings = {}, includes = '') {
     ts.forEachChild(node, visit);
   };
   visit(source);
+  // Repli : un handler peut être stocké dans une ref plutôt que déclaré en
+  // variable (`handlePlayerKeyDownRef.current = (e) => …`), et un helper peut
+  // être une déclaration `function` hoistée. On ne cherche ces formes
+  // qu'après avoir épuisé les déclarations, pour ne pas changer le choix fait
+  // par les appels existants.
+  if (!expression) {
+    const visitFunction = node => {
+      if (ts.isFunctionDeclaration(node) && node.name?.getText(source) === name
+        && node.getText(source).includes(includes)) {
+        expression = node.getText(source);
+      }
+      ts.forEachChild(node, visitFunction);
+    };
+    visitFunction(source);
+  }
+  if (!expression) {
+    const visitAssignment = node => {
+      if (ts.isBinaryExpression(node)
+        && node.operatorToken.kind === ts.SyntaxKind.EqualsToken
+        && node.left.getText(source) === name
+        && node.right.getText(source).includes(includes)) {
+        expression = node.right.getText(source);
+      }
+      ts.forEachChild(node, visitAssignment);
+    };
+    visitAssignment(source);
+  }
   if (!expression) throw new Error(`Callback ${name} introuvable dans ${file}`);
   const js = ts.transpile(`const callback = ${expression};`, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None });
   return new Function(...Object.keys(bindings), `${js}\nreturn callback;`)(...Object.values(bindings));

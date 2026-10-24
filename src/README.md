@@ -1,6 +1,6 @@
-# Frontend Movix
+# Frontend CineHD (ex-Movix)
 
-Le frontend Movix porte l'expérience utilisateur complète : navigation dans le catalogue, pages détails, lecture vidéo, Live TV, WatchParty, profils, listes partagées, Wishboard, VIP et Wrapped.
+Le frontend CineHD porte l'expérience utilisateur complète : navigation dans le catalogue, pages détails, lecture vidéo, Live TV, WatchParty, profils, listes partagées, Wishboard, VIP et Wrapped.
 
 Le point important pour contribuer ici : `src/App.tsx` ne fait pas que router. Il centralise aussi plusieurs comportements transverses, dont la persistance locale et la sync de certains morceaux de `localStorage` vers `POST /api/sync`.
 
@@ -41,12 +41,14 @@ Les variables principales sont documentées dans `.env.example` :
 - `VITE_MAIN_API`
 - `VITE_TMDB_API_KEY`
 - `VITE_SITE_URL`
-- `VITE_WATCHPARTY_API`
+- `VITE_WATCHPARTY_API` (repli uniquement : le socket des rooms WatchParty utilise `VITE_MAIN_API`)
 - `VITE_PROXIES_EMBED_API`
 - `VITE_SUPPORT_WHATSAPP_URL`
 - `VITE_TURNSTILE_SITE_KEY`
 - `VITE_TURNSTILE_INVISIBLE_SITEKEY`
 - `VITE_TURNSTILE_DOMAINS_n`, `VITE_TURNSTILE_SITE_KEY_n` et `VITE_TURNSTILE_INVISIBLE_SITEKEY_n` (n de 2 à 10) : paires de widgets Turnstile supplémentaires au-delà de 10 domaines, choisies selon le domaine courant par `src/utils/turnstileKeys.ts`
+
+Autres variables consommées par le code et présentes dans `.env.example` : `VITE_BACKUP_API` (API de secours pour les catalogues films/séries), `VITE_VAPID_PUBLIC_KEY` (notifications push), ainsi que les variables d'analytics (`VITE_ANALYTICS_PROVIDER`, `VITE_GA_MEASUREMENT_ID`, `VITE_PLAUSIBLE_*`), de monitoring (`VITE_GLITCHTIP_DSN`) et de publicités (`VITE_AD_*`, `VITE_SWIFTFLUX_AD_URL`, `VITE_MIRRORS_CONFIG_URL`, `VITE_DEFAULT_MIRRORS`).
 
 La normalisation des URLs runtime est centralisée dans `src/config/runtime.ts`.
 
@@ -81,7 +83,7 @@ Le routeur principal est dans `src/App.tsx`. Les grandes familles de routes sont
 
 ## État global
 
-Movix n'utilise ni Redux ni Zustand. L'état global passe surtout par React Context, le stockage local et quelques synchronisations backend.
+CineHD n'utilise ni Redux ni Zustand. L'état global passe surtout par React Context, le stockage local et quelques synchronisations backend.
 
 Les contexts à connaître en premier :
 
@@ -97,7 +99,7 @@ Les contexts à connaître en premier :
 
 - Auth et persistance : `src/App.tsx`, `src/context/AuthContext.tsx`, `src/context/ProfileContext.tsx`
 - Calls backend : `src/services/` puis les pages/composants consommateurs
-- WatchParty : `src/pages/WatchParty*.tsx`, `src/hooks/useWatchParty.ts`, `src/utils/watchparty.ts`, `src/workers/watchpartySync.worker.ts`
+- WatchParty : `src/pages/WatchParty*.tsx`, `src/utils/watchparty.ts`, `src/utils/watchpartySync.ts`, `src/workers/watchpartySync.worker.ts`
 - Lecture vidéo : `src/pages/Watch/` et les composants `*Player*`
 - Traductions : `src/i18n/`
 

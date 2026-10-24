@@ -89,7 +89,7 @@ Les annonces des projets passent par le canal Telegram [t.me/ix_annonces](https:
 | `extension/` + `userscript/` | Outils navigateur CineHD | [Extension](extension/README.md), [Userscript](userscript/README.md) |
 | `app/` | App mobile React Native (Android OK, iOS non testé) | [App mobile](app/README.md) |
 | `wasm/watchparty-sync/` | Moteur Rust/WASM de la Sync Pro | [WatchParty Sync WASM](wasm/watchparty-sync/README.md) |
-| `cloudflareproxy/` | Worker Cloudflare CORS/proxy | [Cloudflare Proxy](cloudflareproxy/README.md) |
+| `cloudflareproxy/` | Worker Cloudflare CORS/proxy | pas de README dédié (voir `cloudflareproxy/worker.js`) |
 
 ## Architecture du monorepo
 
@@ -132,7 +132,7 @@ cd API/Mainapi
 npm install
 ```
 
-`API/watchpartyAPI/` n'a pas son propre `package.json` : il consomme les dépendances du `node_modules` racine.
+`API/watchpartyAPI/` n'a pas son propre `package.json` : ses imports (`express`, `cors`, `socket.io`, `dotenv`, `uuid`) sont résolus depuis le `node_modules` racine. En l'état, seul `uuid` figure dans les dépendances racine : les quatre autres manquent et le service ne démarre pas sans les installer (correction du code ou des dépendances requise, voir « Limitations connues » du dépôt).
 
 ### Configurer les `.env` avant de lancer quoi que ce soit
 
@@ -166,7 +166,7 @@ npm run dev
 ```
 
 ```bash
-# WatchParty - http://localhost:25566
+# WatchParty - http://localhost:25566 (nécessite les dépendances manquantes, voir ci-dessus)
 node API/watchpartyAPI/watchparty.js
 ```
 
@@ -188,7 +188,7 @@ Les fichiers d'exemple ou de config existants sont déjà dans le repo :
 - WatchParty : `API/watchpartyAPI/.env.example`
 - Proxy embed : `API/proxiesembed/.env.example`
 
-Les variables frontend les plus importantes sont `VITE_MAIN_API`, `VITE_WATCHPARTY_API`, `VITE_PROXIES_EMBED_API` et `VITE_SITE_URL`.
+Les variables frontend les plus importantes sont `VITE_MAIN_API`, `VITE_PROXIES_EMBED_API` et `VITE_SITE_URL`. `VITE_WATCHPARTY_API` n'est lue que comme repli dans `src/config/runtime.ts` : le socket des rooms WatchParty utilise `VITE_MAIN_API`.
 
 Pour un premier lancement local, configure au minimum :
 
@@ -199,7 +199,9 @@ Pour un premier lancement local, configure au minimum :
 ### Cache Cloudflare du frontend
 
 Le fichier [`cloudflare-cache-rules.json`](cloudflare-cache-rules.json) contient
-le modèle commun des quatre Cache Rules des neuf miroirs listés dans `domains`.
+le modèle commun des quatre Cache Rules des neuf miroirs listés dans sa clé
+`domains` — 11 zones `movix.*` au total avec les deux domaines de
+`html_only_domains`.
 La règle HTML a été ajoutée le 28 septembre 2026, après les trois règles
 initiales du 26 septembre. Les domaines de `html_only_domains` (`movix.help`
 et `movix.online`) ont uniquement reçu cette nouvelle règle HTML, leur
@@ -251,7 +253,7 @@ le [guide de déploiement Docker](docs/deployment-docker.md).
 - Feature frontend : commence par `src/App.tsx`, puis la page cible dans `src/pages/`.
 - Auth, profils, persistance : regarde `src/context/`, `src/App.tsx`, `API/Mainapi/routes/authRoutes.js` et `API/Mainapi/routes/sync.js`.
 - Lecture vidéo et proxies : recoupe `src/pages/Watch/`, les composants player, `API/Mainapi/liveTvRoutes.js`, `API/proxiesembed/` et parfois `extension/`.
-- WatchParty : vérifie à la fois `API/watchpartyAPI/watchparty.js`, `src/pages/WatchParty*.tsx`, `src/hooks/useWatchParty.ts`, `src/utils/watchparty*.ts` et `src/workers/watchpartySync.worker.ts`.
+- WatchParty : vérifie à la fois `API/watchpartyAPI/watchparty.js`, `src/pages/WatchParty*.tsx`, `src/utils/watchparty.ts`, `src/utils/watchpartySync.ts` et `src/workers/watchpartySync.worker.ts`.
 - Browser tooling : si tu modifies l'extension, compare toujours `extension/Chrome/` et `extension/Firefox/`, puis vérifie si le userscript doit suivre.
 - Sync Rust/WASM : modifie `wasm/watchparty-sync/`, puis rebuild `public/wasm/watchparty-sync/`.
 
@@ -261,7 +263,12 @@ le [guide de déploiement Docker](docs/deployment-docker.md).
 - Ce monorepo n'utilise pas de workspace tooling : chaque sous-projet garde ses scripts.
 - Une partie importante de l'état produit vit dans `localStorage` et dans la sync backend. Ne raisonne pas "base de données only".
 - Le lint frontend se lance à la racine avec `npm run lint`.
-- Il n'y a pas de suite de tests globale fiable pour tout le repo. Vérifie au minimum les scripts touchés et le comportement manuel.
+- `npm test` lance `node --test` sur les fichiers `tests/*.test.*` (tests unitaires et d'intégration légère). Les scénarios navigateur E2E de `tests/*.browser.*` ne sont pas couverts par ce script et demandent une exécution manuelle.
+
+Limitations connues en l'état (corrections demandées au niveau du code, pas de la doc) :
+
+- `API/watchpartyAPI/` ne démarre pas avec les dépendances racine actuelles : `express`, `cors`, `socket.io` et `dotenv` manquent (détail dans « Démarrage rapide »).
+- `npm run build:report` est cassé : il appelle `scripts/bundle-report.mjs`, qui n'existe pas.
 
 ## Documentation par module
 
@@ -274,7 +281,8 @@ le [guide de déploiement Docker](docs/deployment-docker.md).
 - [Userscript Tampermonkey](userscript/README.md)
 - [App mobile React Native](app/README.md) — Android fonctionnel, iOS non testé (aide recherchée)
 - [WatchParty Sync WASM](wasm/watchparty-sync/README.md)
-- [Cloudflare Proxy](cloudflareproxy/README.md)
+
+`cloudflareproxy/` n'a pas de README : le rôle du worker se lit dans `worker.js` et `wrangler.toml`.
 
 ## Licence
 

@@ -1,6 +1,6 @@
 # WatchParty API
 
-La WatchParty est le service temps réel de Movix. C'est lui qui gère les rooms, le chat, les rôles, les votes, la synchro de lecture et la persistance minimale entre deux redémarrages.
+La WatchParty est le service temps réel de CineHD. C'est lui qui gère les rooms, le chat, les rôles, les votes, la synchro de lecture et la persistance minimale entre deux redémarrages.
 
 Le service est volontairement concentré dans un seul fichier ESM, `watchparty.js`, qui combine Express, serveur HTTP et namespace Socket.IO.
 
@@ -28,8 +28,7 @@ node API/watchpartyAPI/watchparty.js
 Notes utiles :
 
 - le port par défaut est `25566`
-- `API/watchpartyAPI/` n'a pas son propre `package.json`
-- les dépendances sont résolues depuis le `node_modules` racine
+- `API/watchpartyAPI/` n'a pas son propre `package.json` et résout ses dépendances depuis le `node_modules` racine ; en l'état, `express`, `cors`, `socket.io` et `dotenv` manquent dans ces dépendances (voir le README racine, « Limitations connues »)
 
 ## Configuration
 
@@ -140,7 +139,6 @@ Si tu touches la WatchParty, vérifie aussi :
 - `src/pages/WatchPartyJoin.tsx`
 - `src/pages/WatchPartyList.tsx`
 - `src/pages/WatchPartyRoom.tsx`
-- `src/hooks/useWatchParty.ts`
 - `src/utils/watchparty.ts`
 - `src/utils/watchpartySync.ts`
 - `src/workers/watchpartySync.worker.ts`

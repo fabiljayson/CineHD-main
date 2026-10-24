@@ -3,6 +3,11 @@
 Status: **v1 draft for founder review** · 2026-10-24
 Pipeline: product-lens (Mode 1 — Product Diagnostic) → next lane `product-capability`
 
+> ⚠️ **Brouillon interne de travail — non publié, non validé.** Ce brief ne
+> constitue aucun engagement produit : ni lancement, ni tarification, ni
+> diffusion publique n'est décidé tant que la revue fondateur (et le passage
+> légal demandé ci-dessous) n'ont pas eu lieu.
+
 ## Recommendation: **GO** (conditional)
 
 Two of three existential risks are already resolved by the founder:

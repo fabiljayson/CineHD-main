@@ -80,7 +80,8 @@ PRODUCT.md
 Poulpix-demo.html
 Poulpix.png
 Poulpix.svg
-docs/
+docs/*
+!docs/deployment-docker.md
 extension/Chrome/Chrome.zip
 movix-mcp/
 movix-mcp-http/

@@ -1,4 +1,4 @@
-# CLAUDE.md - Movix Project Guide
+# CLAUDE.md — CineHD Project Guide (ex-Movix)
 
 ## Model selection — important for agents and subagents
 
@@ -12,7 +12,7 @@
 
 **Default rule:** if you can describe the task to a junior dev in under 3 sentences and they'd know what to do, use **Sonnet** or **Haiku**. Reach for Opus only when the task itself is "figure out *what* to build", not just "build *this*".
 
-Concretely for Movix:
+Concretely for CineHD:
 - Adding a settings toggle, an i18n key, a small CSS rule → **Haiku**
 - Implementing a feature with existing patterns (new context, new tool, new route) → **Sonnet**
 - Designing the MCP architecture, deciding OAuth scope structure, debugging the sync race → **Opus**
@@ -21,7 +21,7 @@ When in doubt, **start with Sonnet** and escalate to Opus only if the model visi
 
 ## Project Overview
 
-Movix is an open-source French streaming platform monorepo. It includes a React frontend, multiple Node.js/Python backend services, browser extensions, a Rust WASM sync engine, Cloudflare Workers, and a Discord Rich Presence integration.
+CineHD (formerly Movix) is an open-source French streaming platform monorepo. It includes a React frontend, multiple Node.js/Python backend services, browser extensions, a Rust WASM sync engine, Cloudflare Workers, and a PreMiD Discord Rich Presence integration.
 
 **License**: MIT (see LICENSE; third-party credits in NOTICE — the CineHD name and hosted service remain proprietary)
 
@@ -29,39 +29,38 @@ Movix is an open-source French streaming platform monorepo. It includes a React 
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | React 18 + TypeScript + Vite 5 |
+| Frontend | React 18 + TypeScript + Vite 8 |
 | Styling | Tailwind CSS 3 + Radix UI + Headless UI |
 | State | React Context API (12 providers) |
-| Routing | React Router DOM 6 (58+ routes) |
+| Routing | React Router DOM 6 (~45 routes, 52 top-level page components) |
 | i18n | i18next (FR primary, EN secondary) |
-| Video | HLS.js, Video.js, Shaka Player, Dash.js, Mpegts.js |
-| Real-time | Socket.IO (client + server) |
-| Backend (Main) | Node.js + Express 5 + MySQL + Redis |
+| Video | HLS.js, Shaka Player, Dash.js, Mpegts.js |
+| Real-time | Socket.IO (client front ; service WatchParty séparé) |
+| Backend (Main) | Node.js + Express 4 + MySQL + Redis |
 | Backend (Proxy) | Python + aiohttp (async) |
 | WASM | Rust (watchparty sync engine) |
-| Extensions | Chrome (MV3) + Firefox (MV2) + Tampermonkey |
+| Extensions | Chrome (MV3) + Firefox (MV3) + Tampermonkey |
 | Edge | Cloudflare Workers |
-| Auth | BIP39 seed phrases, Discord OAuth, Google OAuth |
+| Auth | BIP39 seed phrases, Discord OAuth, Google OAuth, VIP access code |
 | Payments | BTC/LTC (BlockCypher), PayGate |
 
 ## Repository Structure
 
 ```
-movix-main/
+repo root (CineHD, ex-movix-main)/
 ├── src/                    # React frontend (Vite)
-│   ├── pages/              # 58 page components
-│   ├── components/         # 118+ reusable components
+│   ├── pages/              # 52 top-level page components (+ subfolder pages)
+│   ├── components/         # 220 tsx components
 │   │   ├── ui/             # Primitives (button, dialog, select, etc.)
-│   │   ├── *Player.tsx     # Video player variants (7)
+│   │   ├── *Player.tsx     # Video player variants
 │   │   └── skeletons/      # Loading placeholders
 │   ├── context/            # React Context providers (12)
-│   ├── hooks/              # Custom hooks (8)
-│   ├── services/           # Axios API services (13)
-│   ├── utils/              # Utility functions (24 files)
-│   │   └── sources/        # Media source providers
-│   ├── config/             # Runtime config, Firebase
+│   ├── hooks/              # Custom hooks (26)
+│   ├── services/           # Axios API services (29)
+│   ├── utils/              # 126 helper files
+│   ├── config/             # Runtime config
 │   ├── workers/            # Web Workers (WASM integration)
-│   ├── i18n/               # Translations (fr.json, en.json)
+│   ├── i18n/               # Translations (fr.json blocks, en.json blocks)
 │   ├── types/              # TypeScript type definitions
 │   ├── data/               # Static data (avatars, countries)
 │   ├── lib/                # Library utilities (cn helper)
@@ -69,7 +68,7 @@ movix-main/
 │   └── assets/             # Static assets
 ├── API/
 │   ├── Mainapi/            # Primary Express API (port 25565)
-│   │   ├── routes/         # 24 route modules
+│   │   ├── routes/         # 33 route modules
 │   │   ├── middleware/     # Auth, CORS, security, rate limiting
 │   │   ├── utils/          # Cache, proxy, concurrency helpers
 │   │   └── config/         # Redis config
@@ -78,14 +77,13 @@ movix-main/
 │       └── drmproxy/       # DRM/embed extractors (30+ services)
 ├── extension/
 │   ├── Chrome/             # Manifest V3 extension
-│   └── Firefox/            # Manifest V2 extension
+│   └── Firefox/            # Manifest V3 extension
 ├── userscript/             # Tampermonkey userscript
 ├── wasm/
 │   └── watchparty-sync/    # Rust sync engine -> WebAssembly
 ├── PreMid/                 # Discord Rich Presence (TypeScript)
 ├── cloudflareproxy/        # Cloudflare Worker CORS relay
-├── functions/              # Serverless edge handlers
-├── others/                 # Misc (bad domains, redirections)
+├── functions/              # Cloudflare Pages Functions (social previews)
 └── public/                 # Static assets, service worker, WASM output
 ```
 
@@ -115,18 +113,19 @@ Frontend (`.env`):
 - `VITE_MAIN_API` - Main API URL
 - `VITE_TMDB_API_KEY` - TMDB metadata API key
 - `VITE_SITE_URL` - Site base URL
-- `VITE_WATCHPARTY_API` - WatchParty Socket.IO URL
+- `VITE_WATCHPARTY_API` - Fallback only (`src/config/runtime.ts`); the WatchParty room socket uses `VITE_MAIN_API`
 - `VITE_PROXIES_EMBED_API` - Python proxy service URL
+- `VITE_VAPID_PUBLIC_KEY` - Push notifications
 - `VITE_TURNSTILE_SITE_KEY` / `VITE_TURNSTILE_INVISIBLE_SITEKEY` - Cloudflare Turnstile
-- `VITE_SUPPORT_TELEGRAM_URL` - Support link
+- `VITE_SUPPORT_WHATSAPP_URL` - Support link
 
-Backend: see `API/Mainapi/.env.example` (~100 variables) and `API/proxiesembed/.env.example`
+Backend: see `API/Mainapi/.env.example` (~147 variables) and `API/proxiesembed/.env.example`
 
 ## Code Conventions
 
 ### Naming
 - **Components**: PascalCase files and exports (`MovieDetails.tsx`)
-- **Hooks**: `use` prefix, camelCase (`useWatchParty.ts`)
+- **Hooks**: `use` prefix, camelCase (e.g. `useFlexGapEmblaCarousel.ts`, `useAgeRestrictedContent.ts`)
 - **Utils/Services**: camelCase (`extractM3u8.ts`, `commentService.ts`)
 - **Constants**: SCREAMING_SNAKE_CASE (`COMMENT_LENGTH_LIMITS`)
 - **UI primitives**: lowercase (`button.tsx`, `dialog.tsx`) following shadcn/ui pattern
@@ -143,7 +142,7 @@ Backend: see `API/Mainapi/.env.example` (~100 variables) and `API/proxiesembed/.
 - localStorage sync to backend via `/api/sync` endpoint
 
 ### Backend Patterns (Mainapi)
-- Express middleware chain: CORS -> Helmet -> Rate Limit -> Auth -> Routes
+- Express middleware chain: CORS -> custom security headers (no helmet) -> keepAlive -> domain restriction -> body parsers -> routes; rate limiting and auth (JWT `getAuthIfValid`) are applied per route with a shared Redis store
 - Route modules export a `configure(dependencies)` function for DI
 - MySQL connection pool (`mysqlPool.js`)
 - Redis for caching and rate limiting (`config/redis.js`)
@@ -166,8 +165,9 @@ Backend: see `API/Mainapi/.env.example` (~100 variables) and `API/proxiesembed/.
 ### Service Communication
 ```
 Browser -> Vite Dev Server (3000) -> React SPA
-React SPA -> Main API (25565)      [REST + Socket.IO]
-React SPA -> WatchParty API (25566) [Socket.IO /watchparty namespace]
+React SPA -> Main API (25565)      [REST, /api/sync, Live TV]
+React SPA -> WatchParty REST API   [VITE_WATCHPARTY_API via runtime.ts, repli = VITE_MAIN_API]
+React SPA -> Main API host + /watchparty namespace  [Socket.IO room socket]
 React SPA -> Proxies Embed (25569) [HTTP proxy/DRM]
 React SPA -> Cloudflare Workers    [CORS relay]
 Main API  -> MySQL, Redis, TMDB, 30+ scraping sources
@@ -187,10 +187,10 @@ Main API  -> MySQL, Redis, TMDB, 30+ scraping sources
 
 ### Video Playback
 Multiple player implementations depending on source type:
-- `HLSPlayer.tsx` (433KB) - Primary HLS player with extensive settings
-- `VideoJSPlayer.tsx` - Video.js wrapper
-- `LiveTVPlayer.tsx` - Live stream player
-- Shaka Player, Dash.js, Mpegts.js for specific formats
+- `HLSPlayer.tsx` - Primary HLS player with extensive settings
+- `LiveTVPlayer.tsx` - Live stream player (hls.js -> dash.js -> mpegts.js fallbacks)
+- Shaka Player for FranceTV
+- historic note: the former Video.js wrapper was removed (no longer mounted anywhere)
 
 ### Service Worker Fallback Domain
 
@@ -210,7 +210,7 @@ Scope : ne sauve QUE les users ayant déjà visité `movix.tax` au moins une foi
 ### Deployment
 - Frontend: Cloudflare Pages (uses `CF_PAGES_COMMIT_SHA` for build ID)
 - Build ID injected as `VITE_APP_BUILD_ID`
-- PWA with Workbox service worker for offline support
+- PWA with a custom service worker (`public/sw.js`), registered in `src/main.tsx`
 - `public/_redirects` and `public/_routes.json` for Cloudflare routing
 
 ## Key Files (Entry Points)
@@ -229,9 +229,9 @@ Scope : ne sauve QUE les users ayant déjà visité `movix.tax` au moins une foi
 
 ## Important Notes
 
-- The `next.config.js` at root is legacy/unused - the project uses Vite, not Next.js
-- Some files are very large (HLSPlayer.tsx: 433KB, WatchTv.tsx: 285KB, Profile.tsx: 215KB) - read specific line ranges
-- Backend services have separate `package.json` and `.env.example` files
+- The `next.config.js` at root is legacy/unused - the project uses Vite, not Next.js, and nothing serves those CSP headers anymore
+- Some files are very large (App.tsx: 1600+ lines, HLSPlayer.tsx, WatchTv.tsx, Profile.tsx) - read specific line ranges
+- Only `API/Mainapi/` has its own `package.json` ; `API/watchpartyAPI/` resolves its dependencies from the root `node_modules` (in the current state, `express`, `cors`, `socket.io` and `dotenv` are missing there — see the root README "Limitations connues") ; `API/proxiesembed/` is Python (`requirements.txt`). All three have `.env.example` files.
 - The `functions/` directory contains Cloudflare Functions (edge handlers)
-- No test suite exists - manual testing workflow
+- `npm test` runs `node --test` over `tests/*.test.*` (unit + light-integration tests) ; browser E2E scenarios live in `tests/*.browser.*` and are run manually (Playwright)
 - ES modules throughout (`"type": "module"` in package.json)

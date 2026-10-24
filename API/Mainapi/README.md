@@ -1,4 +1,4 @@
-# Main API Movix
+# Main API CineHD (ex-Movix)
 
 C'est le cœur applicatif du projet. Si le frontend affiche un catalogue, authentifie un user, synchronise du `localStorage`, gère les commentaires, le Wishboard, le Top 10, le Live TV, le debrid ou les pages VIP, il finit très souvent ici.
 
@@ -26,8 +26,8 @@ Ne lance pas le service avec un `.env` vide : MySQL, Redis, JWT, TMDB et plusieu
 
 Notes utiles :
 
-- le serveur HTTP écoute actuellement sur `http://localhost:25565`
-- `server.js` bind aujourd'hui le port `25565` en dur
+- le serveur HTTP écoute sur `http://localhost:25565`
+- `server.js` binde aujourd'hui le port `25565` en dur ; le `PORT` listé dans `.env.example` n'est pas lu par le code
 - `NUM_WORKERS` permet de régler le nombre de workers du cluster
 - MySQL et Redis sont nécessaires pour une grosse partie des routes
 
@@ -49,9 +49,10 @@ API/Mainapi/
 |-- top10Routes.js            # Classements
 |-- wrappedRoutes.js          # Wrapped
 |-- linkSubmissionsRoutes.js  # Soumission de liens
-|-- utils/                    # Cache, proxies, axios helpers, VIP, etc.
-|-- cache/                    # Caches disque
-`-- exportscripts/            # SQL et scripts de migration
+|-- utils/                     # Cache, proxies, axios helpers, VIP, etc.
+|-- cache/                     # Caches disque
+|-- db/                        # Outils interactifs d'init/schéma (non lancés au démarrage)
+`-- wrapped_tables.sql         # DDL wrapped éventuelle à exécuter manuellement
 ```
 
 Le pattern important dans `routes/` : beaucoup de modules exposent `configure(deps)`. C'est `app.js` qui injecte les clients HTTP, le cache, les helpers et les constantes partagées avant montage.
@@ -105,6 +106,9 @@ Démarrer ou redémarrer Main API après l’installation des fichiers. Sans ces
 - scraping / lecture : `routes/cpasmal.js`, `routes/fstream.js`, `routes/wiflix.js`, `liveTvRoutes.js`
 - communautaire : `commentsRoutes.js`, `likesRoutes.js`, `sharedListsRoutes.js`, `wishboardRoutes.js`, `linkSubmissionsRoutes.js`
 - VIP / paiements : `utils/vipDonations.js`, `routes/vipDonations.js`
+- sources annexes / providers : `routes/darkiworld.js`, `routes/swiftflow.js`, `routes/animeSama.js`, `routes/purstream.js`, `routes/kisskh.js`, `routes/voirdrama.js`, `routes/francetv.js`, `routes/j1f.js`, `routes/mediaExtract.js`
+- debrid et OAuth : `routes/debrid.js`, `routes/oauth.js`, `routes/adminOauthApps.js`
+- administration : `routes/admin.js`, `routes/accountRequests.js`, `routes/helpFeedback.js`, `routes/downloadLinksLeaderboard.js`
 
 ## À garder en tête
 

@@ -1,6 +1,6 @@
-# Movix — Application Mobile
+# CineHD (ex-Movix) — Application Mobile
 
-Application iOS & Android pour Movix. WebView avec l'extension Movix intégrée (remplacement du userscript Tampermonkey) et changeur DNS 1.1.1.1.
+Application iOS & Android pour CineHD. WebView avec l'extension CineHD intégrée (remplacement du userscript Tampermonkey) et changeur DNS 1.1.1.1.
 
 > ⚠️ **Statut iOS : build automatisé non signé**
 >
@@ -35,7 +35,7 @@ app/
 
 ### Comment ça marche
 
-1. **WebView** charge `movix.tax`
+1. **WebView** charge l'adresse primaire résolue à l'exécution par `src/services/addressResolver.ts` (replis codés en dur : `movix.luxe` et les miroirs de `FALLBACK_CONFIG`)
 2. **Bridge runtime** est injecté AVANT le chargement de la page — fournit `GM_xmlhttpRequest`, `GM_getValue`, `GM_setValue`, `GM_deleteValue`, `unsafeWindow`
 3. **Userscript original** est injecté et fonctionne comme dans Tampermonkey
 4. Quand le userscript fait une requête via `GM_xmlhttpRequest`, le bridge envoie un message à React Native
@@ -119,7 +119,7 @@ Le job de publication régénère aussi la source AltStore/SideStore (`app/movix
 https://raw.githubusercontent.com/fabiljayson/CineHD-main/main/app/movix-ios-source.json
 ```
 
-Dans SideStore ou AltStore : **Sources → + → coller cette URL**. Movix apparaît dans le store, s'installe et se met à jour comme n'importe quelle app : le store signe l'IPA avec l'identifiant Apple de l'utilisateur au moment de l'installation (compte gratuit : 3 apps maximum, re-signature automatique tous les 7 jours). Liens à mettre sur une page web pour ajouter la source en un tap :
+Dans SideStore ou AltStore : **Sources → + → coller cette URL**. CineHD apparaît dans le store, s'installe et se met à jour comme n'importe quelle app : le store signe l'IPA avec l'identifiant Apple de l'utilisateur au moment de l'installation (compte gratuit : 3 apps maximum, re-signature automatique tous les 7 jours). Liens à mettre sur une page web pour ajouter la source en un tap :
 
 - `sidestore://source?url=https://raw.githubusercontent.com/fabiljayson/CineHD-main/main/app/movix-ios-source.json`
 - `altstore://source?url=https://raw.githubusercontent.com/fabiljayson/CineHD-main/main/app/movix-ios-source.json`
@@ -144,7 +144,7 @@ Différence importante : Scarlet signe avec un **certificat d'entreprise partag�
 - Les requêtes DNS partent chiffrées en DNS-over-HTTPS vers `https://1.1.1.1/dns-query` (puis `1.0.0.1`) ; l'UDP port 53 en clair ne sert qu'en dernier recours, si le HTTPS échoue (pause DoH de 30 s)
 - Aucune donnée ne transite par un serveur tiers
 - L'utilisateur doit approuver la connexion VPN
-- Au démarrage, l'app attend que le tunnel soit monté (6 s max) avant de charger Movix : le changement de réseau coupait sinon les premières requêtes
+- Au démarrage, l'app attend que le tunnel soit monté (6 s max) avant de charger le site : le changement de réseau coupait sinon les premières requêtes
 
 ### iOS
 - Utilise `NEDNSSettingsManager` (iOS 14+)
@@ -164,6 +164,7 @@ Puis rebuild l'app.
 
 ## Notes
 
+- `app/.env.example` propose `MOVIX_SITE_URL`, mais aucune source de `app/` ne la lit actuellement : l'adresse est résolue à l'exécution via `addressResolver.ts`. À considérer comme obsolète tant que le code ne l'a pas branchée.
 - Le `DnsPackage.kt` doit être enregistré dans `MainApplication.kt` (ajouté au `getPackages()`)
 - Pour iOS, le bridging header doit pointer vers `Movix-Bridging-Header.h`
 - L'app reste dans le VPN DNS (sinon le WebView contournerait le DNS) ; ses propres sockets vers Cloudflare sont protégées par `protect()` pour éviter les boucles

@@ -6418,11 +6418,11 @@
     "seoTitle": "Privacy policy - CineHD",
     "seoDescription": "CineHD privacy policy: local storage, accounts, profiles, server sync, WatchParty, community features, security, third-party services and VIP.",
     "intro": [
-      "This page describes the data Movix actually processes as of March 29, 2026, based on the current behavior of the frontend, the main API, WatchParty, the bot, the browser extension, the userscript and VIP flows.",
+      "This page describes the data CineHD actually processes as of March 29, 2026, based on the current behavior of the frontend, the main API, WatchParty, the bot, the browser extension, the userscript and VIP flows.",
       "It covers what stays on your device, what can be synchronized server-side, what passes through third-party services and which controls are already visible in the interface."
     ],
     "summaryItems": [
-      "Movix keeps a large part of your usage state locally in the browser.",
+      "CineHD keeps a large part of your usage state locally in the browser.",
       "Part of that state is synchronized server-side for connected Discord, Google or BIP39 accounts.",
       "WatchParty, community features and VIP flows add their own logs, messages and technical data.",
       "You can already disable future Wrapped collection and manage several items from the account settings."
@@ -6431,7 +6431,7 @@
       "localStorage": {
         "title": "Data stored on your device",
         "paragraphs": [
-          "A significant part of the Movix experience runs directly in your browser. The site relies heavily on local storage to keep your preferences, session context and usage comfort between visits."
+          "A significant part of the CineHD experience runs directly in your browser. The site relies heavily on local storage to keep your preferences, session context and usage comfort between visits."
         ],
         "bullets": [
           "The browser may store settings, the selected profile ID, local session information, VIP states, watch history, favorites, custom lists, progress, episode alerts and other interface preferences.",
@@ -6443,7 +6443,7 @@
       "accountsSync": {
         "title": "Accounts, profiles and synchronization",
         "bullets": [
-          "When you sign in through Discord, Google or BIP39, Movix processes the matching account context: provider identifier, username, avatar, account type, sessions and active profile.",
+          "When you sign in through Discord, Google or BIP39, CineHD processes the matching account context: provider identifier, username, avatar, account type, sessions and active profile.",
           "Session management notably stores a session identifier, the user agent, access dates and a derived encrypted device fingerprint built from the user agent and IP address.",
           "Connected accounts can manage multiple profiles with name, avatar, age restriction and default profile; some community interactions are attached to a specific profile.",
           "For connected Discord, Google and BIP39 accounts, part of the local state is synchronized server-side through deltas into persistent data tied to the account and profile.",
@@ -6454,7 +6454,7 @@
       "usageHistory": {
         "title": "Usage, history, Wrapped and personalization",
         "bullets": [
-          "Movix uses your preferences, playback progress, favorites, lists, alerts and settings to personalize the interface and restore your usage state.",
+          "CineHD uses your preferences, playback progress, favorites, lists, alerts and settings to personalize the interface and restore your usage state.",
           "When Wrapped collection is enabled, the frontend can send events including watch duration, visited page, content IDs and titles, season, episode, time and active profile.",
           "An option in settings allows you to disable future Wrapped collection, and another allows you to limit or clear the local continue-watching history.",
           "Episode alerts are stored locally and checked periodically in the browser to trigger client-side notifications."
@@ -6474,7 +6474,7 @@
       "securitySupport": {
         "title": "Security, anti-abuse, VIP and support",
         "bullets": [
-          "Movix verifies Cloudflare Turnstile tokens for some sensitive actions, transmitting the token and remote IP address for anti-abuse purposes.",
+          "CineHD verifies Cloudflare Turnstile tokens for some sensitive actions, transmitting the token and remote IP address for anti-abuse purposes.",
           "Some text content such as comments, nicknames or shared lists may be sent through automated moderation tools before or after publication, in addition to human review.",
           "The VIP area processes invoice and payment data such as public invoice identifier, unique crypto address, expected amount, status, confirmations, transaction hash, gifts and VIP keys.",
           "Hashed IP fingerprints are used in VIP flows for fraud prevention around invoice creation or gift opening.",
@@ -6499,12 +6499,12 @@
       "controlsContact": {
         "title": "Your choices, retention and contact",
         "paragraphs": [
-          "Movix data may live in several places depending on the feature: in your browser, in JSON files tied to your account, in MySQL tables and in temporary technical caches. The code does not define one single uniform retention period for every case."
+          "CineHD data may live in several places depending on the feature: in your browser, in JSON files tied to your account, in MySQL tables and in temporary technical caches. The code does not define one single uniform retention period for every case."
         ],
         "bullets": [
           "You can already manage some items directly in Settings: active sessions, linked accounts, local import or export, local history and future Wrapped collection.",
           "Some deletions are local only and others require support intervention, because the repository does not expose a universal purge interface for all backend data.",
-          "Movix does not implement, in the current code, any mechanism to sell personal data to third parties.",
+          "CineHD does not implement, in the current code, any mechanism to sell personal data to third parties.",
           "Important changes to this page will be reflected by the update date shown here."
         ]
       }

@@ -6418,11 +6418,11 @@
     "seoTitle": "Politique de confidentialité - CineHD",
     "seoDescription": "Politique de confidentialité de CineHD : stockage local, comptes, profils, sync serveur, WatchParty, communauté, sécurité, services tiers et VIP.",
     "intro": [
-      "Cette page décrit les données que Movix traite réellement au 29 mars 2026, à partir du fonctionnement actuel du frontend, de l'API principale, de WatchParty, du bot, de l'extension, du userscript et des flux VIP.",
+      "Cette page décrit les données que CineHD traite réellement au 29 mars 2026, à partir du fonctionnement actuel du frontend, de l'API principale, de WatchParty, du bot, de l'extension, du userscript et des flux VIP.",
       "Elle couvre à la fois ce qui reste sur votre appareil, ce qui peut être synchronisé côté serveur, ce qui transite par des services tiers et les contrôles déjà visibles dans l'interface."
     ],
     "summaryItems": [
-      "Movix conserve une grande partie de votre état d'usage localement dans le navigateur.",
+      "CineHD conserve une grande partie de votre état d'usage localement dans le navigateur.",
       "Une partie de cet état est synchronisée côté serveur pour les comptes connectés Discord, Google ou BIP39.",
       "WatchParty, les fonctions communautaires et les flux VIP ajoutent leurs propres journaux, messages et données techniques.",
       "Vous pouvez déjà couper la collecte future de Wrapped et gérer plusieurs éléments depuis les paramètres du compte."
@@ -6431,7 +6431,7 @@
       "localStorage": {
         "title": "Données conservées sur votre appareil",
         "paragraphs": [
-          "Une part importante de l'expérience Movix fonctionne d'abord dans votre navigateur. Le site s'appuie largement sur le stockage local pour garder vos préférences, votre contexte de session et votre confort d'utilisation entre deux visites."
+          "Une part importante de l'expérience CineHD fonctionne d'abord dans votre navigateur. Le site s'appuie largement sur le stockage local pour garder vos préférences, votre contexte de session et votre confort d'utilisation entre deux visites."
         ],
         "bullets": [
           "Le navigateur peut conserver des réglages, l'ID du profil sélectionné, des informations de session locale, des états VIP, l'historique de lecture, les favoris, des listes personnalisées, la progression, des alertes d'épisodes et d'autres préférences d'interface.",
@@ -6443,7 +6443,7 @@
       "accountsSync": {
         "title": "Comptes, profils et synchronisation",
         "bullets": [
-          "Lorsque vous vous connectez via Discord, Google ou BIP39, Movix traite le contexte de compte correspondant : identifiant fournisseur, pseudo, avatar, type de compte, sessions et profil actif.",
+          "Lorsque vous vous connectez via Discord, Google ou BIP39, CineHD traite le contexte de compte correspondant : identifiant fournisseur, pseudo, avatar, type de compte, sessions et profil actif.",
           "La gestion de session conserve notamment un identifiant de session, le user-agent, des dates d'accès et une empreinte d'appareil dérivée et chiffrée à partir du user-agent et de l'adresse IP.",
           "Les comptes connectés peuvent gérer plusieurs profils avec nom, avatar, restriction d'âge et profil par défaut ; certaines interactions communautaires sont rattachées à un profil précis.",
           "Pour les comptes Discord, Google et BIP39 connectés, une partie de l'état local est synchronisée côté serveur par deltas dans des données persistantes liées au compte et au profil.",
@@ -6454,7 +6454,7 @@
       "usageHistory": {
         "title": "Usage, historique, Wrapped et personnalisation",
         "bullets": [
-          "Movix utilise vos préférences, votre progression de lecture, vos favoris, vos listes, vos alertes et vos paramètres pour personnaliser l'interface et retrouver votre état d'usage.",
+          "CineHD utilise vos préférences, votre progression de lecture, vos favoris, vos listes, vos alertes et vos paramètres pour personnaliser l'interface et retrouver votre état d'usage.",
           "Quand la collecte Wrapped est activée, le front peut envoyer des événements contenant notamment la durée de visionnage, la page visitée, les identifiants et titres de contenus, la saison, l'épisode, l'heure et le profil actif.",
           "Une option dans les paramètres permet de désactiver la collecte future de Wrapped, et une autre permet de limiter ou vider l'historique local de lecture continue.",
           "Les alertes d'épisodes sont stockées localement et vérifiées périodiquement dans le navigateur pour déclencher des notifications côté client."
@@ -6474,7 +6474,7 @@
       "securitySupport": {
         "title": "Sécurité, anti-abus, VIP et support",
         "bullets": [
-          "Movix vérifie des tokens Cloudflare Turnstile pour certaines actions sensibles, avec transmission du token et de l'adresse IP distante pour l'anti-abus.",
+          "CineHD vérifie des tokens Cloudflare Turnstile pour certaines actions sensibles, avec transmission du token et de l'adresse IP distante pour l'anti-abus.",
           "Certains contenus textuels comme les commentaires, pseudos ou listes partagées peuvent être soumis à des outils de modération automatisée avant ou après publication, en plus d'un contrôle humain.",
           "La partie VIP traite des données de facture et de paiement comme l'identifiant public de facture, l'adresse crypto unique, le montant attendu, l'état, les confirmations, le hash de transaction, les cadeaux et les clés VIP.",
           "Des empreintes IP hachées sont utilisées dans les flux VIP pour la prévention de fraude autour de la création de facture ou de l'ouverture d'un cadeau.",
@@ -6499,12 +6499,12 @@
       "controlsContact": {
         "title": "Vos choix, conservation et contact",
         "paragraphs": [
-          "Les données Movix peuvent vivre à plusieurs endroits selon la fonctionnalité : dans votre navigateur, dans des fichiers JSON liés à votre compte, dans des tables MySQL et dans des caches techniques temporaires. Le code ne définit pas une durée uniforme unique pour tous les cas."
+          "Les données CineHD peuvent vivre à plusieurs endroits selon la fonctionnalité : dans votre navigateur, dans des fichiers JSON liés à votre compte, dans des tables MySQL et dans des caches techniques temporaires. Le code ne définit pas une durée uniforme unique pour tous les cas."
         ],
         "bullets": [
           "Vous pouvez déjà gérer certaines choses directement dans Paramètres : sessions actives, comptes liés, import ou export local, historique local et collecte future de Wrapped.",
           "Certaines suppressions sont locales uniquement et d'autres nécessitent une intervention support, car le dépôt n'expose pas une interface de purge universelle pour toutes les données backend.",
-          "Movix ne met pas en place, dans le code actuel, de mécanisme de vente de données personnelles à des tiers.",
+          "CineHD ne met pas en place, dans le code actuel, de mécanisme de vente de données personnelles à des tiers.",
           "Les changements importants de cette page seront reflétés par la date de mise à jour affichée ici."
         ]
       }

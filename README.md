@@ -288,6 +288,8 @@ Limitations connues en l'état (corrections demandées au niveau du code, pas de
 
 Ce projet est distribué sous licence MIT. Le texte complet est disponible dans [LICENSE](LICENSE). Les composants tiers conservent leurs propres licences, listées dans [NOTICE](NOTICE).
 
+Vie privée : la politique de confidentialité affichée aux utilisateurs sur `/privacy` est miroitée dans [docs/privacy-policy.md](docs/privacy-policy.md) et décrit les données réellement traitées par le code.
+
 ## Avertissement
 
 Ce projet est publié sous licence MIT ; il n'encourage ni ne cautionne une utilisation illégale, le contournement de droits, ou toute violation des lois applicables.

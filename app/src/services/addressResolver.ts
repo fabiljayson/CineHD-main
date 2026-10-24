@@ -5,7 +5,7 @@ export type AddressConfig = {
   primaryUrl: string;
   mirrors: string[];
   githubUrl: string;
-  telegramUrl: string;
+  whatsappUrl: string;
 };
 
 type RawMirror = { url?: unknown };
@@ -13,7 +13,7 @@ type RawAddressJson = {
   primary?: { url?: unknown };
   active?: unknown[];
   github?: unknown;
-  telegram?: unknown;
+  whatsapp?: unknown;
 };
 
 const HOSTNAME_RE =
@@ -83,7 +83,6 @@ function normalizeAddressJson(raw: RawAddressJson): AddressConfig | null {
   const primaryUrl = raw.primary?.url;
   if (!isString(primaryUrl)) return null;
   if (!isString(raw.github)) return null;
-  if (!isString(raw.telegram)) return null;
 
   const active = Array.isArray(raw.active) ? raw.active : [];
   const mirrors: string[] = [];
@@ -98,7 +97,9 @@ function normalizeAddressJson(raw: RawAddressJson): AddressConfig | null {
     primaryUrl,
     mirrors,
     githubUrl: raw.github,
-    telegramUrl: raw.telegram,
+    // La config distante peut encore publier l'ancien champ « telegram » :
+    // on n'en dépend plus, le support WhatsApp est la source de vérité.
+    whatsappUrl: isString(raw.whatsapp) ? raw.whatsapp : FALLBACK_CONFIG.WHATSAPP_URL,
   };
 }
 
@@ -106,7 +107,7 @@ const HARDCODED_FALLBACK: AddressConfig = {
   primaryUrl: FALLBACK_CONFIG.PRIMARY_URL,
   mirrors: FALLBACK_CONFIG.MIRRORS,
   githubUrl: FALLBACK_CONFIG.GITHUB_URL,
-  telegramUrl: FALLBACK_CONFIG.TELEGRAM_URL,
+  whatsappUrl: FALLBACK_CONFIG.WHATSAPP_URL,
 };
 
 async function fetchRentryHost(): Promise<string | null> {
@@ -148,12 +149,14 @@ async function readCachedConfig(): Promise<AddressConfig | null> {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<AddressConfig>;
     if (!isString(parsed.primaryUrl) || !Array.isArray(parsed.mirrors)) return null;
-    if (!isString(parsed.githubUrl) || !isString(parsed.telegramUrl)) return null;
+    if (!isString(parsed.githubUrl)) return null;
     return {
       primaryUrl: parsed.primaryUrl,
       mirrors: parsed.mirrors.filter(isString),
       githubUrl: parsed.githubUrl,
-      telegramUrl: parsed.telegramUrl,
+      whatsappUrl: isString(parsed.whatsappUrl)
+        ? parsed.whatsappUrl
+        : FALLBACK_CONFIG.WHATSAPP_URL,
     };
   } catch {
     return null;

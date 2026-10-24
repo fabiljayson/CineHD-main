@@ -19,6 +19,7 @@ import { SquareBackground } from "../components/ui/square-background";
 import BlurText from "../components/ui/blur-text";
 import ShinyText from "../components/ui/shiny-text";
 import AnimatedBorderCard from "../components/ui/animated-border-card";
+import { SUPPORT_WHATSAPP_DISPLAY, SUPPORT_WHATSAPP_URL } from '../config/support';
 
 const VipPage: React.FC = () => {
   const { t } = useTranslation();
@@ -197,30 +198,20 @@ const VipPage: React.FC = () => {
                   {t("vipDonations.page.myInvoicesButton")}
                 </Link>
                 <a
-                  href="https://t.me/ix_annonces"
+                  href={SUPPORT_WHATSAPP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Button className="h-12 px-8 bg-[#229ED9] hover:bg-[#229ED9]/80 text-white w-full md:w-auto">
-                    <Zap className="w-4 h-4 mr-2" />
-                    {t("vip.telegramChannel")}
-                  </Button>
-                </a>
-                <a
-                  href="https://discord.com/users/1516102413835305021"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button className="h-12 px-8 bg-[#5865F2] hover:bg-[#5865F2]/80 text-white w-full md:w-auto">
+                  <Button className="h-12 px-8 bg-[#25D366] hover:bg-[#1ebe5b] text-white w-full md:w-auto">
                     <MessageCircle className="w-4 h-4 mr-2" />
-                    {t("vip.discordContact")}
+                    {t("vip.whatsappChannel")}
                   </Button>
                 </a>
               </div>
               <div className="pt-4 border-t border-white/10">
                 <p className="text-sm text-white/40">
-                  {t("vip.telegramPersonal")}{" "}
-                  <span className="text-white">@MysticSaba</span>
+                  {t("vip.whatsappPersonal")}{" "}
+                  <span className="text-white">{SUPPORT_WHATSAPP_DISPLAY}</span>
                 </p>
               </div>
             </AnimatedBorderCard>

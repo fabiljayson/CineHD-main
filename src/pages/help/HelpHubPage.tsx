@@ -7,6 +7,7 @@ import { ExternalLink, ArrowRight, Search, X } from 'lucide-react';
 import { SquareBackground } from '../../components/ui/square-background';
 import ShinyText from '../../components/ui/shiny-text';
 import { TUTO_REGISTRY, TutoAccent } from './tutoRegistry';
+import { SUPPORT_WHATSAPP_URL } from '../../config/support';
 
 /** Tailwind class helpers keyed by accent color */
 const ACCENT_BORDER: Record<TutoAccent, string> = {
@@ -250,12 +251,12 @@ const HelpHubPage: React.FC = () => {
             {t('help.hub.bottomCta')}
           </p>
           <a
-            href={import.meta.env.VITE_SUPPORT_TELEGRAM_URL || 'https://t.me/ix_annonces'}
+            href={SUPPORT_WHATSAPP_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm transition-colors"
           >
-            {t('help.common.contactTelegram')}
+            {t('help.common.contactWhatsApp')}
             <ExternalLink className="w-4 h-4" />
           </a>
         </motion.div>

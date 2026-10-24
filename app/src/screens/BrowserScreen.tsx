@@ -165,7 +165,7 @@ export default function BrowserScreen() {
 
   if (allMirrorsFailed) {
     return (
-      <MirrorErrorScreen telegramUrl={config.telegramUrl} onRetry={onRetry} />
+      <MirrorErrorScreen whatsappUrl={config.whatsappUrl} onRetry={onRetry} />
     );
   }
 

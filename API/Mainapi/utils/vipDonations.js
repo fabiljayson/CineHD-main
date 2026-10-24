@@ -30,7 +30,7 @@ const VIP_PAYMENT_METHODS = Object.freeze({
 });
 const VIP_PAYMENT_METHOD_ENUM_SQL = "ENUM('btc', 'ltc', 'cryptogate', 'paygate_hosted', 'autobuy', 'payblis')";
 
-const DEFAULT_SUPPORT_TELEGRAM_URL = 'https://t.me/ix_annonces';
+const DEFAULT_SUPPORT_WHATSAPP_URL = 'https://wa.me/237678426969?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20CineHD.';
 const FINAL_STATUSES = new Set(['delivered', 'cancelled']);
 const DEFAULT_EXPIRATION_MINUTES = 210;
 const DEFAULT_PAYGATE_MIN_PAID_RATIO = 0.60;
@@ -111,8 +111,12 @@ function normalizeBaseUrl(value) {
   return String(value || '').trim().replace(/\/+$/, '');
 }
 
-function getSupportTelegramUrl() {
-  return process.env.VIP_SUPPORT_TELEGRAM_URL || DEFAULT_SUPPORT_TELEGRAM_URL;
+function getSupportWhatsAppUrl() {
+  // VIP_SUPPORT_TELEGRAM_URL est lu en repli pour ne casser pas d'anciens
+  // environnements de déploiement déjà renseignés.
+  return process.env.VIP_SUPPORT_WHATSAPP_URL
+    || process.env.VIP_SUPPORT_TELEGRAM_URL
+    || DEFAULT_SUPPORT_WHATSAPP_URL;
 }
 
 function buildFrontendUrl(pathname) {
@@ -850,7 +854,7 @@ function serializePublicInvoice(invoice) {
     externalGateway: null,
     externalAmount: null,
     externalCurrency: null,
-    supportTelegramUrl: getSupportTelegramUrl()
+    supportUrl: getSupportWhatsAppUrl()
   };
 }
 
@@ -914,7 +918,7 @@ function serializeGift(invoice) {
     createdAt: fromSqlDateTime(invoice.created_at)?.toISOString() || null,
     unsealedAt: fromSqlDateTime(invoice.gift_unsealed_at)?.toISOString() || null,
     vipKey: !invoice.gift_sealed && invoice.status === 'delivered' ? invoice.vip_key_value : null,
-    supportTelegramUrl: getSupportTelegramUrl()
+    supportUrl: getSupportWhatsAppUrl()
   };
 }
 
@@ -3523,7 +3527,7 @@ module.exports = {
   unsealGift,
   ensureVipDonationsTables,
   getClientIp,
-  getSupportTelegramUrl,
+  getSupportWhatsAppUrl,
   parseNumber,
   roundCrypto,
   roundFiat,

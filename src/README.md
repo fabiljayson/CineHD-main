@@ -43,7 +43,7 @@ Les variables principales sont documentées dans `.env.example` :
 - `VITE_SITE_URL`
 - `VITE_WATCHPARTY_API`
 - `VITE_PROXIES_EMBED_API`
-- `VITE_SUPPORT_TELEGRAM_URL`
+- `VITE_SUPPORT_WHATSAPP_URL`
 - `VITE_TURNSTILE_SITE_KEY`
 - `VITE_TURNSTILE_INVISIBLE_SITEKEY`
 - `VITE_TURNSTILE_DOMAINS_n`, `VITE_TURNSTILE_SITE_KEY_n` et `VITE_TURNSTILE_INVISIBLE_SITEKEY_n` (n de 2 à 10) : paires de widgets Turnstile supplémentaires au-delà de 10 domaines, choisies selon le domaine courant par `src/utils/turnstileKeys.ts`

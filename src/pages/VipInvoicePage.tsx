@@ -879,7 +879,7 @@ const VipInvoicePage: React.FC = () => {
                   </div>
 
                   <a
-                    href={invoice.supportTelegramUrl}
+                    href={invoice.supportUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#229ED9] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#229ED9]/80"

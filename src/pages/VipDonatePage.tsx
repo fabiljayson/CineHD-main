@@ -34,6 +34,7 @@ import {
   getVipPaymentLabel
 } from '../utils/vipDonationsUi';
 import { rememberVipInvoice } from '../utils/vipInvoiceHistory';
+import * as whatsappSupport from '../config/support';
 
 const PACKS = [
   { amount: 5, years: 1, accent: 'from-yellow-500/20 to-transparent' },
@@ -48,7 +49,7 @@ const PAYMENT_IMAGES = {
   ltc: 'https://upload.wikimedia.org/wikipedia/commons/f/f8/LTC-400.png'
 } as const;
 
-const SUPPORT_TELEGRAM_URL = import.meta.env.VITE_SUPPORT_TELEGRAM_URL || 'https://t.me/ix_annonces';
+const SUPPORT_WHATSAPP_URL = whatsappSupport.SUPPORT_WHATSAPP_URL;
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 const VipDonatePage: React.FC = () => {
   const navigate = useNavigate();
@@ -594,7 +595,7 @@ const VipDonatePage: React.FC = () => {
                   </div>
 
                   <a
-                    href={SUPPORT_TELEGRAM_URL}
+                    href={SUPPORT_WHATSAPP_URL}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#229ED9] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#229ED9]/80"

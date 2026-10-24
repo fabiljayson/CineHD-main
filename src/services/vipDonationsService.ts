@@ -46,7 +46,7 @@ export interface VipInvoice {
   externalGateway: string | null;
   externalAmount: number | null;
   externalCurrency: string | null;
-  supportTelegramUrl: string;
+  supportUrl: string;
 }
 
 export interface VipGift {
@@ -58,7 +58,7 @@ export interface VipGift {
   createdAt: string | null;
   unsealedAt: string | null;
   vipKey: string | null;
-  supportTelegramUrl: string;
+  supportUrl: string;
 }
 
 export interface VipAdminInvoice extends VipInvoice {

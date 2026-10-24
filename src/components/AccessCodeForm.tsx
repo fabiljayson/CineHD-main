@@ -5,6 +5,7 @@ import { X, Crown } from 'lucide-react';
 import { useVipModal } from '../context/VipModalContext';
 import { useTranslation } from 'react-i18next';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
+import { SUPPORT_WHATSAPP_URL } from '../config/support';
 
 // Interface SellAuth supprimée car nous utilisons désormais Discord pour les tickets VIP
 
@@ -162,12 +163,12 @@ const AccessCodeForm: React.FC<AccessCodeFormProps> = ({ isModal = false, hideNo
                     {t('vip.donate')}
                   </Link>
                   <a
-                    href="https://t.me/ix_annonces"
+                    href={SUPPORT_WHATSAPP_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-center bg-[#0088cc] text-white py-3 px-4 rounded-xl font-medium hover:bg-[#006699] transition-colors duration-200"
+                    className="block text-center bg-[#25D366] text-white py-3 px-4 rounded-xl font-medium hover:bg-[#1ebe5b] transition-colors duration-200"
                   >
-                    {t('telegram.joinTelegram')}
+                    {t('whatsapp.joinWhatsApp')}
                   </a>
                 </div>
               </motion.div>
@@ -278,12 +279,12 @@ const AccessCodeForm: React.FC<AccessCodeFormProps> = ({ isModal = false, hideNo
                     {t('vip.donate')}
                   </Link>
                   <a
-                    href="https://t.me/ix_annonces"
+                    href={SUPPORT_WHATSAPP_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-center bg-[#0088cc] text-white py-3 px-4 rounded-xl font-medium hover:bg-[#006699] transition-colors duration-200"
+                    className="block text-center bg-[#25D366] text-white py-3 px-4 rounded-xl font-medium hover:bg-[#1ebe5b] transition-colors duration-200"
                   >
-                    {t('telegram.joinTelegram')}
+                    {t('whatsapp.joinWhatsApp')}
                   </a>
                 </div>
               </motion.div>

@@ -9,11 +9,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
-  telegramUrl: string;
+  whatsappUrl: string;
   onRetry: () => void;
 }
 
-export default function MirrorErrorScreen({ telegramUrl, onRetry }: Props) {
+export default function MirrorErrorScreen({ whatsappUrl, onRetry }: Props) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -25,14 +25,14 @@ export default function MirrorErrorScreen({ telegramUrl, onRetry }: Props) {
       <View style={styles.content}>
         <Text style={styles.title}>Movix injoignable</Text>
         <Text style={styles.body}>
-          Tous les domaines Movix semblent bloqués ou hors ligne. Rejoins le
-          canal Telegram pour récupérer le nouveau lien officiel.
+          Tous les domaines Movix semblent bloqués ou hors ligne. Écris-nous
+          sur WhatsApp pour récupérer le nouveau lien officiel.
         </Text>
 
         <TouchableOpacity
           style={styles.primaryButton}
-          onPress={() => Linking.openURL(telegramUrl)}>
-          <Text style={styles.primaryText}>Ouvrir Telegram</Text>
+          onPress={() => Linking.openURL(whatsappUrl)}>
+          <Text style={styles.primaryText}>Ouvrir WhatsApp</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.secondaryButton} onPress={onRetry}>

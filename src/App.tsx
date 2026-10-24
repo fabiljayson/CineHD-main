@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useState, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigationType, useNavigate } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
+import { SkeletonTheme } from 'react-loading-skeleton';
 import { TooltipProvider } from './components/ui/tooltip';
 import Header from './components/Header';
 import Home from './pages/Home';
@@ -24,7 +25,7 @@ import { AlertService } from './services/alertService';
 import NotificationToast from './components/NotificationToast';
 import { NotificationData } from './types/alerts';
 import RedirectPopup from './components/RedirectPopup';
-import TelegramAnnouncementPopup from './components/TelegramAnnouncementPopup';
+import WhatsAppAnnouncementPopup from './components/WhatsAppAnnouncementPopup';
 import { SITE_URL } from './config/runtime';
 import RequireUsernameChange from './components/RequireUsernameChange';
 import { TopProgressBar } from './components/TopProgressBar';
@@ -1937,8 +1938,8 @@ const AppWithIntro: React.FC = () => {
         onClose={() => setShowRedirectPopup(false)}
       />
 
-      {/* Annonce du nouveau Telegram ix : une seule fois, jamais sur le lecteur */}
-      <TelegramAnnouncementPopup
+      {/* Annonce du changement de canal support (WhatsApp) : une seule fois, jamais sur le lecteur */}
+      <WhatsAppAnnouncementPopup
         suspended={isWatchRoute || isWrappedRoute || currentPath.startsWith('/oauth/authorize') || showRedirectPopup}
       />
 
@@ -2027,6 +2028,8 @@ function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <TooltipProvider delayDuration={300}>
+      {/* Skeletons are flat tone steps — no shimmer (design house rule). */}
+      <SkeletonTheme baseColor="#1a1a1a" highlightColor="#1a1a1a" enableAnimation={false} borderRadius={8}>
       <LightModeProvider>
       <AnimationMotionConfig>
       <SearchProvider>
@@ -2053,6 +2056,7 @@ function App() {
       </SearchProvider>
       </AnimationMotionConfig>
       </LightModeProvider>
+      </SkeletonTheme>
       </TooltipProvider>
     </BrowserRouter>
   );

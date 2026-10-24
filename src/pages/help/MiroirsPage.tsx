@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
 import TutoLayout, { TutoSection } from '../../components/TutoLayout';
 import TermTooltip from '../../components/TermTooltip';
+import { SUPPORT_WHATSAPP_URL } from '../../config/support';
 
 const MiroirsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -11,8 +12,7 @@ const MiroirsPage: React.FC = () => {
     document.title = `${t('help.miroirs.title')} — CineHD`;
   }, [t]);
 
-  const telegramUrl =
-    import.meta.env.VITE_SUPPORT_TELEGRAM_URL || 'https://t.me/ix_annonces';
+  const supportUrl = SUPPORT_WHATSAPP_URL;
 
   const sections: TutoSection[] = [
     {
@@ -57,7 +57,7 @@ const MiroirsPage: React.FC = () => {
       components: {
         1: (
           <a
-            href={telegramUrl}
+            href={supportUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-indigo-400 hover:text-indigo-300 underline underline-offset-2 decoration-indigo-500/40 hover:decoration-indigo-400"

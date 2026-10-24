@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import TutoLayout, { TutoSection } from '../../components/TutoLayout';
 import FaiTooltip from '../../components/FaiTooltip';
+import { SUPPORT_WHATSAPP_URL } from '../../config/support';
 
 const EXTERNAL_RESOURCES: Array<{
   labelKey: string;
@@ -24,8 +25,8 @@ const EXTERNAL_RESOURCES: Array<{
   { labelKey: 'helpDns.otherMirrorsMovixHealth', href: 'https://movix.online' },
   { labelKey: 'helpDns.otherMirrors', href: 'https://rentry.co/movix' },
   {
-    labelKey: 'helpDns.otherTelegram',
-    href: import.meta.env.VITE_SUPPORT_TELEGRAM_URL || 'https://t.me/ix_annonces',
+    labelKey: 'helpDns.otherWhatsApp',
+    href: SUPPORT_WHATSAPP_URL,
   },
 ];
 

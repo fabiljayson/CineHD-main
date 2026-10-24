@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { AlertCircle, ShieldAlert, Shield, Globe, Bug } from 'lucide-react';
 import TutoLayout, { TutoSection } from '../../components/TutoLayout';
 import TermTooltip from '../../components/TermTooltip';
+import { SUPPORT_WHATSAPP_URL } from '../../config/support';
 
 const CaMarchePlusPage: React.FC = () => {
   const { t } = useTranslation();
@@ -11,8 +12,7 @@ const CaMarchePlusPage: React.FC = () => {
     document.title = `${t('help.caMarchePlus.title')} — CineHD`;
   }, [t]);
 
-  const telegramUrl =
-    import.meta.env.VITE_SUPPORT_TELEGRAM_URL || 'https://t.me/ix_annonces';
+  const supportUrl = SUPPORT_WHATSAPP_URL;
 
   const sections: TutoSection[] = [
     {
@@ -71,7 +71,7 @@ const CaMarchePlusPage: React.FC = () => {
           ctas: [
             {
               labelKey: 'help.caMarchePlus.cause4Cta',
-              href: telegramUrl,
+              href: supportUrl,
               external: true,
             },
           ],

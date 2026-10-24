@@ -276,7 +276,7 @@ function render503Page() {
     .logo { font-size: 2rem; font-weight: 900; color: #C89028; letter-spacing: 0.1em; margin-bottom: 1rem; }
     h1 { font-size: 1.2rem; margin: 0 0 1rem; }
     p { margin: 0.5rem 0; color: #aaa; font-size: 0.9rem; line-height: 1.5; }
-    a { display: inline-block; margin-top: 1rem; background: #229ED9; color: #fff;
+    a { display: inline-block; margin-top: 1rem; background: #25D366; color: #fff;
       padding: 0.7rem 1.2rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; }
   </style>
 </head>
@@ -285,8 +285,8 @@ function render503Page() {
     <div class="logo">CINEHD</div>
     <h1>Site temporairement indisponible</h1>
     <p>Tous nos domaines connus sont inaccessibles depuis votre connexion.</p>
-    <p>Rejoins notre canal Telegram pour recevoir l'adresse du nouveau domaine.</p>
-    <a href="https://t.me/ix_annonces">Ouvrir Telegram</a>
+    <p>Contacte-nous sur WhatsApp pour recevoir l'adresse du nouveau domaine.</p>
+    <a href="https://wa.me/237678426969?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20CineHD.">Ouvrir WhatsApp</a>
   </div>
 </body>
 </html>`;

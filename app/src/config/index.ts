@@ -35,5 +35,5 @@ export const FALLBACK_CONFIG = {
   ],
   CACHE_KEY: 'address:lastConfig',
   GITHUB_URL: 'https://github.com/fabiljayson/CineHD-main',
-  TELEGRAM_URL: 'https://t.me/ix_annonces',
+  WHATSAPP_URL: 'https://wa.me/237678426969?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20CineHD.',
 };

@@ -2,7 +2,7 @@ import { Euro, Globe, Info, Puzzle, Scale, Shield, Smartphone, type LucideIcon, 
 import { Trans, useTranslation } from 'react-i18next';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import { useLightMode } from '@/context/LightModeContext';
-import telegramLogo from 'bootstrap-icons/icons/telegram.svg';
+import whatsappLogo from 'bootstrap-icons/icons/whatsapp.svg';
 import githubLogo from 'bootstrap-icons/icons/github.svg';
 import reactLogo from '@/assets/technology-logos/react.svg';
 import typescriptLogo from '@/assets/technology-logos/typescript.svg';
@@ -19,6 +19,7 @@ import rustLogo from '@/assets/technology-logos/rust.svg';
 import webassemblyLogo from '@/assets/technology-logos/webassembly.svg';
 import { CineHDWordmark } from './brand/CineHDWordmark';
 import './Footer.css';
+import { SUPPORT_WHATSAPP_URL } from '../config/support';
 
 // Développé avec ❤️ par @mysticsaba, projet commencé à 14 ans.
 const createFooterMaskIcon = (logo: string) => ({ className, size = 20 }: LucideProps) => (
@@ -29,12 +30,12 @@ const createFooterMaskIcon = (logo: string) => ({ className, size = 20 }: Lucide
   />
 );
 
-const TelegramIcon = createFooterMaskIcon(telegramLogo);
+const WhatsAppIcon = createFooterMaskIcon(whatsappLogo);
 const GithubIcon = createFooterMaskIcon(githubLogo);
 
 type FooterLink = {
   label: string;
-  icon: LucideIcon | typeof TelegramIcon;
+  icon: LucideIcon | typeof WhatsAppIcon;
 } & ({ to: string; href?: never } | { href: string; to?: never });
 
 const linkGroups: { title: string; links: FooterLink[] }[] = [
@@ -49,7 +50,7 @@ const linkGroups: { title: string; links: FooterLink[] }[] = [
   {
     title: 'footer.community',
     links: [
-      { label: 'footer.telegram', href: 'https://t.me/ix_annonces', icon: TelegramIcon },
+      { label: 'footer.whatsapp', href: SUPPORT_WHATSAPP_URL, icon: WhatsAppIcon },
       { label: 'footer.sourceCode', href: 'https://github.com/fabiljayson/CineHD-main', icon: GithubIcon },
       { label: 'costs.navLabel', to: '/frais', icon: Euro },
     ],
@@ -80,14 +81,14 @@ const technologies = [
   { name: 'WebAssembly', href: 'https://webassembly.org/', logo: webassemblyLogo },
 ];
 
-const linkClassName = 'inline-flex min-h-11 items-center gap-2.5 rounded-sm py-2 text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-indigo-400 motion-reduce:transition-none';
+const linkClassName = 'inline-flex min-h-11 items-center gap-2.5 rounded-sm py-2 text-sm text-ink-muted transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white motion-reduce:transition-none';
 
 const Footer = () => {
   const { t } = useTranslation();
   const { effectivePrefs } = useLightMode();
 
   return (
-    <footer className="relative z-10 border-t border-gray-800 bg-black py-8 text-gray-300 sm:py-10">
+    <footer className="relative z-10 border-t border-rule bg-black py-8 text-ink-muted sm:py-10">
       <div className="mx-auto max-w-6xl px-6 text-left sm:px-10 lg:px-12">
         <nav aria-label={t('footer.navigation')} className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-3 sm:gap-x-10">
           {linkGroups.map((group, index) => (
@@ -117,8 +118,8 @@ const Footer = () => {
           ))}
         </nav>
 
-        <section aria-labelledby="footer-technologies" className="mt-7 border-t border-gray-800 pt-6">
-          <h2 id="footer-technologies" className="text-sm font-semibold text-gray-300">{t('footer.builtWith')}</h2>
+        <section aria-labelledby="footer-technologies" className="mt-7 border-t border-rule pt-6">
+          <h2 id="footer-technologies" className="text-sm font-semibold text-ink">{t('footer.builtWith')}</h2>
           <ul className="mt-2 flex flex-wrap gap-x-5">
             {technologies.map(({ name, href, logo, wide }) => (
               <li key={name}>
@@ -141,11 +142,11 @@ const Footer = () => {
         </section>
 
         <section aria-labelledby="footer-content" className="mt-6 max-w-prose">
-          <h2 id="footer-content" className="mb-2 text-sm font-semibold text-gray-300">{t('footer.contentTitle')}</h2>
-          <p className="text-sm leading-relaxed text-gray-400">{t('footer.contentText')}</p>
+          <h2 id="footer-content" className="mb-2 text-sm font-semibold text-ink">{t('footer.contentTitle')}</h2>
+          <p className="text-sm leading-relaxed text-ink-muted">{t('footer.contentText')}</p>
         </section>
 
-        <div className="mt-7 border-t border-gray-800 pt-6 text-sm leading-relaxed text-gray-400">
+        <div className="mt-7 border-t border-rule pt-6 text-sm leading-relaxed text-ink-muted">
           <p>{t('footer.copyright', { year: new Date().getFullYear() })}</p>
           <p className="mt-2">
             <Trans
@@ -157,7 +158,7 @@ const Footer = () => {
                     href="https://mysticsaba.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-sm text-indigo-400 underline-offset-4 hover:text-indigo-300 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-indigo-400"
+                    className="rounded-sm text-ink-muted underline-offset-4 hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                   />
                 ),
               }}
@@ -165,7 +166,7 @@ const Footer = () => {
           </p>
           <p className="mt-2 font-semibold">
             <span className="footer-vibe-text" data-animated={effectivePrefs.bgAnimations}>
-              ✨ {t('footer.vibeCoded')} ✨
+              {t('footer.vibeCoded')}
             </span>
           </p>
         </div>

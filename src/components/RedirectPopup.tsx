@@ -5,6 +5,7 @@ import { X, MessageCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_PUBLIC_DOMAIN } from '../i18n/currentDomain';
 import { getOverlayPortalRoot } from '../utils/overlayPortal';
+import { SUPPORT_WHATSAPP_URL } from '../config/support';
 
 interface RedirectPopupProps {
   isOpen: boolean;
@@ -38,8 +39,8 @@ const RedirectPopup: React.FC<RedirectPopupProps> = ({
     }, 300); // Durée de l'animation de fermeture
   };
 
-  const handleTelegram = () => {
-    window.open('https://t.me/ix_annonces', '_blank');
+  const handleWhatsApp = () => {
+    window.open(SUPPORT_WHATSAPP_URL, '_blank');
   };
 
 
@@ -88,7 +89,7 @@ const RedirectPopup: React.FC<RedirectPopupProps> = ({
                   <p className="text-3xl font-bold text-white">{DEFAULT_PUBLIC_DOMAIN}</p>
                 </div>
                 <p className="text-gray-300 text-sm">
-                  {t('redirect.joinTelegramNews')}
+                  {t('redirect.joinWhatsAppNews')}
                 </p>
               </div>
 
@@ -97,11 +98,11 @@ const RedirectPopup: React.FC<RedirectPopupProps> = ({
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={handleTelegram}
-                  className="bg-[#229ED9] hover:bg-[#1a8abf] text-white font-bold py-3 px-5 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  onClick={handleWhatsApp}
+                  className="bg-[#25D366] hover:bg-[#1ebe5b] text-white font-bold py-3 px-5 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Telegram
+                  WhatsApp
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}

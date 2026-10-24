@@ -110,3 +110,9 @@ API/Mainapi/exportscripts/
 keystore.properties
 signing.properties
 release-signing.properties
+
+# Artefacts d'outils IA (jamais committer)
+.superdesign/
+.taste-skill/
+.agents/skills/
+brag-output-*/

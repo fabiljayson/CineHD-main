@@ -8,7 +8,7 @@
 - Texte juridique : https://creativecommons.org/publicdomain/zero/1.0/legalcode.en
 - Provenance et licence consultées le 6 septembre 2026.
 
-CC0 autorise la copie, la modification et la redistribution, y compris commerciale. La licence CC BY-NC générale du dépôt ne remplace pas la licence CC0 de cette musique. L'auteur n'est pas associé à Movix et aucun soutien de sa part n'est revendiqué. Le crédit est conservé volontairement.
+CC0 autorise la copie, la modification et la redistribution, y compris commerciale. La licence MIT générale du dépôt ne remplace pas la licence CC0 de cette musique. L'auteur n'est pas associé à Movix et aucun soutien de sa part n'est revendiqué. Le crédit est conservé volontairement.
 
 ## Adaptation
 

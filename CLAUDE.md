@@ -23,7 +23,7 @@ When in doubt, **start with Sonnet** and escalate to Opus only if the model visi
 
 Movix is an open-source French streaming platform monorepo. It includes a React frontend, multiple Node.js/Python backend services, browser extensions, a Rust WASM sync engine, Cloudflare Workers, and a Discord Rich Presence integration.
 
-**License**: CC BY-NC 4.0
+**License**: MIT (see LICENSE; third-party credits in NOTICE — the CineHD name and hosted service remain proprietary)
 
 ## Tech Stack
 

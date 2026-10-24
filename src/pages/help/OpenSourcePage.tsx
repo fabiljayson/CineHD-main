@@ -4,7 +4,7 @@ import { Github, AlertTriangle } from 'lucide-react';
 import TutoLayout, { TutoSection } from '../../components/TutoLayout';
 
 const MOVIX_OPEN_SOURCE_GITHUB_URL = 'https://github.com/fabiljayson/CineHD-main';
-const MOVIX_LICENSE_URL = 'https://creativecommons.org/licenses/by-nc/4.0/';
+const MOVIX_LICENSE_URL = 'https://github.com/fabiljayson/CineHD-main/blob/main/LICENSE';
 
 const OpenSourcePage: React.FC = () => {
   const { t } = useTranslation();

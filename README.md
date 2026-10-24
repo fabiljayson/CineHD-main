@@ -51,7 +51,7 @@
 </p>
 
 <p align="center">
-  <strong>Licence :</strong> Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0) · <a href="./LICENSE">LICENSE</a>
+  <strong>Licence :</strong> MIT · <a href="./LICENSE">LICENSE</a> · <a href="./NOTICE">NOTICE (crédits tiers)</a>
 </p>
 
 CineHD (anciennement Movix) est un monorepo produit pour une plateforme de streaming communautaire. Le frontend, l'API principale, la WatchParty, les proxies, les outils navigateur et plusieurs briques d'infra vivent dans le même dépôt parce qu'ils évoluent ensemble.
@@ -113,7 +113,7 @@ cinehd/
 ## Démarrage rapide
 
 <p align="center">
-  <strong>⚠️ L'utilisation de ce code implique le maintien des crédits et l'interdiction stricte de le monétiser (Zéro pub et abonnements). Voir la License complète </strong>
+  <strong>ℹ️ Code sous licence MIT : utilisation, modification et hébergement libres, usage commercial inclus — l'avis de copyright et les crédits (<a href="./NOTICE">NOTICE</a>) doivent être conservés. La marque CineHD et le service hébergé ne sont pas inclus dans la licence.</strong>
 </p>
 
 ### Prérequis
@@ -278,10 +278,9 @@ le [guide de déploiement Docker](docs/deployment-docker.md).
 
 ## Licence
 
-Ce projet est distribué sous licence Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0). Le texte complet est disponible dans [LICENSE](LICENSE).
+Ce projet est distribué sous licence MIT. Le texte complet est disponible dans [LICENSE](LICENSE). Les composants tiers conservent leurs propres licences, listées dans [NOTICE](NOTICE).
 
 ## Avertissement
 
-Ce projet est fourni uniquement à des fins éducatives, de recherche et de démonstration.
-Il n'encourage ni ne cautionne une utilisation illégale, le contournement de droits, ou toute violation des lois applicables.
+Ce projet est publié sous licence MIT ; il n'encourage ni ne cautionne une utilisation illégale, le contournement de droits, ou toute violation des lois applicables.
 Chaque utilisateur est seul responsable de l'usage qu'il en fait.

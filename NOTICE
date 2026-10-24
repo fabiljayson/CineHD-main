@@ -1,0 +1,37 @@
+CineHD — THIRD-PARTY NOTICES
+============================
+
+CineHD is distributed under the MIT License (see LICENSE). This file lists
+third-party components bundled with the software and their notices, as
+required by their licenses.
+
+loading-ui loaders (Ring, PulseDot, TextDots)
+  Location: src/components/ui/loading/
+  License:  MIT
+  Copyright (c) 2026 Bartosz Zagrodzki
+  Source:   https://github.com/turbostarter/loading-ui
+
+Inter typeface
+  Bundled via @fontsource/inter
+  License:  SIL Open Font License 1.1
+  Copyright (c) The Inter Project Authors — https://rsms.me/inter/
+
+Archivo Black typeface
+  Bundled via @fontsource/archivo-black
+  License:  SIL Open Font License 1.1
+  Copyright (c) Archivo Black designers
+
+lucide-react icons
+  License:  ISC
+  Copyright (c) Lucide Contributors
+
+bootstrap-icons
+  License:  MIT
+  Copyright (c) The Bootstrap Authors
+
+All other npm dependencies remain under their own licenses; see
+package-lock.json and node_modules for the full dependency list.
+
+CineHD's own contributions are released under the MIT License (LICENSE),
+Copyright (c) 2026 fabiljayson. Redistribution — commercial or not — must
+keep the copyright notice and this file intact.

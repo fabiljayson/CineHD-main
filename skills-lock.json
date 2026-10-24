@@ -11,6 +11,18 @@
       "sourceType": "autoskills-registry",
       "computedHash": "1f566c2d9c3b50a784b05d08f6b08ebfeb31f038e4d4173f2d488484edb058a6"
     },
+    "better-icons": {
+      "source": "better-auth/better-icons",
+      "sourceType": "github",
+      "skillPath": "skills/SKILL.md",
+      "computedHash": "656a618d6d5d5e9c567253eff57a06bee3be5d4fb983bdc401a46a209c5b76de"
+    },
+    "brag": {
+      "source": "latent-spaces/brag",
+      "sourceType": "github",
+      "skillPath": "skills/brag/SKILL.md",
+      "computedHash": "3928ea1b54c4a83fc854060bd07ed26958e09f15c7e10538f93cf721e7f58740"
+    },
     "claude-command-converter": {
       "source": "dceoy/speckit-agent-skills",
       "sourceType": "github",
@@ -54,6 +66,36 @@
       "source": "yusukebe/hono-skill",
       "sourceType": "autoskills-registry",
       "computedHash": "bc1c40e71ec13faa82ab7e9464bfd57cc282780a1087b021d26ba0d2c082059b"
+    },
+    "hyperframes-animation": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes-animation/SKILL.md",
+      "computedHash": "9c3c07da9a95de8c45f6ed96b6737574d1051dcc75f7407ce45ab2652960d7c5"
+    },
+    "hyperframes-cli": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes-cli/SKILL.md",
+      "computedHash": "cfb959b1a3957339c0389a540fb1b28dacb6beaa8ad84e7c494a9fa3a7093245"
+    },
+    "hyperframes-core": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes-core/SKILL.md",
+      "computedHash": "f50ee4785cb80fc4b6061ebd5576facf99fe01ee766544261ed917c60c805b21"
+    },
+    "hyperframes-creative": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes-creative/SKILL.md",
+      "computedHash": "09964279b80ce3a74e1cec848c795734385ba57567c9b967c8dac4e3c94e9afa"
+    },
+    "hyperframes-keyframes": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes-keyframes/SKILL.md",
+      "computedHash": "32c2eb5ef34cdc3502d87cba5b562c63304674b1cb251334ed8f78cff9f1d071"
     },
     "improve-codebase-architecture": {
       "source": "mattpocock/skills",
@@ -172,6 +214,12 @@
       "sourceType": "github",
       "skillPath": "skills/speckit-taskstoissues/SKILL.md",
       "computedHash": "db80e635aaef74355dedcc8950780f024e17554c97108f079508f435067eee94"
+    },
+    "superdesign": {
+      "source": "superdesigndev/superdesign-skill",
+      "sourceType": "github",
+      "skillPath": "skills/superdesign/SKILL.md",
+      "computedHash": "e98daea73371b2cdcc333025a993f6b0c2781c692382a9dcf132c7094a014fdf"
     },
     "tailwind-css-patterns": {
       "source": "giuseppe-trisciuoglio/developer-kit",

@@ -10,7 +10,7 @@
 
 CineHD (formerly Movix) is a community streaming platform for movies, TV series, and anime, distributed as a single integrated system: a web application, a real-time group-watching service, a set of content-resolution services, browser tools, and a mobile app. A single user feature (for example, watching an episode) routinely spans the interface, local persistence, cloud sync, content extraction, and secure media relaying.
 
-The platform is free to use, community-driven, non-commercial (no ads, no subscriptions), and licensed under CC BY-NC 4.0 with mandatory attribution and a monetization ban.
+The platform is community-driven and licensed under MIT (see LICENSE) with mandatory notice retention. *(Superseded 2026-10-24: the original non-commercial stance — CC BY-NC 4.0, no ads or subscriptions — was replaced by an MIT relicense and a subscription-based hosted service; see Principle I in the constitution.)*
 
 ## Clarifications
 
@@ -127,7 +127,7 @@ As a user, I can use the browser extension, userscript, or mobile app to enable 
 - **FR-8.3** The mobile app MUST provide the web experience in a WebView with the extension capability injected, plus an optional private DNS (encrypted DNS) toggle; Android is supported, iOS builds are unsigned.
 
 ### Trust, licensing, and safety
-- **FR-9.1** The system MUST preserve mandatory credits and MUST NOT implement monetization via ads or subscriptions; VIP is donation-based.
+- **FR-9.1** The system MUST preserve the copyright notice and the NOTICE third-party credits. *(Superseded 2026-10-24: the monetization ban is lifted — subscriptions are permitted under the MIT relicense; see Principle I in the constitution.)*
 - **FR-9.2** The system MUST NOT leak secrets (signing keys, internal keys) to clients, and MUST fail closed on missing secrets for relay/extraction surfaces.
 - **FR-9.3** Age-restricted content MUST be gated.
 
@@ -162,7 +162,7 @@ As a user, I can use the browser extension, userscript, or mobile app to enable 
 
 - **A-1** The metadata backbone is TMDB; community sources are secondary resolvers for playable links.
 - **A-2** "Guest" usage is intentionally limited; full features require an account.
-- **A-3** The donation/VIP model is the sole sanctioned monetization; any ads or subscriptions would violate the license.
+- **A-3** *(Superseded 2026-10-24: paid subscriptions are now the sanctioned monetization under the MIT relicense; the former donation-only rule no longer applies.)*
 - **A-4** The mobile iOS build is intentionally unsigned and requires user-side signing.
 - **A-5** Some server ports and bind addresses are currently hard-coded rather than environment-driven (observed in code; likely technical debt).
 - **A-6** The platform operates in French primarily but ships FR/EN interface translations.

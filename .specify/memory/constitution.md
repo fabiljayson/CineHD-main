@@ -37,20 +37,21 @@ amended first through the Governance process.
 
 ## Principles
 
-### Principle I: License Integrity & Non-Monetization
+### Principle I: License Integrity & Open-Source Terms
 
-CineHD is distributed under CC BY-NC 4.0. The following are absolute:
+CineHD is distributed under the MIT license (see LICENSE). The following are absolute:
 
-- Mandatory credits MUST be preserved in every derivative or deployment; removing
-  or obscuring attribution is prohibited.
-- Monetization MUST NOT be introduced: zero advertising, zero paid subscriptions.
-- VIP capabilities are donation-gated only; a donation MUST remain a one-time,
-  voluntary gesture that grants no service obligation.
-- Any use of this codebase MUST respect the NonCommercial clause; no feature MAY
-  be designed primarily to enable paid access.
+- The copyright notice and MIT license MUST be preserved in every derivative or
+  deployment; removing or obscuring them is prohibited.
+- Third-party credits listed in NOTICE MUST be preserved.
+- The CineHD name, logo, and hosted service remain proprietary; no change MAY
+  imply that the brand or the licensed catalog is granted by MIT.
+- Paid subscriptions MAY be offered; they MUST follow the published pricing
+  and refund policy, and the free tier MUST stay honestly described.
 
-**Rationale:** The license is the project's social contract with its community and
-the condition of its publication. Monetization would void both.
+**Rationale:** MIT is the project's distribution contract and its only
+condition is notice retention. The hosted service, brand, and licensed
+catalog form the commercial layer above the open code.
 
 ### Principle II: Fail-Closed Security
 
@@ -172,7 +173,7 @@ navigate a 3.6k-file monorepo); drift between code and docs breaks the map.
 
 ## Adoption Checklist (for every new feature)
 
-- [ ] License/credits untouched; no monetization vector introduced (P-I)
+- [ ] LICENSE/NOTICE/credits preserved; billing follows published pricing and refund terms (P-I)
 - [ ] Fail-closed surfaces still fail closed; no new client-chosen targets (P-II)
 - [ ] Profile/auth/size-limit protections preserved (P-III)
 - [ ] All affected variants updated in the same change (P-IV)

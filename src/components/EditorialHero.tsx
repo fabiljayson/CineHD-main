@@ -26,7 +26,7 @@ interface EditorialHeroProps {
 const tmdbImage = (path: string, size = 'w1280'): string =>
   path
     ? `https://image.tmdb.org/t/p/${size}${path}`
-    : 'https://via.placeholder.com/1280x720/faf7f2/1a1816?text=MOVIX';
+    : 'https://via.placeholder.com/1280x720/111111/949494?text=CineHD';
 
 const GENRE_MAP: Record<number, string> = {
   28: 'Action', 12: 'Aventure', 16: 'Animation', 35: 'Comédie', 80: 'Crime',
@@ -49,11 +49,9 @@ export const EditorialHero: React.FC<EditorialHeroProps> = ({ items }) => {
   const isTv = active.media_type === 'tv';
 
   return (
-    <section className="relative w-full min-h-[78vh] bg-editorial-paper overflow-hidden">
-      <div className="absolute inset-0 bg-editorial-paper-soft opacity-60 pointer-events-none" />
-
+    <section className="relative w-full min-h-[78vh] bg-black overflow-hidden">
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pt-12 md:pt-20 pb-12 md:pb-20 grid grid-cols-1 md:grid-cols-[320px_1fr] gap-8 md:gap-12 items-center">
-        {/* Poster — archival card */}
+        {/* Poster — flat plate on the ground */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -61,7 +59,7 @@ export const EditorialHero: React.FC<EditorialHeroProps> = ({ items }) => {
           className="relative"
         >
           <div
-            className="relative border border-editorial-border rounded-md overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.08)] bg-white"
+            className="relative rounded-lg overflow-hidden bg-surface"
             style={{ aspectRatio: '2 / 3' }}
           >
             <img
@@ -72,7 +70,7 @@ export const EditorialHero: React.FC<EditorialHeroProps> = ({ items }) => {
               decoding="async"
             />
           </div>
-          <div className="mt-3 flex items-center gap-2 text-xs text-editorial-muted tracking-wider uppercase">
+          <div className="mt-3 flex items-center gap-2 text-xs text-ink-faint tabular-nums">
             <Clock className="w-3 h-3" />
             <span>{year || '—'}</span>
           </div>
@@ -86,70 +84,70 @@ export const EditorialHero: React.FC<EditorialHeroProps> = ({ items }) => {
           className="min-w-0"
         >
           <div className="flex items-center gap-3 mb-6">
-            <span className="h-px flex-1 bg-editorial-border" />
-            <span className="text-editorial-gold text-xs font-bold tracking-[0.25em] uppercase">
-              {t('home.hero.nowPlaying') || 'Now Playing'}
+            <span className="h-px flex-1 bg-rule" />
+            <span className="text-ink-faint text-xs font-medium">
+              {t('home.hero.nowPlaying')}
             </span>
-            <span className="h-px flex-1 bg-editorial-border" />
+            <span className="h-px flex-1 bg-rule" />
           </div>
 
-          <h1
-            className="font-display text-5xl md:text-7xl lg:text-8xl text-editorial-ink leading-[0.95] tracking-tight mb-5"
-            style={{ fontWeight: 400 }}
-          >
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-semibold text-white leading-[0.95] tracking-tight mb-5">
             {title}
           </h1>
 
           {genres && (
-            <p className="text-editorial-muted text-sm md:text-base mb-6 tracking-wide">
-              {year && <span>{year}</span>}
+            <p className="text-ink-muted text-sm md:text-base mb-6">
+              {year && <span className="tabular-nums">{year}</span>}
               {year && genres && <span className="mx-2">—</span>}
-              {genres && <span className="text-editorial-ink-soft">{genres}</span>}
+              {genres && <span className="text-ink">{genres}</span>}
             </p>
           )}
 
-          <p className="text-editorial-ink-soft text-base md:text-lg leading-relaxed mb-8 max-w-2xl font-normal">
-            {active.overview || t('home.hero.noOverview') || 'No overview available.'}
+          <p className="text-ink-muted text-base md:text-lg leading-relaxed mb-8 max-w-2xl">
+            {active.overview || t('home.hero.noOverview')}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
               to={`/watch/movie/${encodeId(active.id)}`}
               state={{ source: 'hero' }}
-              className="flex-1 sm:w-auto px-7 py-3.5 bg-editorial-gold text-white font-medium tracking-wide rounded-md text-base hover:bg-editorial-ink-soft transition-colors flex items-center justify-center gap-2"
+              className="flex-1 sm:w-auto px-7 py-3.5 bg-white text-black font-medium rounded-full text-base hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2"
             >
-              <Play className="w-4.5 h-4.5" fill="currentColor" />
-              {t('home.hero.play') || 'Play'}
+              <Play className="w-4 h-4" fill="currentColor" />
+              {t('home.hero.play')}
             </Link>
             <Link
               to={`/movie/${encodeId(active.id)}`}
-              className="flex-1 sm:w-auto px-7 py-3.5 border border-editorial-border text-editorial-ink font-medium rounded-md text-base hover:bg-editorial-paper-soft transition-colors flex items-center justify-center gap-2"
+              className="flex-1 sm:w-auto px-7 py-3.5 border border-control text-white font-medium rounded-full text-base hover:bg-raised transition-colors flex items-center justify-center gap-2"
             >
-              <Info className="w-4.5 h-4.5" />
-              {t('home.hero.info') || 'Info'}
+              <Info className="w-4 h-4" />
+              {t('home.hero.info')}
             </Link>
           </div>
         </motion.div>
       </div>
 
-      {/* Bottom metadata rail */}
+      {/* Bottom metadata rail — rating is the gold data mark */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pb-10">
-        <div className="border-t border-editorial-border pt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div className="border-t border-rule pt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
-            <div className="text-editorial-muted text-xs uppercase tracking-wider mb-1">{t('home.hero.rating') || 'Rating'}</div>
-            <div className="text-editorial-ink font-display text-2xl">{active.vote_average > 0 ? active.vote_average.toFixed(1) : '—'}<span className="text-editorial-muted text-xs"> /10</span></div>
+            <div className="text-ink-faint text-xs mb-1">{t('home.hero.rating')}</div>
+            <div className="text-accent text-2xl font-semibold tabular-nums">
+              {active.vote_average > 0 ? active.vote_average.toFixed(1) : '—'}
+              <span className="text-ink-faint text-xs"> /10</span>
+            </div>
           </div>
           <div>
-            <div className="text-editorial-muted text-xs uppercase tracking-wider mb-1">{t('home.hero.release') || 'Year'}</div>
-            <div className="text-editorial-ink font-display text-2xl">{year || '—'}</div>
+            <div className="text-ink-faint text-xs mb-1">{t('home.hero.release')}</div>
+            <div className="text-white text-2xl font-semibold tabular-nums">{year || '—'}</div>
           </div>
           <div>
-            <div className="text-editorial-muted text-xs uppercase tracking-wider mb-1">{t('home.hero.type') || 'Type'}</div>
-            <div className="text-editorial-ink font-display text-2xl capitalize">{isTv ? (t('home.hero.series') || 'Series') : (t('home.hero.movie') || 'Movie')}</div>
+            <div className="text-ink-faint text-xs mb-1">{t('home.hero.type')}</div>
+            <div className="text-white text-2xl font-semibold">{isTv ? t('home.hero.series') : t('home.hero.movie')}</div>
           </div>
           <div>
-            <div className="text-editorial-muted text-xs uppercase tracking-wider mb-1">{t('home.hero.genres') || 'Genres'}</div>
-            <div className="text-editorial-gold text-sm font-medium tracking-wide truncate">{genres || '—'}</div>
+            <div className="text-ink-faint text-xs mb-1">{t('home.hero.genres')}</div>
+            <div className="text-white text-sm font-medium truncate">{genres || '—'}</div>
           </div>
         </div>
       </div>

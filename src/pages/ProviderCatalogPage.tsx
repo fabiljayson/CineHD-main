@@ -2,9 +2,9 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, SlidersHorizontal, LayoutGrid, List, Loader2, Film, Tv, ChevronDown, X } from 'lucide-react';
+import { ArrowLeft, SlidersHorizontal, LayoutGrid, List, Film, Tv, ChevronDown, X } from 'lucide-react';
 import SEO from '../components/SEO';
-import { SquareBackground } from '../components/ui/square-background';
+import { Ring } from '@/components/ui/loading/ring';
 import { SearchGridCard, SearchListCard } from '../components/SearchCard';
 import GridSkeleton from '../components/skeletons/GridSkeleton';
 import { getTmdbLanguage } from '../i18n';
@@ -27,19 +27,19 @@ const CatalogSelect = ({ label, value, options, onChange }: {
     onChange: (value: string) => void;
 }) => (
     <label className="block min-w-0">
-        <span className="mb-2 block text-sm font-medium text-white/70">{label}</span>
+        <span className="mb-2 block text-sm font-medium text-ink-faint">{label}</span>
         <span className="relative block">
             <select value={value} onChange={event => onChange(event.target.value)}
-                className="min-h-11 w-full min-w-0 appearance-none truncate rounded-xl border border-white/15 bg-[#171717] py-2.5 pl-3 pr-10 text-base text-white transition-colors hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 sm:text-sm [color-scheme:dark]">
+                className="min-h-11 w-full min-w-0 appearance-none truncate rounded-lg border border-control bg-surface py-2.5 pl-3 pr-10 text-base text-white transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-faint sm:text-sm [color-scheme:dark]">
                 {!options.some(option => option.value === value) && <option value={value}>{value}</option>}
                 {options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
-            <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
+            <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
         </span>
     </label>
 );
 
-const buttonClass = 'min-h-11 rounded-xl border border-white/15 px-3 py-2 text-sm font-medium transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:cursor-default disabled:opacity-40';
+const buttonClass = 'min-h-11 rounded-full border border-control px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-raised hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-faint disabled:cursor-default disabled:opacity-40';
 
 const getScreenColumns = () => {
     const width = window.innerWidth;
@@ -210,7 +210,7 @@ const ProviderCatalogPage: React.FC = () => {
     };
 
     return (
-        <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" mode="combined">
+        <div className="min-h-screen bg-black">
             <div className="min-h-screen px-4 pb-16 pt-24 md:px-8">
                 <SEO title={`${genreName ? `${genreName} - ` : ''}${t(isMovie ? 'providerCatalog.films' : 'providerCatalog.series')} ${providerName}`}
                     description={`${t('providerCatalog.discover')} ${t(isMovie ? 'providerCatalog.films' : 'providerCatalog.series').toLowerCase()} ${providerName}`} />
@@ -223,8 +223,8 @@ const ProviderCatalogPage: React.FC = () => {
                                     <ArrowLeft aria-hidden="true" className="h-5 w-5" />
                                 </Link>
                                 <div className="min-w-0">
-                                    <h1 className="break-words text-2xl font-bold leading-tight md:text-3xl">{providerName}</h1>
-                                    {genreName && <p className="mt-1 text-sm text-white/70">{genreName}</p>}
+                                    <h1 className="break-words text-2xl font-semibold leading-tight text-ink md:text-3xl">{providerName}</h1>
+                                    {genreName && <p className="mt-1 text-sm text-ink-muted">{genreName}</p>}
                                 </div>
                             </div>
                             <nav aria-label={t('providerCatalog.contentType')} className="grid grid-cols-2 gap-2 md:shrink-0">
@@ -233,7 +233,7 @@ const ProviderCatalogPage: React.FC = () => {
                                     const Icon = nextType === 'movies' ? Film : Tv;
                                     return <Link key={nextType} to={catalogLink(nextType, getCatalogGenre(genre, nextType === 'movies' ? 'movie' : 'tv'))}
                                         aria-current={active ? 'page' : undefined}
-                                        className={`${buttonClass} flex min-w-0 items-center justify-center gap-2 ${active ? 'border-red-600 bg-red-600 text-white hover:bg-red-500' : 'bg-white/5 text-white/70'}`}>
+                                        className={`${buttonClass} flex min-w-0 items-center justify-center gap-2 ${active ? 'border-ink-faint text-white' : 'bg-transparent text-ink-muted'}`}>
                                         <Icon aria-hidden="true" className="h-4 w-4 shrink-0" />
                                         {t(nextType === 'movies' ? 'providerCatalog.films' : 'providerCatalog.series')}
                                     </Link>;
@@ -245,40 +245,40 @@ const ProviderCatalogPage: React.FC = () => {
                             <CatalogSelect label={t('filter.genre')} value={genre} options={genreOptions} onChange={updateGenre} />
                             <CatalogSelect label={t('filter.sortBy')} value={filters.sort} options={sortOptions} onChange={value => updateFilter('sort', value)} />
                             <button type="button" aria-expanded={isFilterOpen} aria-controls="provider-catalog-filters"
-                                className={`${buttonClass} flex items-center justify-center gap-2 ${isFilterOpen ? 'border-red-500/60 bg-red-600/20' : 'bg-white/5'}`}
+                                className={`${buttonClass} flex items-center justify-center gap-2 ${isFilterOpen ? 'border-ink-faint bg-raised text-white' : 'bg-transparent'}`}
                                 onClick={() => setIsFilterOpen(open => !open)}>
                                 <SlidersHorizontal aria-hidden="true" className="h-4 w-4 shrink-0" />
                                 {t('filter.title')}
-                                {activeCount > 0 && <span className="text-white/70">({activeCount})</span>}
+                                {activeCount > 0 && <span className="text-ink-muted">({activeCount})</span>}
                             </button>
                         </div>
 
-                        <div id="provider-catalog-filters" hidden={!isFilterOpen} className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
+                        <div id="provider-catalog-filters" hidden={!isFilterOpen} className="rounded-lg bg-surface p-4 sm:p-5">
                             <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                 {filterFields.map(field => <CatalogSelect key={field.key} label={field.label} value={filters[field.key]}
                                     options={field.options} onChange={value => updateFilter(field.key, value)} />)}
                             </div>
-                            {!isStudio && <p className="mt-4 text-sm text-white/60">{t('providerCatalog.availabilityHint')}</p>}
+                            {!isStudio && <p className="mt-4 text-sm text-ink-muted">{t('providerCatalog.availabilityHint')}</p>}
                         </div>
 
                         {activeCount > 0 && <div className="flex flex-wrap items-center gap-2">
                             {genre && <button type="button" onClick={() => updateGenre('')} aria-label={t('providerCatalog.removeFilter', { filter: genreName })}
-                                className={`${buttonClass} flex max-w-full items-center gap-2 bg-white/5`}>
+                                className={`${buttonClass} flex max-w-full items-center gap-2 bg-surface`}>
                                 <span className="min-w-0 break-words">{genreName}</span><X aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
                             </button>}
                             {activeFilters.map(field => <button key={field.key} type="button" onClick={() => updateFilter(field.key, DEFAULT_CATALOG_FILTERS[field.key])}
-                                aria-label={t('providerCatalog.removeFilter', { filter: field.label })} className={`${buttonClass} flex max-w-full items-center gap-2 bg-white/5`}>
+                                aria-label={t('providerCatalog.removeFilter', { filter: field.label })} className={`${buttonClass} flex max-w-full items-center gap-2 bg-surface`}>
                                 <span className="min-w-0 break-words">{field.label} : {field.options.find(option => option.value === filters[field.key])?.label || filters[field.key]}</span>
                                 <X aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
                             </button>)}
-                            <button type="button" onClick={resetFilters} className={`${buttonClass} border-transparent text-white/70`}>{t('filter.reset')}</button>
+                            <button type="button" onClick={resetFilters} className={`${buttonClass} text-white`}>{t('filter.reset')}</button>
                         </div>}
                     </header>
 
                     <div ref={resultsRef} className="scroll-mt-24">
                         <div className="mb-5 flex min-h-11 flex-wrap items-center justify-between gap-3">
-                            <p role="status" className="flex items-center gap-2 text-sm text-white/70">
-                                {loading && <Loader2 aria-hidden="true" className="h-4 w-4 shrink-0 animate-spin motion-reduce:animate-none" />}
+                            <p role="status" className="flex items-center gap-2 text-sm text-ink-muted">
+                                {loading && <Ring aria-hidden="true" className="h-4 w-4 shrink-0 text-ink-faint" />}
                                 {loading ? t('providerCatalog.updating') : error ? (data ? t('providerCatalog.previousResults') : t('common.error'))
                                     : t('providerCatalog.resultsAvailable', { total: (data?.totalResults || 0).toLocaleString(i18n.language) })}
                             </p>
@@ -286,16 +286,16 @@ const ProviderCatalogPage: React.FC = () => {
                                 {viewType === 'grid' && screenCols > 2 && <CatalogSelect label={t('genres.itemsPerRow')} value={String(effectivePerRow)} options={gridOptions} onChange={value => setResultsPerRow(Number(value))} />}
                                 <div role="group" aria-label={t('genres.displayType')} className="flex gap-1">
                                     <button type="button" aria-label={t('genres.grid')} aria-pressed={viewType === 'grid'} onClick={() => setViewType('grid')}
-                                        className={`${buttonClass} ${viewType === 'grid' ? 'bg-red-600' : 'bg-white/5 text-white/70'}`}><LayoutGrid aria-hidden="true" className="h-4 w-4" /></button>
+                                        className={`${buttonClass} ${viewType === 'grid' ? 'border-ink-faint bg-raised text-white' : 'bg-transparent'}`}><LayoutGrid aria-hidden="true" className="h-4 w-4" /></button>
                                     <button type="button" aria-label={t('genres.listView')} aria-pressed={viewType === 'list'} onClick={() => setViewType('list')}
-                                        className={`${buttonClass} ${viewType === 'list' ? 'bg-red-600' : 'bg-white/5 text-white/70'}`}><List aria-hidden="true" className="h-4 w-4" /></button>
+                                        className={`${buttonClass} ${viewType === 'list' ? 'border-ink-faint bg-raised text-white' : 'bg-transparent'}`}><List aria-hidden="true" className="h-4 w-4" /></button>
                                 </div>
                             </div>
                         </div>
 
-                        {error && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-500/30 bg-red-950/40 p-4">
-                            <p className="text-sm text-white/90">{t('errors.contentLoadError')}</p>
-                            <button type="button" onClick={() => setRetry(value => value + 1)} className={`${buttonClass} bg-white/5`}>{t('common.retry')}</button>
+                        {error && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rule bg-surface p-4">
+                            <p className="text-sm text-ink">{t('errors.contentLoadError')}</p>
+                            <button type="button" onClick={() => setRetry(value => value + 1)} className={`${buttonClass}`}>{t('common.retry')}</button>
                         </div>}
 
                         <div aria-busy={loading} aria-label={t('providerCatalog.catalogResults')}>
@@ -310,18 +310,18 @@ const ProviderCatalogPage: React.FC = () => {
                                             watchlistLabel={t('search.watchlist')} removeLabel={t('genres.remove')} noDescLabel={t('providerCatalog.noDescription')} />)}
                                     </div>}
                                 </div> : !loading && !error && <div className="py-16 text-center">
-                                    <p className="text-lg font-medium">{t('providerCatalog.noContent')}</p>
-                                    <p className="mt-2 text-sm text-white/60">{t('providerCatalog.tryOtherFilters')}</p>
-                                    {activeCount > 0 && <button type="button" onClick={resetFilters} className={`${buttonClass} mt-5 bg-white/5`}>{t('filter.reset')}</button>}
+                                    <p className="text-lg font-medium text-ink">{t('providerCatalog.noContent')}</p>
+                                    <p className="mt-2 text-sm text-ink-muted">{t('providerCatalog.tryOtherFilters')}</p>
+                                    {activeCount > 0 && <button type="button" onClick={resetFilters} className={`${buttonClass} mt-5`}>{t('filter.reset')}</button>}
                                 </div>}
                         </div>
 
                         {data && totalPages > 1 && <nav aria-label={t('providerCatalog.pagination')} className="my-8 flex flex-wrap items-center justify-center gap-1.5">
                             {pageNumbers.map((page, index) => <React.Fragment key={page}>
-                                {index > 0 && page - pageNumbers[index - 1] > 1 && <span aria-hidden="true" className="px-1 text-white/50">…</span>}
+                                {index > 0 && page - pageNumbers[index - 1] > 1 && <span aria-hidden="true" className="px-1 text-ink-faint">…</span>}
                                 <button type="button" onClick={() => handlePageChange(page)} disabled={loading || error || page === currentPage}
                                     aria-label={t('providerCatalog.pageNumber', { page })} aria-current={page === currentPage ? 'page' : undefined}
-                                    className={`${buttonClass} min-w-11 ${page === currentPage ? 'border-red-600 bg-red-600 text-white disabled:opacity-100' : 'bg-white/5 text-white/70'}`}>
+                                    className={`${buttonClass} min-w-11 ${page === currentPage ? 'border-ink-faint text-white disabled:opacity-100' : 'bg-transparent'}`}>
                                     {page}
                                 </button>
                             </React.Fragment>)}
@@ -329,7 +329,7 @@ const ProviderCatalogPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </SquareBackground>
+        </div>
     );
 };
 

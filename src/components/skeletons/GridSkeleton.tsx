@@ -23,10 +23,10 @@ const GridSkeleton = ({
       {Array.from({ length: count }, (_, index) => viewType === 'grid' ? (
         <MediaCardSkeleton key={index} />
       ) : (
-        <div key={index} className="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
+        <div key={index} className="flex gap-4 p-4 rounded-lg bg-surface border border-rule">
           <div className="relative flex-shrink-0 w-20 h-28 sm:w-24 sm:h-36">
             <Skeleton height="100%" className="!rounded-lg" />
-            <div className="absolute top-1 left-1"><Skeleton width={40} height={23} baseColor="#2a2a2a" /></div>
+            <div className="absolute top-1 left-1"><Skeleton width={40} height={23} baseColor="#2a2a2a" highlightColor="#2a2a2a" /></div>
           </div>
           <div className="flex-1 min-w-0 flex flex-col justify-between">
             <div>

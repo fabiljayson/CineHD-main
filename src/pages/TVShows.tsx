@@ -8,7 +8,7 @@ import EmblaCarouselGenres from '../components/EmblaCarouselGenres';
 import LazySection from '../components/LazySection';
 import CarouselTitle from '../components/CarouselTitle';
 
-import TelegramPromotion from '../components/TelegramPromotion';
+import WhatsAppPromotion from '../components/WhatsAppPromotion';
 import { useWrappedTracker } from '../hooks/useWrappedTracker';
 import { getTmdbLanguage } from '../i18n';
 import { readSessionStorage, writeSessionStorage } from '../utils/browserStorage';
@@ -81,28 +81,19 @@ const heroSliderStyles = `
 }
 
 .section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   position: relative;
-  background: linear-gradient(90deg, #ffffff, #e2e2e2);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.5px;
+  color: #ffffff;
+  letter-spacing: 0;
   padding-bottom: 0.5rem;
-  text-transform: uppercase;
   display: inline-block;
   animation: fadeInTitle 0.8s ease-out forwards;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
 }
 
 .section-title:hover {
-  background: linear-gradient(90deg, #ff3333, #ff9999);
-  -webkit-background-clip: text;
-  background-clip: text;
-  transform: translateY(-2px);
-  text-shadow: 0px 4px 8px rgba(255, 51, 51, 0.4);
+  color: #b4b4b4;
 }
 
 @keyframes fadeInTitle {
@@ -116,17 +107,12 @@ const heroSliderStyles = `
   left: 0;
   bottom: 0;
   width: 40px;
-  height: 3px;
-  background: linear-gradient(90deg, #f11 0%, #f66 100%);
-  border-radius: 3px;
+  height: 2px;
+  background: #1a1a1a;
+  border-radius: 2px;
   animation: expandWidth 0.6s ease-out forwards 0.3s;
   transform-origin: left;
-  transition: all 0.3s ease;
-}
-
-.section-title:hover::after {
-  width: 100%;
-  background: linear-gradient(90deg, #ff3333, #ff9999);
+  transition: width 0.3s ease;
 }
 
 @keyframes expandWidth {
@@ -140,121 +126,6 @@ const heroSliderStyles = `
   overflow: visible !important;
   position: relative;
   z-index: 1;
-}
-
-.poster-row {
-  display: flex;
-  gap: 10px;
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  padding: 5rem 0.5rem;
-  margin: -5rem -0.5rem;
-  overflow-x: auto !important;
-  overflow-y: visible !important;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  position: relative;
-  z-index: 5;
-}
-
-.poster-row::-webkit-scrollbar {
-  display: none;
-}
-
-.poster-container {
-  position: relative;
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  margin: 0;
-  flex-shrink: 0;
-  z-index: 10;
-  overflow: visible;
-  padding: 0;
-}
-
-.poster-container:hover {
-  z-index: 50;
-  overflow: visible;
-  transform: translateZ(0);
-}
-
-.poster-container:hover ~ .poster-container {
-  transform: translateX(0);
-}
-
-.poster-card {
-  position: relative;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  transform-origin: 0% 0%;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  overflow: visible;
-  cursor: pointer;
-  z-index: 10;
-  margin-bottom: 3rem;
-  margin-top: 1rem;
-}
-
-.poster-card:hover {
-  transform: scale(1.5);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  overflow: visible;
-  transform-style: preserve-3d;
-  position: relative;
-}
-
-.poster-container:has(.poster-card:hover) ~ .poster-container {
-  transform: translateX(100px);
-}
-
-.poster-container:hover ~ .poster-container {
-  transition-delay: 0.12s;
-  transform: translateX(100px);
-}
-
-.poster-card .hover-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #141414;
-  opacity: 0;
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  transition: opacity 0.3s ease;
-  overflow: hidden;
-}
-
-.poster-card:hover .hover-content {
-  opacity: 1;
-}
-
-.poster-card:hover img.poster {
-  opacity: 0;
-}
-
-.card-buttons {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  align-items: center;
-}
-
-.card-buttons a {
-  transition: transform 0.2s ease;
-}
-
-.card-buttons a:hover {
-  transform: scale(1.2);
-}
-
-.top-content-row {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding-left: 64px;
-  padding-right: 64px;
-  gap: 15px;
 }
 `;
 
@@ -759,7 +630,7 @@ const TVShows: React.FC = () => {
   }, [hoveredCardIndex]);
 
   const trendingTitle = useMemo(
-    () => <CarouselTitle icon="🔥" iconClass="text-red-600" label={t('home.trendingToday')} />,
+    () => <CarouselTitle label={t('home.trendingToday')} />,
     [t]
   );
 
@@ -769,14 +640,14 @@ const TVShows: React.FC = () => {
   );
 
   const genresTitle = useMemo(
-    () => <CarouselTitle icon="🧭" iconClass="text-white" label={t('genres.findByGenre')} />,
+    () => <CarouselTitle label={t('genres.findByGenre')} />,
     [t]
   );
 
   if (error) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="bg-red-600/10 text-red-600 px-6 py-4 rounded-lg">
+        <div className="bg-surface text-negative px-6 py-4 rounded-lg">
           {error}
         </div>
       </div>
@@ -838,7 +709,7 @@ const TVShows: React.FC = () => {
           </div>
         ))}
 
-        <TelegramPromotion />
+        <WhatsAppPromotion />
       </div>
 
       {/* Spacer div to maintain structure */}

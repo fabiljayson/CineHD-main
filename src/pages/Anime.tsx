@@ -6,7 +6,7 @@ import EmblaCarousel from '../components/EmblaCarousel';
 import CatalogSkeleton from '../components/skeletons/CatalogSkeleton';
 import EmblaCarouselGenres from '../components/EmblaCarouselGenres';
 import LazySection from '../components/LazySection';
-import TelegramPromotion from '../components/TelegramPromotion';
+import WhatsAppPromotion from '../components/WhatsAppPromotion';
 import { useWrappedTracker } from '../hooks/useWrappedTracker';
 import { getTmdbLanguage } from '../i18n';
 import { getNumericAge } from '../utils/certificationUtils';
@@ -66,28 +66,19 @@ const pageStyles = `
 }
 
 .section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   position: relative;
-  background: linear-gradient(90deg, #ffffff, #e2e2e2);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.5px;
+  color: #ffffff;
+  letter-spacing: 0;
   padding-bottom: 0.5rem;
-  text-transform: uppercase;
   display: inline-block;
   animation: fadeInTitle 0.8s ease-out forwards;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
 }
 
 .section-title:hover {
-  background: linear-gradient(90deg, #ff3333, #ff9999);
-  -webkit-background-clip: text;
-  background-clip: text;
-  transform: translateY(-2px);
-  text-shadow: 0px 4px 8px rgba(255, 51, 51, 0.4);
+  color: #b4b4b4;
 }
 
 .section-title::after {
@@ -96,17 +87,12 @@ const pageStyles = `
   left: 0;
   bottom: 0;
   width: 40px;
-  height: 3px;
-  background: linear-gradient(90deg, #f11 0%, #f66 100%);
-  border-radius: 3px;
+  height: 2px;
+  background: #1a1a1a;
+  border-radius: 2px;
   animation: expandWidth 0.6s ease-out forwards 0.3s;
   transform-origin: left;
-  transition: all 0.3s ease;
-}
-
-.section-title:hover::after {
-  width: 100%;
-  background: linear-gradient(90deg, #ff3333, #ff9999);
+  transition: width 0.3s ease;
 }
 `;
 
@@ -493,7 +479,7 @@ const Anime: React.FC = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="bg-red-600/10 text-red-600 px-6 py-4 rounded-lg">
+        <div className="bg-surface text-negative px-6 py-4 rounded-lg">
           {error}
         </div>
       </div>
@@ -520,7 +506,7 @@ const Anime: React.FC = () => {
 
       <div className="w-full bg-black py-6 relative mt-8 z-[20] px-4 md:px-8">
         <EmblaCarouselGenres
-          title={<span><span className="text-white mr-2">🧭</span><span>{t('genres.findByGenre')}</span></span>}
+          title={t('genres.findByGenre')}
           items={genreItems}
         />
       </div>
@@ -530,7 +516,7 @@ const Anime: React.FC = () => {
           <div className="px-4 md:px-8">
             <LazySection index={0} immediateLoadCount={IMMEDIATE_LOAD_COUNT}>
               <EmblaCarousel
-                title={<span><span className="text-red-600 mr-2">🔥</span><span>{t('animePage.trending')}</span></span>}
+                title={t('animePage.trending')}
                 items={topContent.map((item) => ({
                   ...item,
                   media_type: 'tv',
@@ -563,7 +549,7 @@ const Anime: React.FC = () => {
           </div>
         ))}
 
-        <TelegramPromotion />
+        <WhatsAppPromotion />
       </div>
     </div>
   );

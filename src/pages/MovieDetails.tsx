@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import axios from 'axios';
-import { Loader, Video, Star, Calendar, List, Check, ChevronRight, Play, Film, X, Building, MapPin, Languages, Library, Info, ArrowLeft, Image, Download, MessageSquare, AlertTriangle, Archive, CheckCircle } from 'lucide-react';
+import { Video, Star, Calendar, List, Check, ChevronRight, Play, Film, X, Building, MapPin, Languages, Library, Info, ArrowLeft, Image, Download, MessageSquare, AlertTriangle, Archive, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import AddToListButton from '../components/AddToListButton';
@@ -34,6 +34,7 @@ import { useMovieReleaseWarnings } from '@/hooks/useMovieReleaseWarnings';
 import { useImageQuality, useImageViewport } from '../hooks/useImageQuality';
 import { useImageSlot } from '../hooks/useImageSlot';
 import { getCoverImageWidth, getTmdbImageProps, getTmdbImageUrl } from '../utils/tmdbImages';
+import { Ring } from '@/components/ui/loading/ring';
 import { readLocalStorage, writeLocalStorage } from '../utils/browserStorage';
 
 const MAIN_API = import.meta.env.VITE_MAIN_API;
@@ -226,14 +227,14 @@ const LazyImage = ({ src, srcSet, sizes, alt, className, onLoad }: {
   return (
     <div ref={imgRef} className={className}>
       {!isInView ? (
-        <div className="w-full h-full bg-gray-800 animate-pulse flex items-center justify-center">
-          <Image className="w-8 h-8 text-gray-600" />
+        <div className="w-full h-full bg-[#1a1a1a] flex items-center justify-center">
+          <Image className="w-8 h-8 text-ink-faint" />
         </div>
       ) : (
         <>
           {!isLoaded && (
-            <div className="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center">
-              <Image className="w-8 h-8 text-gray-600" />
+            <div className="absolute inset-0 bg-[#1a1a1a] flex items-center justify-center">
+              <Image className="w-8 h-8 text-ink-faint" />
             </div>
           )}
           <img
@@ -510,7 +511,7 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
     <div className="mb-8">
       <motion.button
         onClick={handleToggleImages}
-        className="flex items-center gap-3 text-xl font-bold text-white hover:text-blue-400 transition-colors"
+        className="flex items-center gap-3 text-xl font-semibold text-white hover:opacity-80 transition-opacity"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
@@ -536,7 +537,7 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
           >
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader className="w-8 h-8 animate-spin text-blue-400" />
+                <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
               </div>
             ) : images ? (
               <div>
@@ -553,14 +554,14 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
                         role="tab"
                         aria-selected={isActive}
                         onClick={() => setSelectedCategory(category)}
-                        className={`relative flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60 ${
-                          isActive ? 'text-white' : 'text-gray-400 hover:text-white'
+                        className={`relative flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
+                          isActive ? 'text-white' : 'text-ink-muted hover:text-white'
                         }`}
                       >
                         {isActive && (
                           <motion.div
                             layoutId="movie-images-tabs-indicator"
-                            className="absolute inset-0 bg-red-600 rounded-lg shadow-sm shadow-red-600/30"
+                            className="absolute inset-0 bg-raised"
                             transition={{ type: 'spring', bounce: 0.15, duration: 0.45 }}
                           />
                         )}
@@ -581,8 +582,8 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
                             </svg>
                           )}
                           <span>{t(labelKey)}</span>
-                          <span className={`text-[11px] leading-none px-1.5 py-0.5 rounded-full font-semibold ${
-                            isActive ? 'bg-white/25 text-white' : 'bg-gray-800/70 text-gray-400'
+                          <span className={`text-[11px] leading-none px-1.5 py-0.5 rounded-full font-medium tabular-nums ${
+                            isActive ? 'bg-white/25 text-white' : 'bg-raised text-ink-muted'
                           }`}>
                             {getCategoryCount(category)}
                           </span>
@@ -597,12 +598,12 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
                   <div className="relative mb-6 language-dropdown">
                     <motion.button
                       onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                      className="flex items-center justify-between w-full md:w-64 px-4 py-3 bg-gray-800/70 hover:bg-gray-700/70 rounded-xl border border-gray-600/50 text-white transition-all duration-200 backdrop-blur-sm"
+                      className="flex items-center justify-between w-full md:w-64 px-4 py-3 bg-surface hover:bg-raised rounded-lg border border-control text-white transition-colors"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <div className="flex items-center gap-3">
-                        <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-4 h-4 text-ink-faint" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389c-.188-.196-.373-.396-.554-.6a19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.89c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 5.982a.869.869 0 01.02.037l.99 1.98a1 1 0 11-1.79.895L15.383 16h-4.764l-.724 1.447a1 1 0 11-1.788-.894l.99-1.98.019-.038 2.99-5.982A1 1 0 0113 8zm-1.382 6h2.764L13 11.236 11.618 14z" clipRule="evenodd" />
                         </svg>
                         <span className="font-medium">
@@ -633,7 +634,7 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -10, scale: 0.95 }}
                           transition={{ duration: 0.2 }}
-                          className="absolute left-0 md:left-0 w-full md:w-64 mt-2 bg-gray-800/95 backdrop-blur-md rounded-xl border border-gray-600/50 shadow-2xl z-[9999] overflow-hidden max-h-64 overflow-y-auto"
+                          className="absolute left-0 md:left-0 w-full md:w-64 mt-2 bg-raised rounded-lg border border-control z-[9999] overflow-hidden max-h-64 overflow-y-auto"
                         >
                           <div className="py-2">
                             <motion.button
@@ -641,12 +642,12 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
                                 setSelectedLanguage('all');
                                 setShowLanguageDropdown(false);
                               }}
-                              className={`w-full px-4 py-3 text-left hover:bg-gray-700/50 transition-colors flex items-center justify-between ${selectedLanguage === 'all' ? 'bg-blue-600/20 text-blue-400' : 'text-gray-300'
+                              className={`w-full px-4 py-3 text-left hover:bg-white/5 transition-colors flex items-center justify-between ${selectedLanguage === 'all' ? 'bg-white/10 text-white' : 'text-ink-muted'
                                 }`}
                               whileHover={{ x: 4 }}
                             >
                               <span>{t('details.allLanguages')}</span>
-                              <span className="text-xs bg-gray-600/50 px-2 py-1 rounded-full">
+                              <span className="text-xs tabular-nums bg-white/10 px-2 py-1 rounded-full">
                                 {images?.[selectedCategory]?.length || 0}
                               </span>
                             </motion.button>
@@ -657,12 +658,12 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
                                   setSelectedLanguage(langCode);
                                   setShowLanguageDropdown(false);
                                 }}
-                                className={`w-full px-4 py-3 text-left hover:bg-gray-700/50 transition-colors flex items-center justify-between ${selectedLanguage === langCode ? 'bg-blue-600/20 text-blue-400' : 'text-gray-300'
+                                className={`w-full px-4 py-3 text-left hover:bg-white/5 transition-colors flex items-center justify-between ${selectedLanguage === langCode ? 'bg-white/10 text-white' : 'text-ink-muted'
                                   }`}
                                 whileHover={{ x: 4 }}
                               >
                                 <span>{getLanguageDisplayName(langCode)}</span>
-                                <span className="text-xs bg-gray-600/50 px-2 py-1 rounded-full">
+                                <span className="text-xs tabular-nums bg-white/10 px-2 py-1 rounded-full">
                                   {images?.[selectedCategory]?.filter(img =>
                                     langCode === 'no-text' ? img.iso_639_1 === null : img.iso_639_1 === langCode
                                   ).length || 0}
@@ -682,9 +683,9 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
                     <motion.button
                       onClick={downloadAllAsZip}
                       disabled={isDownloadingZip}
-                      className={`relative overflow-hidden flex items-center gap-3 px-5 py-3 rounded-xl font-semibold transition-all duration-300 ${isDownloadingZip
-                        ? 'bg-gray-700 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-lg hover:shadow-emerald-500/25'
+                      className={`relative overflow-hidden flex items-center gap-3 px-5 py-3 rounded-full font-medium transition-colors ${isDownloadingZip
+                        ? 'bg-raised cursor-not-allowed text-ink-faint'
+                        : 'border border-control text-white hover:bg-raised'
                         }`}
                       whileHover={!isDownloadingZip ? { scale: 1.02, y: -2 } : {}}
                       whileTap={!isDownloadingZip ? { scale: 0.98 } : {}}
@@ -692,7 +693,7 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
                       {/* Barre de progression en arrière-plan */}
                       {isDownloadingZip && (
                         <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600"
+                          className="absolute inset-0 bg-white/15"
                           initial={{ width: '0%' }}
                           animate={{ width: `${zipProgress}%` }}
                           transition={{ duration: 0.3 }}
@@ -704,35 +705,35 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
                           <>
                             <Archive className="w-5 h-5" />
                             <span>{t('details.downloadZip')}</span>
-                            <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                            <span className="text-xs tabular-nums bg-white/15 px-2 py-1 rounded-full">
                               {getImagesByCategory().length} images
                             </span>
                           </>
                         )}
                         {zipStatus === 'downloading' && (
                           <>
-                            <Loader className="w-5 h-5 animate-spin" />
-                            <span>{t('details.downloading')} {downloadedCount}/{getImagesByCategory().length}</span>
-                            <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                            <Ring className="h-4 w-4 text-ink-faint" aria-hidden="true" />
+                            <span>{t('details.downloading')} <span className="tabular-nums">{downloadedCount}/{getImagesByCategory().length}</span></span>
+                            <span className="text-xs tabular-nums bg-white/15 px-2 py-1 rounded-full">
                               {zipProgress}%
                             </span>
                           </>
                         )}
                         {zipStatus === 'zipping' && (
                           <>
-                            <Loader className="w-5 h-5 animate-spin" />
+                            <Ring className="h-4 w-4 text-ink-faint" aria-hidden="true" />
                             <span>{t('details.compressing')}</span>
                           </>
                         )}
                         {zipStatus === 'complete' && (
                           <>
-                            <CheckCircle className="w-5 h-5 text-green-300" />
+                            <CheckCircle className="w-5 h-5 text-positive" />
                             <span>{t('details.downloadComplete')}</span>
                           </>
                         )}
                         {zipStatus === 'error' && (
                           <>
-                            <AlertTriangle className="w-5 h-5 text-red-300" />
+                            <AlertTriangle className="w-5 h-5 text-negative" />
                             <span>{t('details.downloadError')}</span>
                           </>
                         )}
@@ -741,9 +742,9 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
 
                     {/* Barre de progression visible */}
                     {isDownloadingZip && zipStatus !== 'complete' && (
-                      <div className="mt-3 bg-gray-800 rounded-full h-2 overflow-hidden">
+                      <div className="mt-3 bg-raised rounded-full h-2 overflow-hidden">
                         <motion.div
-                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-400"
+                          className="h-full bg-accent"
                           initial={{ width: '0%' }}
                           animate={{ width: `${zipProgress}%` }}
                           transition={{ duration: 0.3 }}
@@ -784,7 +785,7 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
                           image.file_path,
                           `movie-${movieId}-${selectedCategory}-${index + 1}.jpg`
                         )}
-                        className="absolute top-2 right-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors shadow-lg md:hidden"
+                        className="absolute top-2 right-2 bg-raised hover:bg-white hover:text-black border border-control text-white p-2 rounded-full transition-colors md:hidden"
                         whileTap={{ scale: 0.9 }}
                       >
                         <Download className="w-4 h-4" />
@@ -836,7 +837,7 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
                             image.file_path,
                             `movie-${movieId}-${selectedCategory}-${index + 1}.jpg`
                           )}
-                          className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-colors shadow-lg"
+                          className="bg-raised hover:bg-white hover:text-black border border-control text-white p-3 rounded-full transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                         >
@@ -1425,39 +1426,34 @@ const MovieDetails = (): JSX.Element => {
         {/* Première ligne avec Regarder et Bande-annonce */}
         <div className="flex flex-wrap gap-3 w-full min-w-0">
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={handleWatchClick}
-            className="flex flex-col items-center gap-2 px-4 sm:px-6 py-4 sm:py-5 bg-red-600 hover:bg-red-700 rounded-lg flex-1 min-w-0 justify-center text-xs sm:text-sm"
+            className="flex items-center justify-center gap-2 px-5 sm:px-6 h-11 rounded-full bg-white text-black hover:bg-neutral-200 flex-1 min-w-0 text-sm font-medium transition-colors"
           >
+            <Play className="w-5 h-5 flex-shrink-0" />
             {hasProgress ? (
               <>
-                <Play className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-                <div className="flex flex-col items-center text-center w-full min-w-0">
-                  <span>{t('details.continueBtn')}</span>
-                  <span className="text-xs bg-red-800/80 text-white px-1.5 py-0.5 rounded font-medium mt-1">
-                    {formatTime(watchProgress)}/{formatTime(videoDuration)}
-                  </span>
-                </div>
+                <span className="text-center truncate">{t('details.continueBtn')}</span>
+                <span className="text-xs tabular-nums bg-black/10 px-1.5 py-0.5 rounded-full font-medium">
+                  {formatTime(watchProgress)}/{formatTime(videoDuration)}
+                </span>
               </>
             ) : (
-              <>
-                <Play className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-                <span className="text-center">{t('details.watchBtn')}</span>
-              </>
+              <span className="text-center">{t('details.watchBtn')}</span>
             )}
           </motion.button>
 
           {(!ENABLE_VIP_DOWNLOAD_CHECK || readLocalStorage('is_vip') === 'true') && (
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
               onClick={() => navigate(`/download/movie/${id}`)}
-              className="flex flex-col items-center gap-2 px-4 sm:px-6 py-4 sm:py-5 bg-green-600 hover:bg-green-700 rounded-lg flex-1 min-w-0 justify-center text-xs sm:text-sm"
+              className="flex items-center justify-center gap-2 px-5 sm:px-6 h-11 rounded-full border border-control text-white hover:bg-raised flex-1 min-w-0 text-sm font-medium transition-colors"
             >
-              <Download className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+              <Download className="w-5 h-5 flex-shrink-0" />
               <span className="text-center">{t('details.downloadBtn')}</span>
             </motion.button>
           )}
@@ -1466,24 +1462,24 @@ const MovieDetails = (): JSX.Element => {
         {/* Deuxième ligne avec les autres boutons */}
         <div className="flex flex-wrap gap-3">
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={() => setShowTrailerPopup(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+            className="flex items-center gap-2 px-4 h-9 rounded-full border border-control text-white text-sm hover:bg-raised transition-colors"
             disabled={!trailerVideoId}
           >
             <Video className="w-4 h-4" />
             {t('details.bandeAnnonce')}
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={() => updateWatchStatus('watchlist', !watchStatus.watchlist)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg ${watchStatus.watchlist
-              ? 'bg-red-600 text-white'
-              : 'bg-gray-800 hover:bg-gray-700'
+            className={`flex items-center gap-2 px-4 h-9 rounded-full border text-sm transition-colors ${watchStatus.watchlist
+              ? 'border-control bg-raised text-white'
+              : 'border-control text-ink-muted hover:bg-raised hover:text-white'
               }`}
           >
             <motion.div
@@ -1497,18 +1493,18 @@ const MovieDetails = (): JSX.Element => {
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={() => updateWatchStatus('favorite', !watchStatus.favorite)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg ${watchStatus.favorite
-              ? 'bg-red-600 text-white'
-              : 'bg-gray-800 hover:bg-gray-700'
+            className={`flex items-center gap-2 px-4 h-9 rounded-full border text-sm transition-colors ${watchStatus.favorite
+              ? 'border-control bg-raised text-white'
+              : 'border-control text-ink-muted hover:bg-raised hover:text-white'
               }`}
           >
             <motion.div
               animate={watchStatus.favorite ?
-                { scale: [1, 1.3, 1], color: ['#fff', '#fbbf24', '#fff'] } :
+                { scale: [1, 1.3, 1], color: ['#fff', '#e5e5e5', '#fff'] } :
                 {}
               }
               transition={{ duration: 0.5 }}
@@ -1519,13 +1515,13 @@ const MovieDetails = (): JSX.Element => {
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={() => updateWatchStatus('watched', !watchStatus.watched)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg ${watchStatus.watched
-              ? 'bg-red-600 text-white'
-              : 'bg-gray-800 hover:bg-gray-700'
+            className={`flex items-center gap-2 px-4 h-9 rounded-full border text-sm transition-colors ${watchStatus.watched
+              ? 'border-control bg-raised text-white'
+              : 'border-control text-ink-muted hover:bg-raised hover:text-white'
               }`}
           >
             <motion.div
@@ -1762,7 +1758,7 @@ const MovieDetails = (): JSX.Element => {
   if (loading) {
     return <DetailsSkeleton />;
   }
-  if (error) return <div className="text-center text-red-500">{error}</div>;
+  if (error) return <div className="text-center text-negative">{error}</div>;
   if (!movie) return <div className="text-center">{t('details.movieNotFound')}</div>;
 
   // Age restriction check
@@ -1770,20 +1766,20 @@ const MovieDetails = (): JSX.Element => {
   const profileAgeRestriction = currentProfile?.ageRestriction ?? 0;
   if (contentCert && profileAgeRestriction > 0 && !isContentAllowed(contentCert, profileAgeRestriction)) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center px-4">
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <div className="w-20 h-20 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-20 h-20 bg-raised rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">{t('details.contentBlocked')}</h2>
+          <h2 className="text-2xl font-semibold text-white mb-3">{t('details.contentBlocked')}</h2>
           <p className="text-gray-400 mb-6">
             {t('details.contentBlockedDesc', { rating: getClassificationLabel(contentCert, t), age: profileAgeRestriction })}
           </p>
           <button
             onClick={() => navigate(-1)}
-            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+            className="px-6 py-3 bg-white text-black hover:bg-neutral-200 rounded-full transition-colors font-medium"
           >
             {t('details.goBack')}
           </button>
@@ -1942,51 +1938,19 @@ const MovieDetails = (): JSX.Element => {
           /* Styles existants pour section-title et no-scroll (vérifier s'ils sont nécessaires) */
           .section-title {
             font-size: 1.5rem;
-            font-weight: 700;
+            font-weight: 600;
             position: relative;
-            background: linear-gradient(90deg, #ffffff, #e2e2e2);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
-            letter-spacing: 0.5px;
-            padding-bottom: 0.5rem;
-            text-transform: uppercase;
+            color: #ffffff;
+            letter-spacing: normal;
+            padding-bottom: 0.25rem;
+            text-transform: none;
             display: inline-block;
             animation: fadeInTitle 0.8s ease-out forwards;
-            transition: all 0.3s ease;
-          }
-          .section-title:hover {
-            background: linear-gradient(90deg, #ff3333, #ff9999);
-            -webkit-background-clip: text;
-            background-clip: text;
-            transform: translateY(-2px);
-            text-shadow: 0px 4px 8px rgba(255, 51, 51, 0.4);
-          }
-          .section-title::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 40px;
-            height: 3px;
-            background: linear-gradient(90deg, #f11 0%, #f66 100%);
-            border-radius: 3px;
-            animation: expandWidth 0.6s ease-out forwards 0.3s;
-            transform-origin: left;
-            transition: all 0.3s ease;
-          }
-          .section-title:hover::after {
-            width: 100%;
-            background: linear-gradient(90deg, #ff3333, #ff9999);
+            transition: opacity 0.3s ease;
           }
           @keyframes fadeInTitle {
             0% { opacity: 0; transform: translateY(10px); }
             100% { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes expandWidth {
-            0% { width: 0; }
-            100% { width: 40px; }
           }
           .no-scroll {
             overflow: hidden !important; /* Cache TOUT overflow, pas seulement horizontal */
@@ -2030,10 +1994,10 @@ const MovieDetails = (): JSX.Element => {
           transition={{ delay: 0.2 }}
           className="mb-8"
         >
-          <h1 className="section-title text-4xl md:text-5xl font-bold">
+          <h1 className="section-title text-4xl md:text-5xl font-semibold">
             {movie.title} {movieYear && <>({movieYear})</>}
             {!movieReleaseWarningsEnabled && (
-              <span className={`inline-block ml-2 align-middle text-sm font-medium px-2 py-1 rounded-md ${movieIsReleased ? 'bg-green-700 text-white' : 'bg-yellow-800 text-yellow-50'}`}>
+              <span className={`inline-block ml-2 align-middle text-xs font-medium px-2.5 py-0.5 rounded-full ${movieIsReleased ? 'bg-positive/15 text-positive' : 'border border-control text-ink-muted'}`}>
                 {t(movieIsReleased ? 'details.releasedBadge' : 'details.notReleasedBadge')}
               </span>
             )}
@@ -2041,20 +2005,20 @@ const MovieDetails = (): JSX.Element => {
           {movieReleaseWarningsEnabled && (
             <>
               <div className="mt-3 flex flex-wrap items-start gap-2 text-sm font-medium">
-                <span className={`max-w-full px-2 py-1 rounded-md ${movieReleases.homeVideo && isMovieReleaseDatePending(movieReleases.homeVideo.date, releaseNow) ? 'bg-yellow-800 text-yellow-50' : 'bg-gray-800 text-gray-100'}`}>
+                <span className={`max-w-full px-2.5 py-0.5 rounded-full text-xs ${movieReleases.homeVideo && isMovieReleaseDatePending(movieReleases.homeVideo.date, releaseNow) ? 'border border-control text-ink-muted' : 'bg-surface text-ink-muted'}`}>
                   {getMovieReleaseLabel(movieReleases.homeVideo, 'homeVideo', t, i18n.language, releaseNow)}
                 </span>
                 {movieReleases.theatrical ? (
-                  <span className="max-w-full px-2 py-1 rounded-md bg-gray-800 text-gray-100">
+                  <span className="max-w-full px-2.5 py-0.5 rounded-full text-xs bg-surface text-ink-muted">
                     {getMovieReleaseLabel(movieReleases.theatrical, 'theatrical', t, i18n.language, releaseNow)}
                   </span>
                 ) : movieReleases.referenceDate && (
-                  <span className="max-w-full px-2 py-1 rounded-md bg-gray-800 text-gray-100">
+                  <span className="max-w-full px-2.5 py-0.5 rounded-full text-xs bg-surface text-ink-muted">
                     {t('details.movieRelease.announcedDate', { date: formatMovieReleaseDate(movieReleases.referenceDate, i18n.language) })}
                   </span>
                 )}
               </div>
-              <p className="mt-2 text-xs text-gray-400">{t('details.movieRelease.availabilityNote')}</p>
+              <p className="mt-2 text-xs text-ink-faint">{t('details.movieRelease.availabilityNote')}</p>
             </>
           )}
         </motion.div>
@@ -2072,7 +2036,7 @@ const MovieDetails = (): JSX.Element => {
               transition={{ type: "spring", stiffness: 300, damping: 10 }}
               src={mainPosterUrl}
               alt={movie.title}
-              className="w-full rounded-lg shadow-lg"
+              className="w-full rounded-lg"
             />
 
             {/* Boutons d'action en-dessous du poster */}
@@ -2092,7 +2056,7 @@ const MovieDetails = (): JSX.Element => {
             <div className="relative">
               <div
                 ref={tabsContainerRef}
-                className="flex overflow-x-auto scrollbar-hide touch-pan-x border-b border-gray-700 mb-6"
+                className="flex overflow-x-auto scrollbar-hide touch-pan-x border-b border-rule mb-6"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
@@ -2104,7 +2068,7 @@ const MovieDetails = (): JSX.Element => {
                   onClick={() => setActiveTab('overview')}
                   className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'overview'
                     ? 'text-white'
-                    : 'text-gray-400 hover:text-white'
+                    : 'text-ink-muted hover:text-white'
                     }`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -2112,7 +2076,7 @@ const MovieDetails = (): JSX.Element => {
                   {t('details.overviewTab')}
                   {activeTab === 'overview' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -2122,7 +2086,7 @@ const MovieDetails = (): JSX.Element => {
                   onClick={() => setActiveTab('details')}
                   className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'details'
                     ? 'text-white'
-                    : 'text-gray-400 hover:text-white'
+                    : 'text-ink-muted hover:text-white'
                     }`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -2130,7 +2094,7 @@ const MovieDetails = (): JSX.Element => {
                   {t('details.detailsTab')}
                   {activeTab === 'details' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -2141,7 +2105,7 @@ const MovieDetails = (): JSX.Element => {
                   onClick={handleVideosTabClick}
                   className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'videos'
                     ? 'text-white'
-                    : 'text-gray-400 hover:text-white'
+                    : 'text-ink-muted hover:text-white'
                     }`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -2149,7 +2113,7 @@ const MovieDetails = (): JSX.Element => {
                   {t('details.videosTab')}
                   {activeTab === 'videos' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -2160,7 +2124,7 @@ const MovieDetails = (): JSX.Element => {
                   onClick={handleImagesTabClick}
                   className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'images'
                     ? 'text-white'
-                    : 'text-gray-400 hover:text-white'
+                    : 'text-ink-muted hover:text-white'
                     }`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -2168,7 +2132,7 @@ const MovieDetails = (): JSX.Element => {
                   {t('details.imagesTab')}
                   {activeTab === 'images' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -2179,7 +2143,7 @@ const MovieDetails = (): JSX.Element => {
                   onClick={() => setActiveTab('cast')}
                   className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'cast'
                     ? 'text-white'
-                    : 'text-gray-400 hover:text-white'
+                    : 'text-ink-muted hover:text-white'
                     }`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -2187,7 +2151,7 @@ const MovieDetails = (): JSX.Element => {
                   {t('details.castTab')}
                   {activeTab === 'cast' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -2198,7 +2162,7 @@ const MovieDetails = (): JSX.Element => {
                   onClick={() => setActiveTab('crew')}
                   className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'crew'
                     ? 'text-white'
-                    : 'text-gray-400 hover:text-white'
+                    : 'text-ink-muted hover:text-white'
                     }`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -2206,7 +2170,7 @@ const MovieDetails = (): JSX.Element => {
                   {t('details.crewTab')}
                   {activeTab === 'crew' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -2221,7 +2185,7 @@ const MovieDetails = (): JSX.Element => {
                     onClick={() => setActiveTab('characters')}
                     className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'characters'
                       ? 'text-white'
-                      : 'text-gray-400 hover:text-white'
+                      : 'text-ink-muted hover:text-white'
                       }`}
                     whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                     whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -2229,7 +2193,7 @@ const MovieDetails = (): JSX.Element => {
                     {t('details.charactersTab')}
                     {activeTab === 'characters' && (
                       <motion.div
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                         layoutId="activeTab"
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
@@ -2243,7 +2207,7 @@ const MovieDetails = (): JSX.Element => {
                     onClick={handleCollectionTabClick}
                     className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'collection'
                       ? 'text-white'
-                      : 'text-gray-400 hover:text-white'
+                      : 'text-ink-muted hover:text-white'
                       }`}
                     whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                     whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -2251,7 +2215,7 @@ const MovieDetails = (): JSX.Element => {
                     {t('details.sagaTab')}
                     {activeTab === 'collection' && (
                       <motion.div
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                         layoutId="activeTab"
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
@@ -2265,7 +2229,7 @@ const MovieDetails = (): JSX.Element => {
                     // Scroll vers les commentaires
                     commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }}
-                  className="px-6 py-3 font-medium text-sm flex-shrink-0 text-gray-400 hover:text-white"
+                  className="px-6 py-3 font-medium text-sm flex-shrink-0 text-ink-muted hover:text-white"
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
@@ -2321,16 +2285,16 @@ const MovieDetails = (): JSX.Element => {
                     </div>
 
                     {/* TMDB Info Box */}
-                    <div className="mb-6 p-4 border border-red-500/50 bg-red-500/10 rounded-lg flex gap-3 items-start">
-                      <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                      <div className="text-sm text-gray-300">
+                    <div className="mb-6 p-4 border border-rule bg-surface rounded-lg flex gap-3 items-start">
+                      <AlertTriangle className="w-5 h-5 text-ink-faint flex-shrink-0 mt-0.5" />
+                      <div className="text-sm text-ink-muted">
                         <p>
                           {t('details.tmdbInfoNote')}{' '}
                           <a
                             href={`https://www.themoviedb.org/movie/${id}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-red-400 hover:text-red-300 underline"
+                            className="text-ink-muted hover:text-white underline"
                           >
                             TMDB
                           </a>
@@ -2339,7 +2303,7 @@ const MovieDetails = (): JSX.Element => {
                       </div>
                     </div>
 
-                    <h2 className="text-xl font-bold mb-2">{t('details.synopsisTitle')}</h2>
+                    <h2 className="text-xl font-semibold mb-2">{t('details.synopsisTitle')}</h2>
                     <p className="text-gray-300">{movie.overview || t('details.noSynopsis')}</p>
                   </motion.div>
 
@@ -2353,7 +2317,7 @@ const MovieDetails = (): JSX.Element => {
                     {/* Durée */}
                     <div>
                       <h3 className="text-lg font-semibold mb-2">{t('details.durationLabel')}</h3>
-                      <p className="text-gray-300">{movie.runtime} {t('details.minutesLabel')}</p>
+                      <p className="text-white tabular-nums">{movie.runtime} {t('details.minutesLabel')}</p>
                     </div>
 
                     {/* Notes */}
@@ -2361,8 +2325,8 @@ const MovieDetails = (): JSX.Element => {
                       <div>
                         <h3 className="text-lg font-semibold mb-2">{t('details.ratingLabel')}</h3>
                         <div className="flex items-center gap-2">
-                          <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                          <p className="text-gray-300 text-lg font-bold">{movie.vote_average != null ? movie.vote_average.toFixed(1) : 'N/A'}<span className="text-sm font-normal text-gray-400">/10</span></p>
+                          <Star className="w-5 h-5 text-accent fill-accent" />
+                          <p className="text-white text-lg font-semibold tabular-nums">{movie.vote_average != null ? movie.vote_average.toFixed(1) : 'N/A'}<span className="text-sm font-normal text-ink-faint">/10</span></p>
                         </div>
                       </div>
 
@@ -2375,14 +2339,14 @@ const MovieDetails = (): JSX.Element => {
                               onClick={() => setShowMovixRatingInfo(true)}
                               aria-label={t('details.movixRatingInfoButtonLabel')}
                               title={t('details.movixRatingInfoButtonLabel')}
-                              className="rounded-full text-gray-400 transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500/70"
+                              className="rounded-full text-ink-faint transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-white/40"
                             >
                               <Info className="h-4 w-4" />
                             </button>
                           </h3>
                           <div className="flex items-center gap-2">
-                            <Star className="w-5 h-5 text-red-500 fill-red-500" />
-                            <p className="text-gray-300 text-lg font-bold">{movixRating.toFixed(1)}<span className="text-sm font-normal text-gray-400">/10</span></p>
+                            <Star className="w-5 h-5 text-accent fill-accent" />
+                            <p className="text-white text-lg font-semibold tabular-nums">{movixRating.toFixed(1)}<span className="text-sm font-normal text-ink-faint">/10</span></p>
                           </div>
                         </div>
                       )}
@@ -2393,11 +2357,11 @@ const MovieDetails = (): JSX.Element => {
                       <h3 className="text-lg font-semibold mb-2">{t('details.classificationLabel')}</h3>
                       <div className="flex items-center gap-2">
                         {certifications['FR'] ? (
-                          <span className="bg-red-600/70 text-white px-3 py-1 rounded-md font-bold">
+                          <span className="border border-control text-ink-muted px-3 py-1 rounded-full text-xs font-medium">
                             {getClassificationLabel(certifications['FR'], t)}
                           </span>
                         ) : certifications['US'] ? (
-                          <span className="bg-red-600/70 text-white px-3 py-1 rounded-md font-bold">
+                          <span className="border border-control text-ink-muted px-3 py-1 rounded-full text-xs font-medium">
                             {getClassificationLabel(certifications['US'], t)}
                           </span>
                         ) : (
@@ -2433,9 +2397,8 @@ const MovieDetails = (): JSX.Element => {
                         >
                           <Link
                             to={`/genre/movie/${genre.id}`}
-                            className="flex items-center gap-1 px-3 py-2 bg-gray-800 rounded-lg text-sm hover:bg-gray-700 transition-colors inline-block border border-gray-700 hover:border-gray-600"
+                            className="flex items-center gap-1 px-3 py-1.5 border border-control text-ink-muted rounded-full text-sm hover:bg-raised hover:text-white transition-colors inline-block"
                           >
-                            <span className="w-2 h-2 rounded-full bg-red-500"></span>
                             {genre.name}
                           </Link>
                         </motion.div>
@@ -2483,8 +2446,7 @@ const MovieDetails = (): JSX.Element => {
                           />
                         ) : (
                           <motion.div
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg"
-                            style={{ backgroundColor: `hsl(${actor.name.charCodeAt(0) * 7 % 360}, 50%, 40%)` }}
+                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg bg-raised"
                             whileHover={{ scale: 1.1 }}
                           >
                             {actor.name.charAt(0).toUpperCase()}
@@ -2546,8 +2508,7 @@ const MovieDetails = (): JSX.Element => {
                           />
                         ) : (
                           <motion.div
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg"
-                            style={{ backgroundColor: `hsl(${member.name.charCodeAt(0) * 7 % 360}, 50%, 40%)` }}
+                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg bg-raised"
                             whileHover={{ scale: 1.1 }}
                           >
                             {member.name.charAt(0).toUpperCase()}
@@ -2607,18 +2568,18 @@ const MovieDetails = (): JSX.Element => {
                         {movie.production_companies.map((company, index) => (
                           <motion.div
                             key={company.id}
-                            className="flex items-center gap-3 bg-gray-800 p-3 rounded-lg"
+                            className="flex items-center gap-3 bg-surface p-3 rounded-lg"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 + index * 0.1 }}
                             whileHover={{
-                              backgroundColor: "rgba(75,85,99, 0.8)",
+                              backgroundColor: "#2a2a2a",
                               y: -3,
                               transition: { duration: 0.2 }
                             }}
                           >
                             <motion.div
-                              className="w-12 h-12 flex items-center justify-center bg-gray-700 rounded"
+                              className="w-12 h-12 flex items-center justify-center bg-raised rounded"
                               whileHover={{ scale: 1.1 }}
                             >
                               {company.logo_path ? (
@@ -2659,14 +2620,14 @@ const MovieDetails = (): JSX.Element => {
                         {movie.production_countries.map((country, index) => (
                           <motion.div
                             key={country.iso_3166_1}
-                            className="bg-gray-800 px-3 py-2 rounded-lg border border-gray-700"
+                            className="bg-surface px-3 py-2 rounded-lg border border-rule"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.1 + index * 0.05 }}
                             whileHover={{
-                              backgroundColor: "rgba(75,85,99, 0.8)",
+                              backgroundColor: "#2a2a2a",
                               y: -2,
-                              borderColor: "rgba(107,114,128, 0.8)",
+                              borderColor: "#444444",
                               transition: { duration: 0.2 }
                             }}
                           >
@@ -2693,14 +2654,14 @@ const MovieDetails = (): JSX.Element => {
                         {movie.spoken_languages.map((language, index) => (
                           <motion.div
                             key={language.iso_639_1}
-                            className="bg-gray-800 px-3 py-2 rounded-lg border border-gray-700"
+                            className="bg-surface px-3 py-2 rounded-lg border border-rule"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.1 + index * 0.05 }}
                             whileHover={{
-                              backgroundColor: "rgba(75,85,99, 0.8)",
+                              backgroundColor: "#2a2a2a",
                               y: -2,
-                              borderColor: "rgba(107,114,128, 0.8)",
+                              borderColor: "#444444",
                               transition: { duration: 0.2 }
                             }}
                           >
@@ -2723,11 +2684,11 @@ const MovieDetails = (): JSX.Element => {
                       {t(movieReleaseWarningsEnabled ? 'details.movieRelease.referenceDate' : 'details.releaseDateLabel')}
                     </h3>
                     <motion.div
-                      className="bg-gray-800 px-3 py-2 rounded-lg inline-block border border-gray-700"
+                      className="bg-surface px-3 py-2 rounded-lg inline-block border border-rule"
                       whileHover={{
-                        backgroundColor: "rgba(75,85,99, 0.8)",
+                        backgroundColor: "#2a2a2a",
                         y: -2,
-                        borderColor: "rgba(107,114,128, 0.8)",
+                        borderColor: "#444444",
                         transition: { duration: 0.2 }
                       }}
                     >
@@ -2752,18 +2713,18 @@ const MovieDetails = (): JSX.Element => {
                         {t('details.financialStatsTitle')}
                       </h3>
                       <motion.div
-                        className="flex bg-gray-900 rounded-lg overflow-hidden border border-gray-700"
+                        className="flex bg-ground rounded-lg overflow-hidden border border-rule"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
                         <button
-                          className={`px-3 py-1 text-sm ${financialStatsMode === 'simple' ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400 hover:text-white'}`}
+                          className={`px-3 py-1 text-sm ${financialStatsMode === 'simple' ? 'bg-raised text-white' : 'bg-transparent text-ink-muted hover:text-white'}`}
                           onClick={() => setFinancialStatsMode('simple')}
                         >
                           {t('details.simpleMode')}
                         </button>
                         <button
-                          className={`px-3 py-1 text-sm ${financialStatsMode === 'advanced' ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400 hover:text-white'}`}
+                          className={`px-3 py-1 text-sm ${financialStatsMode === 'advanced' ? 'bg-raised text-white' : 'bg-transparent text-ink-muted hover:text-white'}`}
                           onClick={() => setFinancialStatsMode('advanced')}
                         >
                           {t('details.advancedMode')}
@@ -2774,11 +2735,11 @@ const MovieDetails = (): JSX.Element => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Budget */}
                       <motion.div
-                        className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                        className="bg-surface p-3 rounded-lg border border-rule"
                         whileHover={{
-                          backgroundColor: "rgba(75,85,99, 0.8)",
+                          backgroundColor: "#2a2a2a",
                           y: -2,
-                          borderColor: "rgba(107,114,128, 0.8)",
+                          borderColor: "#444444",
                           transition: { duration: 0.2 }
                         }}
                       >
@@ -2793,11 +2754,11 @@ const MovieDetails = (): JSX.Element => {
 
                       {/* Revenus */}
                       <motion.div
-                        className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                        className="bg-surface p-3 rounded-lg border border-rule"
                         whileHover={{
-                          backgroundColor: "rgba(75,85,99, 0.8)",
+                          backgroundColor: "#2a2a2a",
                           y: -2,
-                          borderColor: "rgba(107,114,128, 0.8)",
+                          borderColor: "#444444",
                           transition: { duration: 0.2 }
                         }}
                       >
@@ -2813,16 +2774,16 @@ const MovieDetails = (): JSX.Element => {
                       {/* Bénéfice/Perte */}
                       {movie.budget && movie.revenue && movie.budget > 0 && movie.revenue > 0 && (
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700 col-span-1 md:col-span-2"
+                          className="bg-surface p-3 rounded-lg border border-rule col-span-1 md:col-span-2"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
                           <h4 className="text-gray-400 text-sm mb-1">{t('details.profitLossLabel')}</h4>
-                          <p className={`font-semibold ${movie.revenue - movie.budget > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          <p className="font-semibold text-white tabular-nums">
                             {new Intl.NumberFormat(i18n.language, { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(movie.revenue - movie.budget)}
                             {movie.revenue > 0 && movie.budget > 0 && (
                               <span className="ml-2 text-xs text-gray-400">
@@ -2836,11 +2797,11 @@ const MovieDetails = (): JSX.Element => {
                       {/* Statut */}
                       {movie.status && (
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700 col-span-1 md:col-span-2"
+                          className="bg-surface p-3 rounded-lg border border-rule col-span-1 md:col-span-2"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
@@ -2862,11 +2823,11 @@ const MovieDetails = (): JSX.Element => {
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.3 }}
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700 col-span-1 md:col-span-2 mt-4"
+                          className="bg-surface p-3 rounded-lg border border-rule col-span-1 md:col-span-2 mt-4"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
@@ -2892,7 +2853,7 @@ const MovieDetails = (): JSX.Element => {
                               <span className="font-semibold">{t('details.profitabilityEstimate')}</span> {t('details.forMovie', { title: movie.title })}:
                             </p>
 
-                            <div className="bg-gray-900 p-2 rounded-lg mb-2">
+                            <div className="bg-raised p-2 rounded-lg mb-2">
                               <div className="flex justify-between items-center mb-1">
                                 <span className="text-xs text-gray-400">{t('details.breakEvenEstimate')}:</span>
                                 <span className="text-xs font-semibold text-gray-300">
@@ -2914,10 +2875,8 @@ const MovieDetails = (): JSX.Element => {
                               <div className="flex justify-between items-center">
                                 <span className="text-xs text-gray-400">{t('details.commercialClassification')}:</span>
                                 <span className={`text-xs font-semibold ${movie.budget && movie.revenue && movie.budget > 0 ? (
-                                  movie.revenue >= movie.budget * 2.5 ? 'text-green-400' :
-                                    movie.revenue >= movie.budget ? 'text-yellow-400' :
-                                      'text-red-400'
-                                ) : 'text-gray-300'
+                                  'text-white'
+                                ) : 'text-ink-muted'
                                   }`}>
                                   {movie.budget && movie.revenue && movie.budget > 0 ? (
                                     movie.revenue >= movie.budget * 3 ? t('details.blockbuster') :
@@ -2937,8 +2896,8 @@ const MovieDetails = (): JSX.Element => {
                               <span className="font-semibold">{t('details.factorsImpacting')}:</span>
                             </p>
                             <div className="grid grid-cols-2 gap-2">
-                              <div className="bg-gray-900 p-2 rounded-lg">
-                                <h5 className="text-xs font-medium text-green-400 mb-1">{t('details.positiveFactors')}</h5>
+                              <div className="bg-raised p-2 rounded-lg">
+                                <h5 className="text-xs font-medium text-ink mb-1">{t('details.positiveFactors')}</h5>
                                 <ul className="list-disc pl-4 text-xs text-gray-300 space-y-0.5">
                                   {movie.vote_average >= 7 && <li>{t('details.highRating', { rating: movie.vote_average })}</li>}
                                   {movie.belongs_to_collection && <li>{t('details.belongsToFranchise')}</li>}
@@ -2949,8 +2908,8 @@ const MovieDetails = (): JSX.Element => {
                                     <li>{t('details.majorStudio')}</li>}
                                 </ul>
                               </div>
-                              <div className="bg-gray-900 p-2 rounded-lg">
-                                <h5 className="text-xs font-medium text-red-400 mb-1">{t('details.limitingFactors')}</h5>
+                              <div className="bg-raised p-2 rounded-lg">
+                                <h5 className="text-xs font-medium text-ink mb-1">{t('details.limitingFactors')}</h5>
                                 <ul className="list-disc pl-4 text-xs text-gray-300 space-y-0.5">
                                   {movie.vote_average < 6 && <li>{t('details.lowRating', { rating: movie.vote_average })}</li>}
                                   {movie.budget && movie.budget > 150000000 && <li>{t('details.veryHighBudget')}</li>}
@@ -2996,11 +2955,8 @@ const MovieDetails = (): JSX.Element => {
                     </h3>
 
                     <motion.button
-                      whileHover={{
-                        scale: 1.05,
-                        boxShadow: "0 10px 25px rgba(147, 51, 234, 0.3)"
-                      }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       transition={{ type: "spring", stiffness: 400, damping: 17 }}
                       onClick={() => {
                         if (!showMultiLangView) {
@@ -3008,9 +2964,9 @@ const MovieDetails = (): JSX.Element => {
                         }
                         setShowMultiLangView(!showMultiLangView);
                       }}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow-lg border transition-all duration-300 ${showMultiLangView
-                        ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 border-red-500/20'
-                        : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 border-purple-500/20'
+                      className={`flex items-center gap-2 px-4 h-9 rounded-full text-sm font-medium border border-control transition-colors ${showMultiLangView
+                        ? 'bg-raised text-white'
+                        : 'text-white hover:bg-raised'
                         }`}
                     >
                       {showMultiLangView ? <ArrowLeft className="w-4 h-4" /> : <Languages className="w-4 h-4" />}
@@ -3020,7 +2976,7 @@ const MovieDetails = (): JSX.Element => {
 
                   {(loadingVideos || loadingMultiLangVideos) ? (
                     <div className="flex items-center justify-center h-40">
-                      <Loader className="w-8 h-8 animate-spin text-red-600" />
+                      <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
                     </div>
                   ) : showMultiLangView ? (
                     // Vue multi-langues
@@ -3051,14 +3007,14 @@ const MovieDetails = (): JSX.Element => {
 
                         return Object.entries(videosByLanguage).map(([langCode, videos]: [string, any]) => (
                           <div key={langCode} className="mb-8">
-                            <h4 className="text-lg font-medium mb-4 text-purple-400 border-b border-gray-700 pb-2">
+                            <h4 className="text-lg font-medium mb-4 text-white border-b border-rule pb-2">
                               {languageNames[langCode] || langCode.toUpperCase()}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                               {videos.map((video: any, videoIndex: number) => (
                                 <motion.div
                                   key={video.id}
-                                  className="group bg-gray-800/70 rounded-xl overflow-hidden border border-gray-700/50 hover:border-purple-500/30"
+                                  className="group bg-surface rounded-lg overflow-hidden border border-rule hover:border-control"
                                   initial={{ opacity: 0, y: 20, scale: 0.9 }}
                                   animate={{ opacity: 1, y: 0, scale: 1 }}
                                   transition={{
@@ -3070,7 +3026,6 @@ const MovieDetails = (): JSX.Element => {
                                   whileHover={{
                                     y: -8,
                                     scale: 1.02,
-                                    boxShadow: "0 20px 40px rgba(147, 51, 234, 0.15)",
                                     transition: { duration: 0.3 }
                                   }}
                                   whileTap={{ scale: 0.98 }}
@@ -3095,12 +3050,8 @@ const MovieDetails = (): JSX.Element => {
                                       whileHover={{ backgroundColor: "rgba(0,0,0,0.1)" }}
                                     >
                                       <motion.div
-                                        className="w-14 h-14 rounded-full bg-purple-600/90 flex items-center justify-center shadow-lg"
-                                        whileHover={{
-                                          scale: 1.1,
-                                          backgroundColor: "rgba(147, 51, 234, 1)",
-                                          boxShadow: "0 0 20px rgba(147, 51, 234, 0.5)"
-                                        }}
+                                        className="w-14 h-14 rounded-full bg-raised border border-control flex items-center justify-center"
+                                        whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.9 }}
                                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
                                       >
@@ -3114,11 +3065,10 @@ const MovieDetails = (): JSX.Element => {
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: videoIndex * 0.05 + 0.2 }}
                                   >
-                                    <h4 className="font-semibold mb-2 line-clamp-1 text-white group-hover:text-purple-400 transition-colors">{video.name}</h4>
+                                    <h4 className="font-semibold mb-2 line-clamp-1 text-white">{video.name}</h4>
                                     <div className="flex items-center text-sm text-gray-400">
                                       <motion.span
-                                        className="bg-gray-700/70 px-2 py-1 rounded-md mr-2 text-xs font-medium"
-                                        whileHover={{ backgroundColor: "rgba(55, 65, 81, 1)" }}
+                                        className="border border-control text-ink-muted px-2 py-1 rounded-full mr-2 text-xs font-medium"
                                       >
                                         {video.type}
                                       </motion.span>
@@ -3144,7 +3094,7 @@ const MovieDetails = (): JSX.Element => {
                         {videos.map((video: any, index: number) => (
                           <motion.div
                             key={video.id}
-                            className="group bg-gray-800/70 rounded-xl overflow-hidden border border-gray-700/50 hover:border-red-500/30"
+                            className="group bg-surface rounded-lg overflow-hidden border border-rule hover:border-control"
                             initial={{ opacity: 0, y: 20, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             transition={{
@@ -3156,7 +3106,6 @@ const MovieDetails = (): JSX.Element => {
                             whileHover={{
                               y: -8,
                               scale: 1.02,
-                              boxShadow: "0 20px 40px rgba(239, 68, 68, 0.15)",
                               transition: { duration: 0.3 }
                             }}
                             whileTap={{ scale: 0.98 }}
@@ -3181,12 +3130,8 @@ const MovieDetails = (): JSX.Element => {
                                 whileHover={{ backgroundColor: "rgba(0,0,0,0.1)" }}
                               >
                                 <motion.div
-                                  className="w-14 h-14 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg"
-                                  whileHover={{
-                                    scale: 1.1,
-                                    backgroundColor: "rgba(239, 68, 68, 1)",
-                                    boxShadow: "0 0 20px rgba(239, 68, 68, 0.5)"
-                                  }}
+                                  className="w-14 h-14 rounded-full bg-raised border border-control flex items-center justify-center"
+                                  whileHover={{ scale: 1.1 }}
                                   whileTap={{ scale: 0.9 }}
                                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
                                 >
@@ -3200,11 +3145,11 @@ const MovieDetails = (): JSX.Element => {
                               animate={{ opacity: 1 }}
                               transition={{ delay: index * 0.1 + 0.2 }}
                             >
-                              <h4 className="font-semibold mb-2 line-clamp-1 text-white group-hover:text-red-400 transition-colors">{video.name}</h4>
+                              <h4 className="font-semibold mb-2 line-clamp-1 text-white">{video.name}</h4>
                               <div className="flex items-center text-sm text-gray-400">
                                 <motion.span
-                                  className="bg-gray-700/70 px-2 py-1 rounded-md mr-2 text-xs font-medium"
-                                  whileHover={{ backgroundColor: "rgba(55, 65, 81, 1)" }}
+                                  className="border border-control text-ink-muted px-2 py-1 rounded-full mr-2 text-xs font-medium"
+                                  whileHover={{ backgroundColor: "#2a2a2a" }}
                                 >
                                   {video.type}
                                 </motion.span>
@@ -3242,7 +3187,7 @@ const MovieDetails = (): JSX.Element => {
                 >
                   {loadingCollection ? (
                     <div className="flex items-center justify-center h-40 w-full">
-                      <Loader className="w-8 h-8 animate-spin text-red-600" />
+                      <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
                     </div>
                   ) : collection ? (
                     <div>
@@ -3339,12 +3284,12 @@ const MovieDetails = (): JSX.Element => {
                                             if (!existed) {
                                               // Notification
                                               const notification = document.createElement('div');
-                                              notification.className = 'fixed top-16 right-4 bg-green-500 text-white py-2 px-4 rounded shadow-lg z-50 animate-fadeIn';
+                                              notification.className = 'fixed top-16 right-4 bg-raised text-white border border-control py-2 px-4 rounded-full text-sm z-50 animate-fadeIn';
                                               notification.textContent = t('search.addedToWatchlist');
                                               document.body.appendChild(notification);
                                               // Update button
                                               const button = e.currentTarget;
-                                              button.querySelector('svg')?.classList.add('text-yellow-400');
+                                              button.querySelector('svg')?.classList.add('text-white');
                                               button.querySelector('svg')?.setAttribute('fill', 'currentColor');
                                               setTimeout(() => {
                                                 notification.classList.add('animate-fadeOut');
@@ -3355,11 +3300,11 @@ const MovieDetails = (): JSX.Element => {
                                             } else {
                                               // Update button
                                               const button = e.currentTarget;
-                                              button.querySelector('svg')?.classList.remove('text-yellow-400');
+                                              button.querySelector('svg')?.classList.remove('text-white');
                                               button.querySelector('svg')?.setAttribute('fill', 'black');
                                               // Notification
                                               const notification = document.createElement('div');
-                                              notification.className = 'fixed top-16 right-4 bg-red-500 text-white py-2 px-4 rounded shadow-lg z-50 animate-fadeIn';
+                                              notification.className = 'fixed top-16 right-4 bg-raised text-white border border-control py-2 px-4 rounded-full text-sm z-50 animate-fadeIn';
                                               notification.textContent = t('search.removedFromWatchlist');
                                               document.body.appendChild(notification);
                                               setTimeout(() => {
@@ -3370,7 +3315,7 @@ const MovieDetails = (): JSX.Element => {
                                               }, 1500);
                                             }
                                           }}
-                                          className="bg-white rounded-full p-2 transform transition-transform hover:scale-110 mr-2 z-20 group/watchlist relative"
+                                          className="bg-raised border border-control rounded-full p-2 transform transition-transform hover:scale-110 mr-2 z-20 group/watchlist relative"
                                         >
                                           <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs py-1 px-2 rounded opacity-0 group-hover/watchlist:opacity-100 transition-opacity whitespace-nowrap hidden md:block">
                                             {(() => {
@@ -3385,13 +3330,13 @@ const MovieDetails = (): JSX.Element => {
                                               const storageKey = 'watchlist_movie';
                                               const typeWatchlist = readStoredMediaList(storageKey) ?? [];
                                               const exists = typeWatchlist.some((media: any) => media?.id === part.id);
-                                              return exists ? 'text-yellow-400' : 'text-black';
+                                              return exists ? 'text-white' : 'text-ink-faint';
                                             })()}`}
                                             fill={(() => {
                                               const storageKey = 'watchlist_movie';
                                               const typeWatchlist = readStoredMediaList(storageKey) ?? [];
                                               const exists = typeWatchlist.some((media: any) => media?.id === part.id);
-                                              return exists ? 'currentColor' : 'black';
+                                              return exists ? 'currentColor' : 'none';
                                             })()}
                                           />
                                         </button>
@@ -3408,13 +3353,13 @@ const MovieDetails = (): JSX.Element => {
 
                                     {/* Bottom section: information */}
                                     <div className="p-3 flex flex-col flex-grow">
-                                      <h3 className="text-sm font-bold text-white line-clamp-1 mb-1">
+                                      <h3 className="text-sm font-semibold text-white line-clamp-1 mb-1">
                                         {part.title}
                                       </h3>
                                       <div className="flex items-center gap-2 mt-1 mb-2">
                                         <div className="flex items-center gap-1">
-                                          <Star className="w-3 h-3 text-yellow-400" />
-                                          <span className="text-xs text-gray-300">
+                                          <Star className="w-3 h-3 text-accent fill-accent" />
+                                          <span className="text-xs text-gray-300 tabular-nums">
                                             {part.vote_average ? part.vote_average.toFixed(1) : 'N/A'}
                                           </span>
                                         </div>
@@ -3428,7 +3373,7 @@ const MovieDetails = (): JSX.Element => {
                                         )}
                                       </div>
                                       {part.id === Number(id) && (
-                                        <div className="bg-red-600 text-white text-xs px-2 py-1 rounded-full self-start">
+                                        <div className="bg-raised text-white text-xs px-2 py-1 rounded-full self-start">
                                           {t('details.currentBadge')}
                                         </div>
                                       )}
@@ -3467,7 +3412,7 @@ const MovieDetails = (): JSX.Element => {
           transition={{ delay: 0.8 }}
           className="mt-12 space-y-6"
         >
-          <h2 className="text-2xl font-bold mb-4">{t('details.watchBtn')}</h2>
+          <h2 className="text-2xl font-semibold mb-4">{t('details.watchBtn')}</h2>
 
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -3501,11 +3446,11 @@ const MovieDetails = (): JSX.Element => {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
-                <Film className="w-16 h-16 text-yellow-500 mb-4" />
+                <Film className="w-16 h-16 text-ink-faint mb-4" />
                 <motion.h3
                   ref={releaseWarningRef}
                   tabIndex={-1}
-                  className="text-2xl font-bold text-white mb-2"
+                  className="text-2xl font-semibold text-white mb-2"
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
@@ -3524,7 +3469,7 @@ const MovieDetails = (): JSX.Element => {
                   {t('details.movieRelease.warningDescription')}
                 </p>
                 <motion.button
-                  className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                  className="px-6 py-3 bg-white text-black rounded-full font-medium hover:bg-neutral-200 transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ y: 10, opacity: 0 }}
@@ -3551,15 +3496,15 @@ const MovieDetails = (): JSX.Element => {
                 transition={{ duration: 0.5 }}
               >
                 <motion.div
-                  className="w-24 h-24 rounded-full bg-red-600/80 hover:bg-red-600 flex items-center justify-center mb-6 cursor-pointer"
+                  className="w-24 h-24 rounded-full bg-raised border border-control text-white hover:bg-white hover:text-black flex items-center justify-center mb-6 cursor-pointer transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleWatchClick}
                 >
-                  <Play className="w-12 h-12 text-white ml-2" />
+                  <Play className="w-12 h-12 text-current ml-2" />
                 </motion.div>
                 <motion.h3
-                  className="text-2xl font-bold text-white mb-2"
+                  className="text-2xl font-semibold text-white mb-2"
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
@@ -3593,7 +3538,7 @@ const MovieDetails = (): JSX.Element => {
             className="mt-12"
           >
             <EmblaCarousel
-              title={<span><span className="text-red-600 mr-2">🔥</span>{t('details.similarMovies')}</span>}
+              title={t('details.similarMovies')}
               items={recommendations.map(movie => ({
                 id: movie.id,
                 title: movie.title,
@@ -3652,14 +3597,14 @@ const MovieDetails = (): JSX.Element => {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full max-w-6xl bg-gray-900 rounded-2xl overflow-hidden relative"
+                  className="w-full max-w-6xl bg-surface rounded-2xl overflow-hidden relative"
                   onClick={e => e.stopPropagation()}
                 >
-                  <div className="p-4 flex justify-between items-center border-b border-gray-800">
+                  <div className="p-4 flex justify-between items-center border-b border-rule">
                     <h3 className="text-xl font-semibold text-white">{selectedVideo.name}</h3>
                     <motion.button
                       onClick={handleCloseVideo}
-                      className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                      className="text-ink-muted hover:text-white p-2 rounded-lg hover:bg-raised transition-colors"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -3698,14 +3643,14 @@ const MovieDetails = (): JSX.Element => {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full max-w-6xl bg-gray-900 rounded-2xl overflow-hidden relative"
+                  className="w-full max-w-6xl bg-surface rounded-2xl overflow-hidden relative"
                   onClick={e => e.stopPropagation()}
                 >
-                  <div className="p-4 flex justify-between items-center border-b border-gray-800">
+                  <div className="p-4 flex justify-between items-center border-b border-rule">
                     <h3 className="text-xl font-semibold text-white">{t('details.bandeAnnonce')} - {movie?.title}</h3>
                     <motion.button
                       onClick={handleCloseTrailer}
-                      className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                      className="text-ink-muted hover:text-white p-2 rounded-lg hover:bg-raised transition-colors"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -3722,8 +3667,8 @@ const MovieDetails = (): JSX.Element => {
                         allow="autoplay"
                       ></iframe>
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-900">
-                        <Film className="w-12 h-12 text-gray-600 mb-4" />
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-surface">
+                        <Film className="w-12 h-12 text-ink-faint mb-4" />
                         <p className="text-gray-400 text-lg">{t('details.noTrailerAvailable')}</p>
                       </div>
                     )}

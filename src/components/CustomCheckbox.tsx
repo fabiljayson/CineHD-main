@@ -48,8 +48,8 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
             w-5 h-5 rounded border flex items-center justify-center
             transition-colors duration-200
             ${checked
-                            ? 'bg-red-600 border-red-600'
-                            : 'bg-gray-800 border-gray-500 hover:border-gray-400'
+                            ? 'bg-white border-white'
+                            : 'bg-surface border-control hover:border-ink-faint'
                         }
           `}
                     animate={{ scale: checked ? 1.05 : 1 }}
@@ -61,13 +61,13 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
                             animate={{ scale: 1 }}
                             exit={{ scale: 0 }}
                         >
-                            <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                            <Check className="w-3.5 h-3.5 text-black" strokeWidth={3} />
                         </motion.div>
                     )}
                 </motion.div>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-gray-200">
+            <div className="flex items-center gap-2 text-sm text-ink">
                 {icon}
                 <span>{label}</span>
             </div>

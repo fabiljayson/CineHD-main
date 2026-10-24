@@ -4,6 +4,21 @@ export default {
   theme: {
     extend: {
       colors: {
+        // True-black flat design tokens (.taste-skill/DIRECTION.md). Gold is a
+        // DATA hue only (ratings, ranks, progress) — never buttons/tabs/nav.
+        ground: "#000000",
+        surface: "#111111",
+        raised: "#2a2a2a",
+        rule: "#1a1a1a",
+        control: "#444444",
+        ink: {
+          DEFAULT: "#ffffff",
+          muted: "#b4b4b4",
+          faint: "#949494",
+        },
+        accent: "#c89028",
+        positive: "#4cc38a",
+        negative: "#f17878",
         brand: {
           gold: "#c89028",
           "gold-bright": "#d9a63a",
@@ -31,8 +46,12 @@ export default {
         },
       },
       fontFamily: {
-        display: ['"Playfair Display"', "Georgia", "serif"],
+        // Inter is the only UI face (loaded in main.tsx via @fontsource/inter).
+        // `font-display` maps to it too so legacy Playfair usages inherit.
+        display: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
         body: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
+        wordmark: ['"Archivo Black"', '"Inter"', "sans-serif"],
       },
       animation: {
         fadeIn: "fadeIn 0.5s ease-in-out",

@@ -19,8 +19,8 @@ const SearchResultsSkeleton = ({ gridClassName, viewType, count }: SearchResults
       <Skeleton width={220} height={20} />
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-1">
-          <Skeleton width={34} height={34} className="!rounded-xl" />
-          <Skeleton width={34} height={34} className="!rounded-xl" />
+          <Skeleton width={34} height={34} className="!rounded-lg" />
+          <Skeleton width={34} height={34} className="!rounded-lg" />
         </div>
         {viewType === 'grid' && <Skeleton width={140} height={38} className="!rounded-lg" />}
       </div>

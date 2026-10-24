@@ -5,13 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import {
   ArrowLeft, Trophy, Film, Tv, Sparkles, Users, Clock, Eye,
-  BarChart3, ChevronDown, TrendingUp, Timer, Star, Hash,
+  BarChart3, ChevronDown, TrendingUp, Timer, Star,
   Activity, Flame, CalendarDays
 } from 'lucide-react';
-import { SquareBackground } from '../components/ui/square-background';
-import BlurText from '../components/ui/blur-text';
-import ShinyText from '../components/ui/shiny-text';
-import AnimatedBorderCard from '../components/ui/animated-border-card';
 import { Skeleton } from '../components/ui/Skeleton';
 
 const MAIN_API = import.meta.env.VITE_MAIN_API;
@@ -78,10 +74,10 @@ interface Top10OverviewResponse {
   updatedAt: string | null;
 }
 
-const tabs: { id: TabType; labelKey: string; icon: React.ReactNode; color: string }[] = [
-  { id: 'movies', labelKey: 'top10.movies', icon: <Film className="w-4 h-4" />, color: '#f59e0b' },
-  { id: 'tv', labelKey: 'top10.tvShows', icon: <Tv className="w-4 h-4" />, color: '#6366f1' },
-  { id: 'anime', labelKey: 'top10.anime', icon: <Sparkles className="w-4 h-4" />, color: '#ec4899' },
+const tabs: { id: TabType; labelKey: string; icon: React.ReactNode }[] = [
+  { id: 'movies', labelKey: 'top10.movies', icon: <Film className="w-4 h-4" /> },
+  { id: 'tv', labelKey: 'top10.tvShows', icon: <Tv className="w-4 h-4" /> },
+  { id: 'anime', labelKey: 'top10.anime', icon: <Sparkles className="w-4 h-4" /> },
 ];
 
 type PeriodType = 'day' | 'week' | 'month' | 'year' | 'all';
@@ -107,13 +103,6 @@ const emptyStatsByTab: Record<TabType, GlobalStats | null> = { movies: null, tv:
 const emptyBooleanByTab: Record<TabType, boolean> = { movies: false, tv: false, anime: false };
 const emptyErrorByTab: Record<TabType, string | null> = { movies: null, tv: null, anime: null };
 const emptyUpdatedAtByTab: Record<TabType, string | null> = { movies: null, tv: null, anime: null };
-
-// Rank badge colors
-const rankColors: Record<number, { bg: string; text: string; border: string; glow: string }> = {
-  1: { bg: 'rgba(255,215,0,0.15)', text: '#FFD700', border: 'rgba(255,215,0,0.5)', glow: '0 0 20px rgba(255,215,0,0.3)' },
-  2: { bg: 'rgba(192,192,192,0.12)', text: '#C0C0C0', border: 'rgba(192,192,192,0.4)', glow: '0 0 15px rgba(192,192,192,0.2)' },
-  3: { bg: 'rgba(205,127,50,0.12)', text: '#CD7F32', border: 'rgba(205,127,50,0.4)', glow: '0 0 15px rgba(205,127,50,0.2)' },
-};
 
 // FAQ items about methodology
 const methodologyItems = [
@@ -355,7 +344,6 @@ const Top10Page: React.FC = () => {
     };
   }, [activeTab, loadedTabs, fetchOverview, period, algo]);
 
-  const activeTabConfig = tabs.find(t => t.id === activeTab)!;
   const currentData = top10Data[activeTab];
   const currentStats = statsByTab[activeTab];
   const currentError = errorsByTab[activeTab];
@@ -381,29 +369,27 @@ const Top10Page: React.FC = () => {
   };
 
   return (
-    <SquareBackground squareSize={48} borderColor="rgba(99, 102, 241, 0.08)" className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10 h-full overflow-y-auto">
         {/* Back */}
-        <Link to="/" className="inline-flex items-center text-white/50 hover:text-white transition-colors mb-8 group/icon">
-          <ArrowLeft className="w-5 h-5 mr-2 text-white opacity-50 group-hover/icon:opacity-100 transition-[color,opacity]" />
+        <Link to="/" className="inline-flex items-center text-ink-muted hover:text-white transition-colors mb-8 group/icon">
+          <ArrowLeft className="w-5 h-5 mr-2 opacity-70 group-hover/icon:opacity-100 transition-[color,opacity]" />
           {t('common.backToHome')}
         </Link>
 
         {/* Hero */}
         <div className="max-w-4xl mx-auto text-center mb-14">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mb-6">
-            <div className="inline-flex items-center justify-center p-3 bg-amber-500/10 rounded-full mb-4 ring-1 ring-amber-500/40">
-              <Trophy className="w-8 h-8 text-amber-500" />
+            <div className="inline-flex items-center justify-center p-3 bg-surface rounded-full mb-4">
+              <Trophy className="w-8 h-8 text-ink-faint" />
             </div>
-            <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-4 pb-4 flex flex-col items-center gap-1">
-              <ShinyText text="Top 10 Movix" speed={3} color="#ffffff" shineColor="#f59e0b" className="py-2 leading-tight" />
-              <ShinyText text={t('top10.ranking')} speed={2} color="#f59e0b" shineColor="#ffffff" className="py-2 leading-tight" />
+            <h1 className="text-4xl md:text-6xl font-semibold mb-4 pb-4 flex flex-col items-center gap-1">
+              <span className="py-2 leading-tight text-white">Top 10 Movix</span>
+              <span className="py-2 leading-tight text-ink-muted">{t('top10.ranking')}</span>
             </h1>
-            <BlurText
-              text={t('top10.description')}
-              delay={150}
-              className="text-lg text-white/60 max-w-2xl mx-auto justify-center"
-            />
+            <p className="text-lg text-ink-muted max-w-2xl mx-auto">
+              {t('top10.description')}
+            </p>
           </motion.div>
 
           {/* Badge: logged-in users only */}
@@ -411,11 +397,10 @@ const Top10Page: React.FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mt-2"
-            style={{ borderColor: 'rgba(99,102,241,0.4)', backgroundColor: 'rgba(99,102,241,0.08)' }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-control mt-2"
           >
-            <Users className="w-4 h-4 text-indigo-400" />
-            <span className="text-indigo-300 text-sm font-medium">{t('top10.loggedInOnly')}</span>
+            <Users className="w-4 h-4 text-ink-faint" />
+            <span className="text-ink-muted text-sm font-medium">{t('top10.loggedInOnly')}</span>
           </motion.div>
         </div>
 
@@ -429,20 +414,20 @@ const Top10Page: React.FC = () => {
           >
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { icon: <Eye className="w-4 h-4" />, label: t('top10.views'), value: formatNumber(currentStats.totalSessions, true), color: '#6366f1' },
-                { icon: <Clock className="w-4 h-4" />, label: t('top10.hoursWatched'), value: formatHours(currentStats.totalHoursWatched), color: '#f59e0b' },
-                { icon: <Star className="w-4 h-4" />, label: t('top10.avgRating'), value: avgVote, color: '#22c55e' },
-                { icon: <Timer className="w-4 h-4" />, label: t('top10.avgSessionDuration'), value: `${currentStats.avgSessionMinutes}min`, color: '#ec4899' },
+                { icon: <Eye className="w-4 h-4" />, label: t('top10.views'), value: formatNumber(currentStats.totalSessions, true), accent: false },
+                { icon: <Clock className="w-4 h-4" />, label: t('top10.hoursWatched'), value: formatHours(currentStats.totalHoursWatched), accent: false },
+                { icon: <Star className="w-4 h-4" />, label: t('top10.avgRating'), value: avgVote, accent: true },
+                { icon: <Timer className="w-4 h-4" />, label: t('top10.avgSessionDuration'), value: `${currentStats.avgSessionMinutes}min`, accent: false },
               ].map((stat) => (
                 <div
                   key={stat.label}
-                  className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center"
+                  className="p-4 rounded-lg bg-surface text-center"
                 >
-                  <div className="flex items-center justify-center gap-1.5 mb-1" style={{ color: stat.color }}>
-                    {stat.icon}
-                    <span className="text-xl font-bold">{stat.value}</span>
+                  <div className="flex items-center justify-center gap-1.5 mb-1">
+                    <span className={stat.accent ? 'text-accent' : 'text-ink-faint'}>{stat.icon}</span>
+                    <span className={`text-xl font-semibold tabular-nums ${stat.accent ? 'text-accent' : 'text-white'}`}>{stat.value}</span>
                   </div>
-                  <p className="text-xs text-white/40">{stat.label}</p>
+                  <p className="text-xs text-ink-faint">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -456,26 +441,21 @@ const Top10Page: React.FC = () => {
           transition={{ delay: 0.5 }}
           className="max-w-4xl mx-auto mb-8"
         >
-          <div className="flex items-center justify-center gap-2 p-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] w-fit mx-auto">
+          <div className="flex items-center justify-center gap-2 p-1.5 rounded-lg bg-surface border border-rule w-fit mx-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className="relative flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300"
-                style={{
-                  color: activeTab === tab.id ? tab.color : 'rgba(255,255,255,0.5)',
-                  backgroundColor: activeTab === tab.id ? `${tab.color}15` : 'transparent',
-                }}
               >
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="activeTabBg"
-                    className="absolute inset-0 rounded-lg border"
-                    style={{ borderColor: `${tab.color}30` }}
+                    className="absolute inset-0 rounded-lg bg-raised"
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
                   />
                 )}
-                <span className="relative z-10 flex items-center gap-2">
+                <span className={`relative z-10 flex items-center gap-2 ${activeTab === tab.id ? 'text-white' : 'text-ink-muted hover:text-white'}`}>
                   {tab.icon}
                   {t(tab.labelKey)}
                 </span>
@@ -491,30 +471,29 @@ const Top10Page: React.FC = () => {
           transition={{ delay: 0.55 }}
           className="max-w-4xl mx-auto mb-10 flex flex-col sm:flex-row items-center justify-center gap-3"
         >
-          <div className="flex items-center gap-1 p-1 pl-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] flex-wrap justify-center">
-                              <CalendarDays className="w-3.5 h-3.5 text-white opacity-30 mr-1" />
+          <div className="flex items-center gap-1 p-1 pl-2.5 rounded-lg bg-surface border border-rule flex-wrap justify-center">
+                              <CalendarDays className="w-3.5 h-3.5 text-ink-faint mr-1" />
             {periodOptions.map((p) => (
               <button
                 key={p.id}
                 onClick={() => applyFilters(p.id, algo)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  period === p.id ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'
+                  period === p.id ? 'bg-raised text-white' : 'text-ink-muted hover:text-white'
                 }`}
               >
                 {t(p.labelKey)}
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-1 p-1 pl-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] flex-wrap justify-center">
-                              <BarChart3 className="w-3.5 h-3.5 text-white opacity-30 mr-1" />
+          <div className="flex items-center gap-1 p-1 pl-2.5 rounded-lg bg-surface border border-rule flex-wrap justify-center">
+                              <BarChart3 className="w-3.5 h-3.5 text-ink-faint mr-1" />
             {algoOptions.map((a) => (
               <button
                 key={a.id}
                 onClick={() => applyFilters(period, a.id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  algo === a.id ? '' : 'text-white/40 hover:text-white/70'
+                  algo === a.id ? 'bg-raised text-white' : 'text-ink-muted hover:text-white'
                 }`}
-                style={algo === a.id ? { color: activeTabConfig.color, backgroundColor: `${activeTabConfig.color}15` } : undefined}
               >
                 {a.icon}
                 {t(a.labelKey)}
@@ -528,9 +507,9 @@ const Top10Page: React.FC = () => {
           {isCurrentTabLoading ? (
             <div className="space-y-3" aria-hidden="true">
               {Array.from({ length: 10 }).map((_, i) => (
-                <div key={i} className="animated-border-card bg-white/[0.03]">
+                <div key={i} className="bg-surface rounded-lg">
                   <div className="flex items-center gap-4 p-4 sm:p-5">
-                    <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14"><Skeleton height="100%" className="!rounded-xl" /></div>
+                    <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14"><Skeleton height="100%" className="!rounded-lg" /></div>
                     <div className="flex-shrink-0 w-16 h-24 sm:w-20 sm:h-28"><Skeleton height="100%" className="!rounded-lg" /></div>
                     <div className="flex-1 min-w-0">
                       <Skeleton width="75%" className="h-6 sm:h-7" />
@@ -543,15 +522,15 @@ const Top10Page: React.FC = () => {
               ))}
             </div>
           ) : currentError ? (
-            <AnimatedBorderCard highlightColor="239 68 68" backgroundColor="10 10 10" className="p-8 text-center">
-              <p className="text-red-400">{t(currentError)}</p>
-            </AnimatedBorderCard>
+            <div className="bg-surface rounded-lg p-8 text-center">
+              <p className="text-negative">{t(currentError)}</p>
+            </div>
           ) : currentData.length === 0 ? (
-            <AnimatedBorderCard highlightColor="99 102 241" backgroundColor="10 10 10" className="p-12 text-center">
-              <Trophy className="w-12 h-12 text-white opacity-20 mx-auto mb-4" />
-              <p className="text-white/50 text-lg">{t('top10.noData')}</p>
-              <p className="text-white/30 text-sm mt-2">{t('top10.fillsUp')}</p>
-            </AnimatedBorderCard>
+            <div className="bg-surface rounded-lg p-12 text-center">
+              <Trophy className="w-12 h-12 text-ink-faint mx-auto mb-4" />
+              <p className="text-ink-muted text-lg">{t('top10.noData')}</p>
+              <p className="text-ink-faint text-sm mt-2">{t('top10.fillsUp')}</p>
+            </div>
           ) : (
             <AnimatePresence mode="wait">
               <motion.div
@@ -563,83 +542,56 @@ const Top10Page: React.FC = () => {
                 className="space-y-3"
               >
                 {currentData.map((entry) => {
-                  const rankStyle = rankColors[entry.rank] || {
-                    bg: 'rgba(255,255,255,0.05)',
-                    text: 'rgba(255,255,255,0.6)',
-                    border: 'rgba(255,255,255,0.1)',
-                    glow: 'none',
-                  };
-                  const isTopThree = entry.rank <= 3;
-
                   return (
                     <motion.div key={entry.contentId} variants={itemVariants}>
                       <Link
                         to={activeTab === 'movies' ? `/movie/${entry.contentId}` : `/tv/${entry.contentId}`}
                         className="block"
                       >
-                        <AnimatedBorderCard
-                          highlightColor={hexToRgb(activeTabConfig.color)}
-                          backgroundColor={isTopThree ? '14 14 14' : '10 10 10'}
-                          className={`group transition-all duration-300 hover:scale-[1.01] ${isTopThree ? 'ring-1' : ''}`}
-                          style={isTopThree ? { boxShadow: rankStyle.glow, '--ring-color': rankStyle.border } as React.CSSProperties : undefined}
-                        >
+                        <div className="group bg-surface rounded-lg transition-all duration-300 hover:brightness-110">
                           <div className="flex items-center gap-4 p-4 sm:p-5">
                             {/* Rank */}
-                            <div
-                              className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center font-black text-xl sm:text-2xl border"
-                              style={{
-                                backgroundColor: rankStyle.bg,
-                                color: rankStyle.text,
-                                borderColor: rankStyle.border,
-                              }}
-                            >
-                              {entry.rank <= 3 ? (
-                                <span>{entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : '🥉'}</span>
-                              ) : (
-                                <span className="flex items-center gap-0.5">
-                                  <Hash className="w-3.5 h-3.5 opacity-50" />
-                                  {entry.rank}
-                                </span>
-                              )}
+                            <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center font-semibold text-xl sm:text-2xl text-accent tabular-nums">
+                              {entry.rank}
                             </div>
 
                             {/* Poster */}
-                            <div className="flex-shrink-0 w-16 h-24 sm:w-20 sm:h-28 rounded-lg overflow-hidden bg-white/5 relative">
+                            <div className="flex-shrink-0 w-16 h-24 sm:w-20 sm:h-28 rounded-lg overflow-hidden bg-rule relative">
                               {entry.posterPath ? (
                                 <img
                                   src={`${TMDB_IMAGE_URL}/w185${entry.posterPath}`}
                                   alt={entry.title}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                  className="w-full h-full object-cover group-hover:brightness-110 transition-[filter] duration-500"
                                   decoding="async"
                                   {...{ fetchpriority: entry.rank <= 3 ? 'high' : 'low' }}
                                   loading="lazy"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                  <Film className="w-6 h-6 text-white opacity-20" />
+                                  <Film className="w-6 h-6 text-ink-faint" />
                                 </div>
                               )}
                             </div>
 
                             {/* Info */}
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-bold text-white text-base sm:text-lg truncate group-hover:text-amber-400 transition-colors">
+                              <h3 className="font-semibold text-white text-base sm:text-lg truncate">
                                 {entry.title}
                               </h3>
                               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
                                 {entry.genres.length > 0 && (
-                                  <span className="text-xs text-white/40 truncate max-w-[200px]">
+                                  <span className="text-xs text-ink-muted truncate max-w-[200px]">
                                     {entry.genres.slice(0, 3).join(' · ')}
                                   </span>
                                 )}
                                 {entry.releaseDate && (
-                                  <span className="text-xs text-white/30">
+                                  <span className="text-xs text-ink-faint tabular-nums">
                                     {new Date(entry.releaseDate).getFullYear()}
                                   </span>
                                 )}
                                 {entry.voteAverage && entry.voteAverage > 0 && (
-                                  <span className="flex items-center gap-0.5 text-xs text-amber-400/80">
-                                    <Star className="w-3 h-3 fill-current text-amber-400 opacity-80" />
+                                  <span className="flex items-center gap-0.5 text-xs text-white tabular-nums">
+                                    <Star className="w-3 h-3 fill-current text-accent" />
                                     {entry.voteAverage.toFixed(1)}
                                   </span>
                                 )}
@@ -647,18 +599,18 @@ const Top10Page: React.FC = () => {
 
                               {/* Stats row */}
                               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2.5">
-                                <div className="flex items-center gap-1 text-xs text-white/50">
-                                  <Eye className="w-3.5 h-3.5" style={{ color: activeTabConfig.color }} />
-                                  <span><strong className="text-white/80">{formatNumber(entry.uniqueViewers)}</strong> {t('top10.views')}</span>
+                                <div className="flex items-center gap-1 text-xs text-ink-muted">
+                                  <Eye className="w-3.5 h-3.5 text-ink-faint" />
+                                  <span><strong className="text-white tabular-nums">{formatNumber(entry.uniqueViewers)}</strong> {t('top10.views')}</span>
                                 </div>
-                                <div className="flex items-center gap-1 text-xs text-white/50">
-                                  <Clock className="w-3.5 h-3.5" style={{ color: activeTabConfig.color }} />
-                                  <span><strong className="text-white/80">{formatHours(entry.totalHours)}</strong> {t('top10.hoursWatched')}</span>
+                                <div className="flex items-center gap-1 text-xs text-ink-muted">
+                                  <Clock className="w-3.5 h-3.5 text-ink-faint" />
+                                  <span><strong className="text-white tabular-nums">{formatHours(entry.totalHours)}</strong> {t('top10.hoursWatched')}</span>
                                 </div>
                                 {entry.episodesWatched && (
-                                  <div className="hidden sm:flex items-center gap-1 text-xs text-white/50">
-                                    <BarChart3 className="w-3.5 h-3.5" style={{ color: activeTabConfig.color }} />
-                                    <span><strong className="text-white/80">{formatNumber(entry.episodesWatched)}</strong> {t('top10.episodes')}</span>
+                                  <div className="hidden sm:flex items-center gap-1 text-xs text-ink-muted">
+                                    <BarChart3 className="w-3.5 h-3.5 text-ink-faint" />
+                                    <span><strong className="text-white tabular-nums">{formatNumber(entry.episodesWatched)}</strong> {t('top10.episodes')}</span>
                                   </div>
                                 )}
                               </div>
@@ -667,12 +619,11 @@ const Top10Page: React.FC = () => {
                             {/* Right arrow on hover */}
                             <div className="flex-shrink-0 hidden sm:flex items-center">
                               <TrendingUp
-                                className="w-5 h-5 opacity-0 group-hover:opacity-60 transition-opacity"
-                                style={{ color: activeTabConfig.color }}
+                                className="w-5 h-5 text-ink-faint opacity-0 group-hover:opacity-60 transition-opacity"
                               />
                             </div>
                           </div>
-                        </AnimatedBorderCard>
+                        </div>
                       </Link>
                     </motion.div>
                   );
@@ -688,11 +639,11 @@ const Top10Page: React.FC = () => {
               animate={{ opacity: 1 }}
               className="text-center mt-6 space-y-1"
             >
-              <p className="text-xs text-white/25">
+              <p className="text-xs text-ink-faint">
                 {t('top10.updatedAt', { date: new Date(lastUpdated).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) })}
               </p>
               {currentStats?.dataFrom && currentStats?.dataTo && (
-                <p className="text-xs text-white/20">
+                <p className="text-xs text-ink-faint">
                   {t('top10.dataRange', { from: new Date(currentStats.dataFrom).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' }), to: new Date(currentStats.dataTo).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' }) })}
                 </p>
               )}
@@ -709,45 +660,41 @@ const Top10Page: React.FC = () => {
           className="max-w-4xl mx-auto mb-20"
         >
           <motion.div variants={itemVariants} className="text-center mb-10">
-            <div className="inline-flex items-center justify-center p-2.5 bg-indigo-500/10 rounded-full mb-4 ring-1 ring-indigo-500/30">
-              <BarChart3 className="w-6 h-6 text-indigo-400" />
+            <div className="inline-flex items-center justify-center p-2.5 bg-surface rounded-full mb-4">
+              <BarChart3 className="w-6 h-6 text-ink-faint" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">{t('top10.howItWorks')}</h2>
-            <p className="text-white/50 max-w-2xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-3">{t('top10.howItWorks')}</h2>
+            <p className="text-ink-muted max-w-2xl mx-auto">
               {t('top10.howItWorksDesc')}
             </p>
           </motion.div>
 
           {/* Explanation cards */}
           <motion.div variants={itemVariants} className="mb-10">
-            <AnimatedBorderCard
-              highlightColor="99 102 241"
-              backgroundColor="10 10 10"
-              className="p-6 sm:p-8 backdrop-blur-sm"
-            >
+            <div className="bg-surface rounded-lg p-6 sm:p-8">
               <div className="grid md:grid-cols-3 gap-6">
                 {/* Card: What counts as a view */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="p-2 rounded-lg bg-amber-500/10">
-                      <Eye className="w-5 h-5 text-amber-500" />
+                    <div className="p-2 rounded-lg bg-rule">
+                      <Eye className="w-5 h-5 text-ink-faint" />
                     </div>
                     <h3 className="text-base font-semibold text-white">{t('top10.whatCounts')}</h3>
                   </div>
                   <div className="space-y-2">
-                    <div className="p-3 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                    <div className="p-3 rounded-lg bg-rule">
                       <div className="flex items-center gap-2 mb-1">
-                        <Film className="w-4 h-4 text-amber-400" />
+                        <Film className="w-4 h-4 text-ink-faint" />
                         <span className="text-sm font-medium text-white">{t('top10.movies')}</span>
                       </div>
-                      <p className="text-xs text-white/50" dangerouslySetInnerHTML={{ __html: t('top10.moviesMinWatch') }} />
+                      <p className="text-xs text-ink-muted" dangerouslySetInnerHTML={{ __html: t('top10.moviesMinWatch') }} />
                     </div>
-                    <div className="p-3 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                    <div className="p-3 rounded-lg bg-rule">
                       <div className="flex items-center gap-2 mb-1">
-                        <Tv className="w-4 h-4 text-indigo-400" />
+                        <Tv className="w-4 h-4 text-ink-faint" />
                         <span className="text-sm font-medium text-white">{t('top10.seriesAndAnime')}</span>
                       </div>
-                      <p className="text-xs text-white/50" dangerouslySetInnerHTML={{ __html: t('top10.seriesMinWatch') }} />
+                      <p className="text-xs text-ink-muted" dangerouslySetInnerHTML={{ __html: t('top10.seriesMinWatch') }} />
                     </div>
                   </div>
                 </div>
@@ -755,26 +702,26 @@ const Top10Page: React.FC = () => {
                 {/* Card: What data we use */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="p-2 rounded-lg bg-green-500/10">
-                      <BarChart3 className="w-5 h-5 text-green-500" />
+                    <div className="p-2 rounded-lg bg-rule">
+                      <BarChart3 className="w-5 h-5 text-ink-faint" />
                     </div>
                     <h3 className="text-base font-semibold text-white">{t('top10.theData')}</h3>
                   </div>
-                  <div className="space-y-2 text-sm text-white/60">
-                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-white/[0.03]">
-                      <Users className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                  <div className="space-y-2 text-sm text-ink-muted">
+                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-rule">
+                      <Users className="w-4 h-4 text-ink-faint mt-0.5 flex-shrink-0" />
                       <span>{t('top10.uniqueViewers')}</span>
                     </div>
-                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-white/[0.03]">
-                      <Clock className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-rule">
+                      <Clock className="w-4 h-4 text-ink-faint mt-0.5 flex-shrink-0" />
                       <span>{t('top10.totalWatchTime')}</span>
                     </div>
-                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-white/[0.03]">
-                      <Timer className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-rule">
+                      <Timer className="w-4 h-4 text-ink-faint mt-0.5 flex-shrink-0" />
                       <span>{t('top10.avgDuration')}</span>
                     </div>
-                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-white/[0.03]">
-                      <Activity className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-rule">
+                      <Activity className="w-4 h-4 text-ink-faint mt-0.5 flex-shrink-0" />
                       <span>{t('top10.totalSessions')}</span>
                     </div>
                   </div>
@@ -783,30 +730,30 @@ const Top10Page: React.FC = () => {
                 {/* Card: Who is counted */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="p-2 rounded-lg bg-pink-500/10">
-                      <Flame className="w-5 h-5 text-pink-500" />
+                    <div className="p-2 rounded-lg bg-rule">
+                      <Flame className="w-5 h-5 text-ink-faint" />
                     </div>
                     <h3 className="text-base font-semibold text-white">{t('top10.whoIsCounted')}</h3>
                   </div>
                   <div className="space-y-2 text-sm">
-                    <div className="p-3 rounded-lg bg-green-500/[0.06] border border-green-500/10">
+                    <div className="p-3 rounded-lg bg-rule">
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2 h-2 rounded-full bg-green-500" />
-                        <span className="text-green-400 font-medium">{t('top10.loggedInUsers')}</span>
+                        <div className="w-2 h-2 rounded-full bg-positive" />
+                        <span className="text-positive font-medium">{t('top10.loggedInUsers')}</span>
                       </div>
-                      <p className="text-xs text-white/50">{t('top10.loggedInUsersDesc')}</p>
+                      <p className="text-xs text-ink-muted">{t('top10.loggedInUsersDesc')}</p>
                     </div>
-                    <div className="p-3 rounded-lg bg-red-500/[0.05] border border-red-500/10">
+                    <div className="p-3 rounded-lg bg-rule">
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2 h-2 rounded-full bg-red-500/70" />
-                        <span className="text-red-400/80 font-medium">{t('top10.guestsAnonymous')}</span>
+                        <div className="w-2 h-2 rounded-full bg-negative" />
+                        <span className="text-negative font-medium">{t('top10.guestsAnonymous')}</span>
                       </div>
-                      <p className="text-xs text-white/40">{t('top10.guestsAnonymousDesc')}</p>
+                      <p className="text-xs text-ink-muted">{t('top10.guestsAnonymousDesc')}</p>
                     </div>
                   </div>
                 </div>
               </div>
-            </AnimatedBorderCard>
+            </div>
           </motion.div>
         </motion.div>
 
@@ -819,17 +766,13 @@ const Top10Page: React.FC = () => {
           className="max-w-3xl mx-auto mb-20"
         >
           <motion.div variants={itemVariants} className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">{t('top10.faq')}</h2>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-3">{t('top10.faq')}</h2>
           </motion.div>
 
           <div className="space-y-3">
             {methodologyItems.map((faq, index) => (
               <motion.div key={index} variants={itemVariants}>
-                <AnimatedBorderCard
-                  highlightColor="99 102 241"
-                  backgroundColor="12 12 12"
-                  className="overflow-hidden"
-                >
+                <div className="bg-surface rounded-lg overflow-hidden">
                   <button
                     onClick={() => setOpenFaq(openFaq === index ? null : index)}
                     className="w-full p-5 flex items-center justify-between text-left gap-4"
@@ -840,7 +783,7 @@ const Top10Page: React.FC = () => {
                       transition={{ duration: 0.2 }}
                       className="flex-shrink-0"
                     >
-                      <ChevronDown className="w-5 h-5 text-white opacity-50" />
+                      <ChevronDown className="w-5 h-5 text-ink-faint" />
                     </motion.div>
                   </button>
                   <motion.div
@@ -852,9 +795,9 @@ const Top10Page: React.FC = () => {
                     transition={{ duration: 0.25, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
-                    <p className="px-5 pb-5 text-sm text-white/50 leading-relaxed">{t(faq.answerKey)}</p>
+                    <p className="px-5 pt-4 pb-5 text-sm text-ink-muted leading-relaxed border-t border-rule">{t(faq.answerKey)}</p>
                   </motion.div>
-                </AnimatedBorderCard>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -867,33 +810,23 @@ const Top10Page: React.FC = () => {
           viewport={{ once: true }}
           className="max-w-2xl mx-auto text-center pb-12"
         >
-          <AnimatedBorderCard
-            highlightColor="245 158 11"
-            backgroundColor="10 10 10"
-            className="p-8 backdrop-blur-sm"
-          >
-            <Trophy className="w-10 h-10 text-amber-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">{t('top10.evolvingRanking')}</h3>
-            <p className="text-white/50 text-sm mb-6 max-w-md mx-auto">
+          <div className="bg-surface rounded-lg p-8">
+            <Trophy className="w-10 h-10 text-ink-faint mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">{t('top10.evolvingRanking')}</h3>
+            <p className="text-ink-muted text-sm mb-6 max-w-md mx-auto">
               {t('top10.evolvingRankingDesc')}
             </p>
             <Link to="/">
-              <button className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+              <button className="inline-flex items-center gap-2 bg-white text-black hover:bg-neutral-200 px-6 py-3 rounded-full font-semibold transition-colors">
                 <ArrowLeft className="w-4 h-4" />
                 {t('top10.exploreCatalog')}
               </button>
             </Link>
-          </AnimatedBorderCard>
+          </div>
         </motion.div>
       </div>
-    </SquareBackground>
+    </div>
   );
 };
-
-function hexToRgb(hex: string): string {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return '99 102 241';
-  return `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}`;
-}
 
 export default Top10Page;

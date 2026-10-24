@@ -13,7 +13,7 @@ const GenreSkeleton: React.FC<{ mediaType?: 'all' | 'movie' | 'tv' }> = ({ media
   return (
     <div className="flex flex-wrap gap-2 animate-skeleton-fade" aria-hidden="true">
       {genreIds.map(id => (
-        <div key={id} className="relative px-4 py-2 rounded-full text-sm font-medium border border-white/10">
+        <div key={id} className="relative px-4 py-2 rounded-full text-sm font-medium border border-rule">
           <span className="invisible">{t(`genres.id_${id}`)}</span>
           <div className="absolute inset-0"><Skeleton variant="pill" height="100%" /></div>
         </div>

@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 
 /** Géométrie commune à SearchGridCard et aux affiches d'EmblaCarousel. */
 const MediaCardSkeleton = () => (
-  <div className="relative rounded-xl overflow-hidden bg-white/5 border border-white/10" aria-hidden="true">
+  <div className="relative rounded-lg overflow-hidden bg-surface" aria-hidden="true">
     <Skeleton variant="poster" className="!rounded-none" />
     <div className="absolute top-2 left-2">
       <div className="h-[23px] w-12 rounded-lg bg-[#2a2a2a]" />

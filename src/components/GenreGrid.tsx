@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { Ring } from '@/components/ui/loading/ring';
 import { getTmdbLanguage } from '../i18n';
 
 // Genre IDs from TMDB
@@ -49,11 +50,12 @@ const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || '';
 const usedImages = new Set<string>();
 
 // Hoisted to module scope — pure constant, no closure over state/props. — perf
+// Hover is a brightness change only (no scale), per the true-black-flat direction.
 const cardVariants = {
   initial: { scale: 1 },
-  hover: { scale: 1.05, transition: { duration: 0.3 } },
-  tap: { scale: 0.95, transition: { duration: 0.1 } },
-  selected: { scale: 1.1, brightness: 1.2, transition: { duration: 0.5 } }
+  hover: { scale: 1 },
+  tap: { scale: 0.98, transition: { duration: 0.1 } },
+  selected: { scale: 1, transition: { duration: 0.5 } }
 };
 
 // Hoisted to module scope — 30-line map recreated per getGenreImageUrl call otherwise. — perf
@@ -278,7 +280,7 @@ const GenreGrid: React.FC<GenreGridProps> = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <h2 className="text-2xl font-bold mb-6 px-4 md:px-8">{title || t('genres.findByGenre')}</h2>
+      <h2 className="text-base font-semibold mb-6 px-4 md:px-8 text-ink">{title || t('genres.findByGenre')}</h2>
       
       <div className="relative group">
         {showLeftButton && (
@@ -286,7 +288,6 @@ const GenreGrid: React.FC<GenreGridProps> = ({
             onClick={() => scroll('left')}
             className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-black to-transparent px-5 z-30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center h-full"
             aria-label={t('genres.scrollLeft')}
-            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <div className="bg-black/40 rounded-full p-2.5">
@@ -304,7 +305,7 @@ const GenreGrid: React.FC<GenreGridProps> = ({
           {genresToShow.map((genreId) => (
             <motion.div
               key={genreId}
-              className="flex-none relative h-36 w-64 rounded-lg overflow-hidden cursor-pointer"
+              className={`flex-none relative h-36 w-64 rounded-lg overflow-hidden cursor-pointer bg-surface border transition-colors ${selectedGenreId === genreId ? 'border-ink-faint' : 'border-rule'}`}
               variants={cardVariants}
               initial="initial"
               whileHover="hover"
@@ -313,22 +314,21 @@ const GenreGrid: React.FC<GenreGridProps> = ({
               onClick={() => handleGenreSelect(genreId)}
               layoutId={`genre-${genreId}`}
             >
-              <div className="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-all z-10"></div>
+              <div className={`absolute inset-0 z-10 transition-colors ${selectedGenreId === genreId ? 'bg-raised' : 'bg-black/50 group-hover:bg-black/40'}`}></div>
               {loading ? (
-                <div className="w-full h-full bg-gray-800">
+                <div className="w-full h-full bg-[#1a1a1a]">
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <Ring aria-hidden="true" className="h-5 w-5 text-ink-faint" />
                   </div>
                 </div>
               ) : (
                 <motion.img 
                   src={getGenreImageUrl(genreId)} 
                   alt={GENRES[genreId]}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-[filter] duration-300 group-hover:brightness-[1.08]"
                   initial={{ scale: 1 }}
                   animate={{ 
-                    scale: selectedGenreId === genreId ? 1.1 : 1,
-                    filter: selectedGenreId === genreId ? "brightness(1.3)" : "brightness(1)"
+                    filter: selectedGenreId === genreId ? "brightness(1.2)" : "brightness(1)"
                   }}
                   transition={{ duration: 0.3 }}
                   onError={(e) => {
@@ -381,16 +381,9 @@ const GenreGrid: React.FC<GenreGridProps> = ({
                 />
               )}
               <div className="absolute inset-0 flex items-center justify-center z-20">
-                <motion.h3 
-                  className="text-white font-bold text-center text-lg md:text-xl px-2 py-1 rounded-md"
-                  initial={{ y: 0 }}
-                  animate={{ 
-                    y: selectedGenreId === genreId ? -5 : 0,
-                    textShadow: selectedGenreId === genreId ? "0 0 10px rgba(255,255,255,0.8)" : "none"
-                  }}
-                >
+                <h3 className="text-white font-semibold text-center text-base md:text-lg px-2 py-1">
                   {GENRES[genreId]}
-                </motion.h3>
+                </h3>
               </div>
             </motion.div>
           ))}
@@ -401,7 +394,6 @@ const GenreGrid: React.FC<GenreGridProps> = ({
             onClick={() => scroll('right')}
             className="absolute right-0 top-0 bottom-0 bg-gradient-to-l from-black to-transparent px-5 z-30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center h-full"
             aria-label={t('genres.scrollRight')}
-            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <div className="bg-black/40 rounded-full p-2.5">

@@ -9,32 +9,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ProfileMenu from './ProfileMenu';
 import NotificationsPopup from './NotificationsPopup';
 import { CineHDWordmark } from './brand/CineHDWordmark';
+import { Ring } from './ui/loading/ring';
 import { getUnreadNotificationsCount, getNotificationsDisabled } from '../services/apiNotificationService';
 import { encodeId } from '../utils/idEncoder';
+import { SUPPORT_WHATSAPP_URL } from '../config/support';
 
 import { useSearch } from '../context/SearchContext';
 import { isUserVip } from '../utils/authUtils';
 import { checkVipStatus } from '../utils/vipUtils';
 import { useTranslation } from 'react-i18next';
-import { SquareBackground } from './ui/square-background';
 import { APRIL_FOOLS_ADMIN_PATH, isAprilFoolsAdminEnabled } from '../utils/aprilFools';
 import { getOverlayPortalRoot } from '../utils/overlayPortal';
 import { useAgeRestrictedContent } from '../hooks/useAgeRestrictedContent';
 import { readLocalStorage, readSessionStorage } from '../utils/browserStorage';
 
-// Couleurs pour les cards du mega menu
-const cardColors: Record<string, { bg: string; text: string; border: string }> = {
-  purple: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
-  green: { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20' },
-  blue: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' },
-  orange: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20' },
-  indigo: { bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20' },
-  pink: { bg: 'bg-pink-500/10', text: 'text-pink-400', border: 'border-pink-500/20' },
-  red: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20' },
-  sky: { bg: 'bg-sky-500/10', text: 'text-sky-400', border: 'border-sky-500/20' },
-  yellow: { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/20' },
-  gray: { bg: 'bg-white/5', text: 'text-gray-400', border: 'border-white/10' },
-};
+// Mega-menu cards are flat tone steps — the rainbow tint map is gone (design
+// house rule: colour lives on data, never on chrome).
+const cardColors: Record<string, { bg: string; text: string; border: string }> = Object.fromEntries(
+  ['purple', 'green', 'blue', 'orange', 'indigo', 'pink', 'red', 'sky', 'yellow', 'gray'].map((k) => [
+    k,
+    { bg: 'bg-raised', text: 'text-ink-muted', border: 'border-rule' },
+  ]),
+) as Record<string, { bg: string; text: string; border: string }>;
 
 interface ExploreItem {
   name: string;
@@ -408,8 +404,8 @@ const Header: React.FC = () => {
   const renderExploreCard = (item: ExploreItem) => {
     const colors = cardColors[item.color] || cardColors.gray;
     const content = (
-      <div className={`flex flex-col items-center text-center p-5 rounded-2xl border ${colors.border} bg-white/[0.04] active:bg-white/[0.08] transition-all duration-200 cursor-pointer h-full`}>
-        <div className={`w-14 h-14 rounded-2xl ${colors.bg} ${colors.text} flex items-center justify-center mb-3 border ${colors.border}`}>
+      <div className={`flex flex-col items-center text-center p-5 rounded-lg border ${colors.border} bg-surface active:bg-raised transition-all duration-200 cursor-pointer h-full`}>
+        <div className={`w-12 h-12 rounded-lg ${colors.bg} ${colors.text} flex items-center justify-center mb-3 border ${colors.border}`}>
           {item.icon}
         </div>
         <span className="text-white text-sm font-semibold mb-1">{item.name}</span>
@@ -441,11 +437,10 @@ const Header: React.FC = () => {
           la croix — sans ça, tout geste de scroll qui démarre dans la bande
           des ~64px du header est avalé par lui et le menu ne bouge pas. Le
           bouton burger/croix garde pointer-events-auto pour rester cliquable. */}
-      <header className={`!fixed inset-x-0 top-0 w-full z-[11000] transition-all duration-300 ${isExploreOpen ? 'max-lg:pointer-events-none' : ''}`}>
-        <div className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-b from-black/90 via-black/70 to-transparent" aria-hidden="true" />
+      <header className={`!fixed inset-x-0 top-0 w-full z-[11000] bg-black border-b border-rule transition-all duration-300 ${isExploreOpen ? 'max-lg:pointer-events-none' : ''}`}>
         <div className="relative z-10">
           <div className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto">
-            <div className="flex items-center h-16 px-4 md:px-6 lg:px-8 gap-3 md:gap-5 lg:gap-3 xl:gap-5 max-[360px]:gap-1 max-[360px]:px-2">
+            <div className="flex items-center h-12 px-4 md:px-6 lg:px-8 gap-3 md:gap-5 lg:gap-3 xl:gap-5 max-[360px]:gap-1 max-[360px]:px-2">
 
               {/* Logo */}
               <Link
@@ -468,15 +463,15 @@ const Header: React.FC = () => {
               </Link>
 
               <a
-                href="https://t.me/ix_annonces"
+                href={SUPPORT_WHATSAPP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={t('telegram.joinTelegram')}
-                title={t('telegram.joinTelegram')}
-                className="pointer-events-auto inline-flex h-11 w-11 shrink-0 items-center justify-center p-2 text-sky-400 transition-colors duration-150 hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
+                aria-label={t('whatsapp.joinWhatsApp')}
+                title={t('whatsapp.joinWhatsApp')}
+                className="pointer-events-auto inline-flex h-11 w-11 shrink-0 items-center justify-center p-2 text-ink-faint transition-colors duration-150 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white motion-reduce:transition-none"
               >
-                <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 shrink-0" aria-hidden="true">
-                  <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19l-9.48 5.99-4.1-1.28c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3L18.24 18.8c-.19.92-.73 1.14-1.48.71l-4.14-3.06-1.99 1.93c-.23.23-.42.42-.85.42z" />
+                <svg viewBox="0 0 16 16" fill="currentColor" className="h-5 w-5 shrink-0" aria-hidden="true">
+                  <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232" />
                 </svg>
               </a>
 
@@ -488,8 +483,8 @@ const Header: React.FC = () => {
                     to={item.path}
                     className={`flex items-center gap-1.5 px-2 xl:px-3 py-1.5 rounded-lg text-sm transition-all duration-200 max-xl:[&>svg]:hidden ${
                       item.isActive
-                        ? 'text-white bg-white/10 font-medium'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        ? 'text-white font-medium'
+                        : 'text-ink-muted hover:text-white'
                     }`}
                   >
                     {item.icon}
@@ -521,8 +516,8 @@ const Header: React.FC = () => {
                   onClick={() => setIsExploreOpen(!isExploreOpen)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-200 border ${
                     isExploreOpen
-                      ? 'text-white bg-white/10 border-white/20'
-                      : 'text-gray-400 hover:text-white border-white/10 hover:border-white/20 hover:bg-white/5'
+                      ? 'text-white border-ink-faint'
+                      : 'text-ink-muted hover:text-white border-control hover:border-ink-faint'
                   }`}
                 >
                   <LayoutGrid size={15} />
@@ -543,14 +538,14 @@ const Header: React.FC = () => {
                     value={headerQuery}
                     onChange={handleQueryChange}
                     placeholder={t('header.searchPlaceholder')}
-                    className="w-full py-2 pl-9 pr-3 bg-white/5 text-white rounded-xl border border-white/10 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30 focus:bg-white/10 placeholder-gray-500 text-sm transition-all"
+                    className="w-full py-2 pl-9 pr-3 bg-surface text-white rounded-lg border border-control focus:outline-none focus:border-ink-faint placeholder:text-ink-faint text-sm transition-all"
                   />
-                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                   {headerQuery && (
                     <button
                       type="button"
                       onClick={() => { setHeaderQuery(''); clearAutocompleteSuggestions(); setShowAutocomplete(false); }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-white"
                     >
                       <X size={14} />
                     </button>
@@ -577,7 +572,7 @@ const Header: React.FC = () => {
 
                 {/* Mobile search icon */}
                 <motion.button
-                  className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
+                  className="md:hidden p-2 text-ink-muted hover:text-white transition-colors"
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setIsMobileSearchOpen(true)}
                 >
@@ -589,20 +584,20 @@ const Header: React.FC = () => {
                   <div className="relative" ref={notificationsRef}>
                     <motion.button
                       data-notification-button
-                      className="relative flex items-center justify-center p-2 text-gray-400 hover:text-white transition-colors"
+                      className="relative flex items-center justify-center p-2 text-ink-muted hover:text-white transition-colors"
                       whileTap={{ scale: 0.9 }}
                       onClick={() => setShowNotifications(!showNotifications)}
                     >
                       <Bell size={20} />
                       {unreadCount > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 bg-red-600 text-white text-[10px] rounded-full h-4 min-w-4 flex items-center justify-center px-1 font-bold">
+                        <span className="absolute -top-0.5 -right-0.5 bg-white text-black text-[10px] rounded-full h-4 min-w-4 flex items-center justify-center px-1 font-semibold">
                           {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                       )}
                     </motion.button>
                     <AnimatePresence>
                       {showNotifications && (
-                        <div className="fixed right-4 sm:right-6 top-16 z-50">
+                        <div className="fixed right-4 sm:right-6 top-14 z-50">
                           <NotificationsPopup
                             onClose={() => setShowNotifications(false)}
                             onNotificationUpdate={refreshUnreadCount}
@@ -620,7 +615,7 @@ const Header: React.FC = () => {
 
                 {/* Mobile/Tablet: Burger → ouvre fullscreen explore */}
                 <motion.button
-                  className="lg:hidden p-1.5 text-gray-400 hover:text-white transition-colors pointer-events-auto"
+                  className="lg:hidden p-1.5 text-ink-muted hover:text-white transition-colors pointer-events-auto"
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setIsExploreOpen(!isExploreOpen)}
                   data-explore-trigger
@@ -644,21 +639,17 @@ const Header: React.FC = () => {
               transition={{ duration: 0.2 }}
             >
               <div className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-8 pt-3 pb-2">
-                <SquareBackground
-                  squareSize={40}
-                  borderColor="rgba(239, 68, 68, 0.08)"
-                  className="border border-white/10 rounded-2xl shadow-2xl shadow-black/50 bg-black"
-                >
+                <div className="border border-rule rounded-lg bg-raised">
                   <div className="p-8">
                     <div className="grid grid-cols-4 gap-10">
                       {exploreGroups.map((group) => (
                         <div key={group.title}>
-                          <h4 className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-4 px-1">{group.title}</h4>
+                          <h4 className="text-xs font-medium text-ink-faint mb-4 px-1">{group.title}</h4>
                           <div className="flex flex-col gap-3">
                             {group.items.map((item) => {
                               const colors = cardColors[item.color] || cardColors.gray;
                               const inner = (
-                                <div className={`flex items-center gap-4 px-5 py-5 rounded-xl border ${colors.border} bg-white/[0.03] hover:${colors.bg} hover:scale-[1.02] transition-all duration-200 cursor-pointer`}>
+                                <div className={`flex items-center gap-4 px-5 py-5 rounded-lg border ${colors.border} bg-surface hover:bg-raised transition-all duration-200 cursor-pointer`}>
                                   <div className={`w-12 h-12 rounded-xl ${colors.bg} ${colors.text} flex items-center justify-center flex-shrink-0 border ${colors.border}`}>
                                     {item.icon}
                                   </div>
@@ -678,7 +669,7 @@ const Header: React.FC = () => {
                       ))}
                     </div>
                   </div>
-                </SquareBackground>
+                </div>
               </div>
             </motion.div>
           )}
@@ -718,27 +709,8 @@ const Header: React.FC = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
             >
-              {/* Décor en couche `fixed` derrière le contenu : il ne défile pas
-                  et n'entre plus dans la chaîne de hauteur du scroller. */}
-              <SquareBackground
-                squareSize={48}
-                borderColor="rgba(239, 68, 68, 0.2)"
-                className="fixed inset-0 bg-black pointer-events-none"
-              >
-                {/* Glow effects — radial-gradient au lieu de blur-[100px].
-                    Le blur 100px sur un 400×400 coûte ~3-5ms/frame en composit GPU
-                    tant que le menu est ouvert (coût ∝ rayon²). Le radial-gradient
-                    donne visuellement le même halo doux sans toucher au filter
-                    pipeline → ~0ms. */}
-                <div
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] pointer-events-none"
-                  style={{
-                    background:
-                      'radial-gradient(circle, rgba(200, 144, 40, 0.18) 0%, rgba(200, 144, 40, 0.08) 35%, transparent 70%)',
-                  }}
-                />
-                <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-gradient-to-t from-red-950/15 to-transparent pointer-events-none" />
-              </SquareBackground>
+              {/* (Décor SquareBackground retiré : grille/canvas/halo = artefacts
+                  visuels, la couche noire de l'overlay suffit.) */}
 
               <div className="relative">
                 {/* Spacer pour le header */}
@@ -760,10 +732,10 @@ const Header: React.FC = () => {
                         key={item.path}
                         to={item.path}
                         onClick={() => setIsExploreOpen(false)}
-                        className={`flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-medium transition-all border whitespace-nowrap ${
+                        className={`flex items-center justify-center gap-2 py-3.5 rounded-lg text-sm font-medium transition-all border whitespace-nowrap ${
                           item.isActive
-                            ? 'bg-[#C89028]/20 border-[#C89028]/30 text-white'
-                            : 'bg-white/[0.06] border-white/[0.08] text-gray-300 active:bg-white/10'
+                            ? 'bg-raised border-control text-white'
+                            : 'bg-surface border-rule text-ink-muted active:bg-raised'
                         }`}
                       >
                         {item.icon}
@@ -802,14 +774,14 @@ const Header: React.FC = () => {
                   value={headerQuery}
                   onChange={handleQueryChange}
                   placeholder={t('header.searchPlaceholder')}
-                  className="w-full py-3 pl-10 pr-4 bg-white/10 text-white rounded-xl border border-white/15 focus:outline-none focus:border-red-500/50 placeholder-gray-500 text-sm"
+                  className="w-full py-3 pl-10 pr-4 bg-surface text-white rounded-lg border border-control focus:outline-none focus:border-ink-faint placeholder:text-ink-faint text-sm"
                 />
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
               </div>
               <button
                 type="button"
                 onClick={() => { setIsMobileSearchOpen(false); setHeaderQuery(''); clearAutocompleteSuggestions(); setShowAutocomplete(false); }}
-                className="p-2 text-gray-400 hover:text-white"
+                className="p-2 text-ink-muted hover:text-white"
               >
                 <X size={22} />
               </button>
@@ -823,7 +795,7 @@ const Header: React.FC = () => {
         {showAutocomplete && ageFilteredAutocomplete.length > 0 && (
           <motion.div
             ref={autocompleteRef}
-            className="bg-black/95 border border-white/15 rounded-xl shadow-2xl z-[12000] overflow-hidden"
+            className="bg-raised border border-control rounded-lg shadow-2xl z-[12000] overflow-hidden"
             style={dropdownStyle}
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
@@ -833,7 +805,7 @@ const Header: React.FC = () => {
             <div className="py-2">
               {loadingAutocomplete ? (
                 <div className="flex justify-center items-center py-4">
-                  <div className="w-5 h-5 border-2 border-gray-600 border-t-red-600 rounded-full animate-spin" />
+                  <Ring className="h-4 w-4 text-ink-faint" aria-hidden="true" />
                 </div>
               ) : (
                 <ul>
@@ -864,7 +836,7 @@ const Header: React.FC = () => {
                               <>
                                 <span className="mx-1.5">•</span>
                                 <span className="flex items-center">
-                                  <Star size={12} className="text-yellow-500 mr-0.5" />
+                                  <Star size={12} className="text-accent mr-0.5" />
                                   {item.vote_average.toFixed(1)}
                                 </span>
                               </>

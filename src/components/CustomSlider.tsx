@@ -129,14 +129,14 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
             <div className="absolute left-0 right-0 h-2 bg-gray-700 rounded-full overflow-hidden">
                 {/* Progress Bar - Disable transition during drag for 1:1 feel */}
                 <div
-                    className={`h-full bg-red-600 ${isDragging ? '' : 'transition-all duration-150 ease-out'}`}
+                    className={`h-full bg-white ${isDragging ? '' : 'transition-all duration-150 ease-out'}`}
                     style={{ width: `${percentage}%` }}
                 />
             </div>
 
             {/* Thumb - Use simpler positioning */}
             <div
-                className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow-lg ${isDragging ? '' : 'transition-all duration-100 ease-out'} hover:scale-110 active:scale-125 focus:outline-none focus:ring-2 focus:ring-red-500`}
+                className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full ${isDragging ? '' : 'transition-all duration-100 ease-out'} hover:scale-110 active:scale-125 focus:outline-none focus:ring-2 focus:ring-white`}
                 style={{
                     left: `${percentage}%`,
                     transform: `translate(-50%, -50%)` // Center thumb on exact point

@@ -25,6 +25,7 @@ import ReusableModal from '../ui/reusable-modal';
 import Counter from '../ui/counter';
 import { encodeId } from '../../utils/idEncoder';
 import { getTmdbLanguage } from '../../i18n';
+import { SUPPORT_WHATSAPP_URL } from '../../config/support';
 
 // Helper function to calculate places array based on value
 const getPlacesForValue = (value: number): number[] => {
@@ -1047,7 +1048,7 @@ const AdminWishboard: React.FC = () => {
 
         setDeletingBatch(true);
         const authToken = localStorage.getItem('auth_token');
-        const rejectionReason = 'Déjà disponible, pour plus d\'assistance : https://t.me/ix_annonces';
+        const rejectionReason = `Déjà disponible, pour plus d'assistance : ${SUPPORT_WHATSAPP_URL}`;
 
         for (const item of toReject) {
             try {

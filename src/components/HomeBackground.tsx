@@ -7,13 +7,16 @@ interface HomeBackgroundProps {
 }
 
 /**
- * Fixed background layer that crossfades between a set of images as the user
- * scrolls. The images stay subtle by way of an overlay, so the foreground
- * content remains readable.
+ * Fixed background layer behind the home page. Kept as a drop-in for the
+ * scroll-driven backdrop wiring (props + useScrollBackground index), but it
+ * now renders a flat black ground only: the crossfading image layers, their
+ * washes and the vignette overlay are gone.
  */
 export const HomeBackground: React.FC<HomeBackgroundProps> = ({ images, activeIndex, className }) => {
   const [displayed, setDisplayed] = useState(() => Math.max(0, Math.min(activeIndex, Math.max(images.length - 1, 0))));
-  const [previous, setPrevious] = useState<number | null>(null);
+  // États et effets de l'ancien crossfade conservés à l'identique (mêmes appels
+  // de hooks, même ordre) : seule la couche d'images rendue a disparu.
+  const [_previous, setPrevious] = useState<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const reducedMotionRef = useRef(false);
 
@@ -49,26 +52,11 @@ export const HomeBackground: React.FC<HomeBackgroundProps> = ({ images, activeIn
 
   if (!images.length) return null;
 
-  const transition = reducedMotionRef.current ? 'none' : 'opacity 700ms ease-in-out';
-
   return (
-    <div className={`fixed inset-0 z-0 pointer-events-none overflow-hidden ${className ?? ''}`}>
-      {previous !== null && (
-        <div
-          key={`previous-${previous}`}
-          aria-hidden="true"
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url("${images[previous] ?? images[0] ?? ''}")`, opacity: 0, transition }}
-        />
-      )}
-      <div
-        key={`active-${displayed}`}
-        aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url("${images[displayed] ?? images[0] ?? ''}")`, opacity: 1, transition }}
-      />
-      <div className="absolute inset-0 bg-transparent" />
-    </div>
+    <div
+      aria-hidden="true"
+      className={`fixed inset-0 z-0 pointer-events-none bg-black ${className ?? ''}`}
+    />
   );
 };
 

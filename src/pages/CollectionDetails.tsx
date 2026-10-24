@@ -7,9 +7,7 @@ import AddToListMenu from '../components/AddToListMenu';
 import { encodeId } from '../utils/idEncoder';
 import { getTmdbLanguage } from '../i18n';
 import { motion } from 'framer-motion';
-import { SquareBackground } from '../components/ui/square-background';
-import ShinyText from '../components/ui/shiny-text';
-import AnimatedBorderCard from '../components/ui/animated-border-card';
+import { Ring } from '@/components/ui/loading/ring';
 import { useAgeRestrictedContent } from '../hooks/useAgeRestrictedContent';
 
 interface Movie {
@@ -455,46 +453,46 @@ const CollectionDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" className="min-h-screen bg-black text-white pt-32 pb-20">
+      <div className="min-h-screen bg-black text-white pt-32 pb-20">
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex items-center justify-center h-64">
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
-              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-red-500"></div>
+              <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
             </motion.div>
           </div>
         </div>
-      </SquareBackground>
+      </div>
     );
   }
 
   if (error || !collection) {
     return (
-      <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" className="min-h-screen bg-black text-white pt-32 pb-20">
+      <div className="min-h-screen bg-black text-white pt-32 pb-20">
         <div className="container mx-auto px-4 relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-20">
-            <Film size={64} className="mx-auto mb-4 text-gray-500" />
-            <h1 className="text-2xl font-bold mb-4">{t('collections.notFound')}</h1>
-            <p className="text-gray-400 mb-8">{t('collections.notAvailable')}</p>
+            <Film size={64} className="mx-auto mb-4 text-ink-faint" />
+            <h1 className="text-2xl font-semibold mb-4">{t('collections.notFound')}</h1>
+            <p className="text-ink-muted mb-8">{t('collections.notAvailable')}</p>
             <Link
               to="/collections"
-              className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black rounded-full hover:bg-neutral-200 transition-colors"
             >
               <ArrowLeft size={20} />
               {t('collections.backToCollections')}
             </Link>
           </motion.div>
         </div>
-      </SquareBackground>
+      </div>
     );
   }
 
   if (collection.parts.length > 0 && isFilteringCollectionMoviesByAge) {
     return (
-      <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" className="min-h-screen bg-black text-white pt-32 pb-20">
+      <div className="min-h-screen bg-black text-white pt-32 pb-20">
         <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500" />
+          <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
         </div>
-      </SquareBackground>
+      </div>
     );
   }
 
@@ -524,7 +522,7 @@ const CollectionDetails: React.FC = () => {
   };
 
   return (
-    <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* Hero Section */}
       <div className="relative min-h-screen">
         {/* Contenu */}
@@ -534,9 +532,9 @@ const CollectionDetails: React.FC = () => {
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-8">
               <Link
                 to="/collections"
-                className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors group/icon"
+                className="inline-flex items-center gap-2 text-ink-muted hover:text-white transition-colors group/icon"
               >
-                <ArrowLeft className="text-white opacity-50 group-hover/icon:opacity-100 transition-[color,opacity]" size={20} />
+                <ArrowLeft className="opacity-70 group-hover/icon:opacity-100 transition-[color,opacity]" size={20} />
                 {t('collections.backToCollections')}
               </Link>
             </motion.div>
@@ -549,7 +547,7 @@ const CollectionDetails: React.FC = () => {
                   <img
                     src={`${IMAGE_BASE_URL}${collection.poster_path}`}
                     alt={collection.name}
-                    className="w-64 rounded-xl shadow-2xl"
+                    className="w-64 rounded-lg"
                     loading="lazy"
                     decoding="async"
                   />
@@ -558,23 +556,23 @@ const CollectionDetails: React.FC = () => {
 
               {/* Informations */}
               <div className="flex-1">
-                <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-4xl lg:text-6xl font-black tracking-tight mb-4">
-                  <ShinyText text={collection.name} speed={3} color="#ffffff" shineColor="#ef4444" className="leading-tight" />
+                <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-4xl lg:text-6xl font-semibold mb-4">
+                  <span className="leading-tight">{collection.name}</span>
                 </motion.h1>
                 
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex items-center gap-6 mb-6 text-gray-300">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex items-center gap-6 mb-6 text-ink-muted">
                   <div className="flex items-center gap-2">
                     <Film size={20} />
-                    <span>{t('collections.movieCount', { count: moviesWithImages.length })}</span>
+                    <span className="tabular-nums">{t('collections.movieCount', { count: moviesWithImages.length })}</span>
                     {moviesWithoutImages.length > 0 && (
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-ink-faint tabular-nums">
                         {t('collections.withoutImages', { count: moviesWithoutImages.length })}
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar size={20} />
-                    <span>
+                    <span className="tabular-nums">
                       {allMovies[0]?.release_date ? new Date(allMovies[0].release_date).getFullYear() : 'N/A'} -
                       {allMovies[allMovies.length - 1]?.release_date ? new Date(allMovies[allMovies.length - 1].release_date).getFullYear() : 'N/A'}
                     </span>
@@ -582,7 +580,7 @@ const CollectionDetails: React.FC = () => {
                 </motion.div>
 
                 {collection.overview && (
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-lg lg:text-xl text-white/60 leading-relaxed max-w-3xl mb-6">
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-lg lg:text-xl text-ink-muted leading-relaxed max-w-3xl mb-6">
                     {collection.overview}
                   </motion.p>
                 )}
@@ -592,10 +590,10 @@ const CollectionDetails: React.FC = () => {
                   {/* Bouton Watchlist */}
                   <button
                     onClick={toggleWatchlist}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors duration-200 ${
+                    className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-colors duration-200 border ${
                       isInWatchlist
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                        ? 'bg-raised border-ink-faint text-white'
+                        : 'border-control text-ink-muted hover:text-white hover:border-ink-faint'
                     }`}
                   >
                     <Bookmark size={20} className={isInWatchlist ? 'fill-current' : ''} />
@@ -605,10 +603,10 @@ const CollectionDetails: React.FC = () => {
                   {/* Bouton Favoris */}
                   <button
                     onClick={toggleFavorites}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors duration-200 ${
+                    className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-colors duration-200 border ${
                       isInFavorites
-                        ? 'bg-red-600 text-white hover:bg-red-700'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                        ? 'bg-raised border-ink-faint text-white'
+                        : 'border-control text-ink-muted hover:text-white hover:border-ink-faint'
                     }`}
                   >
                     <Heart size={20} className={isInFavorites ? 'fill-current' : ''} />
@@ -621,7 +619,7 @@ const CollectionDetails: React.FC = () => {
                       console.log('Button clicked! Collection:', collection?.id, collection?.name);
                       openAddToListMenu();
                     }}
-                    className="flex items-center gap-2 px-6 py-3 bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white rounded-lg font-medium transition-colors duration-200"
+                    className="flex items-center gap-2 px-6 py-3 border border-control text-ink-muted hover:text-white hover:border-ink-faint rounded-full font-medium transition-colors duration-200"
                   >
                     <Plus size={20} />
                     {t('collections.addToList')}
@@ -635,8 +633,8 @@ const CollectionDetails: React.FC = () => {
           <div className="container mx-auto px-4 pb-12">
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
-                <h2 className="text-2xl sm:text-3xl font-bold">
-                  <ShinyText text={t('collections.movies')} speed={2} color="#ffffff" shineColor="#ef4444" />
+                <h2 className="text-2xl sm:text-3xl font-semibold">
+                  {t('collections.movies')}
                 </h2>
                 
                 <div className="flex items-center gap-4">
@@ -644,10 +642,10 @@ const CollectionDetails: React.FC = () => {
                   {moviesWithoutImages.length > 0 && (
                     <button
                       onClick={() => setShowMoviesWithoutImages(!showMoviesWithoutImages)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors border ${
                         showMoviesWithoutImages 
-                          ? 'bg-red-600 text-white' 
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          ? 'bg-raised border-ink-faint text-white' 
+                          : 'border-control text-ink-muted hover:text-white hover:border-ink-faint'
                       }`}
                     >
                       {showMoviesWithoutImages ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -658,13 +656,13 @@ const CollectionDetails: React.FC = () => {
                   )}
 
                   {/* Mode d'affichage */}
-                  <div className="flex bg-gray-700 rounded-lg p-1">
+                  <div className="flex bg-surface border border-rule rounded-lg p-1">
                     <button
                       onClick={() => setViewMode('grid')}
                       className={`p-2 rounded transition-colors ${
                         viewMode === 'grid' 
-                          ? 'bg-red-600 text-white' 
-                          : 'text-gray-400 hover:text-white'
+                          ? 'bg-raised text-white' 
+                          : 'text-ink-muted hover:text-white'
                       }`}
                     >
                       <Grid size={18} />
@@ -673,8 +671,8 @@ const CollectionDetails: React.FC = () => {
                       onClick={() => setViewMode('list')}
                       className={`p-2 rounded transition-colors ${
                         viewMode === 'list' 
-                          ? 'bg-red-600 text-white' 
-                          : 'text-gray-400 hover:text-white'
+                          ? 'bg-raised text-white' 
+                          : 'text-ink-muted hover:text-white'
                       }`}
                     >
                       <List size={18} />
@@ -689,7 +687,7 @@ const CollectionDetails: React.FC = () => {
                   {displayedMovies.map((movie, index) => (
                     <motion.div key={movie.id} variants={itemVariants}>
                     <div
-                      className="bg-white/[0.03] rounded-xl overflow-hidden border border-white/10 hover:border-red-500/30 transition-all duration-300 group cursor-pointer hover:bg-white/[0.06]"
+                      className="bg-surface rounded-lg overflow-hidden transition-all duration-300 group cursor-pointer hover:brightness-110"
                     >
                       <Link to={`/movie/${encodeId(movie.id)}`} className="block">
                         <div className="relative">
@@ -702,17 +700,17 @@ const CollectionDetails: React.FC = () => {
                               decoding="async"
                             />
                           ) : (
-                            <div className="w-full h-96 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+                            <div className="w-full h-96 bg-rule flex items-center justify-center">
                               <div className="text-center">
-                                <Film size={48} className="text-gray-500 mx-auto mb-2" />
-                                <p className="text-gray-500 text-sm px-4">{movie.title}</p>
+                                <Film size={48} className="text-ink-faint mx-auto mb-2" />
+                                <p className="text-ink-faint text-sm px-4">{movie.title}</p>
                               </div>
                             </div>
                           )}
                           
                           {/* Overlay avec indicateur cliquable */}
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                            <div className="bg-red-600 hover:bg-red-700 rounded-full p-3 transition-colors">
+                            <div className="bg-white text-black rounded-full p-3 transition-colors">
                               <Info size={20} />
                             </div>
                           </div>
@@ -720,13 +718,13 @@ const CollectionDetails: React.FC = () => {
                           {/* Note */}
                           {movie.vote_average > 0 && (
                             <div className="absolute top-4 right-4 bg-black/70 rounded-full px-2 py-1 flex items-center gap-1">
-                              <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                              <span className="text-sm font-medium">{movie.vote_average.toFixed(1)}</span>
+                              <Star size={14} className="text-accent fill-accent" />
+                              <span className="text-sm font-medium text-white tabular-nums">{movie.vote_average.toFixed(1)}</span>
                             </div>
                           )}
 
                           {/* Numéro du film dans la série */}
-                          <div className="absolute top-4 left-4 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
+                          <div className="absolute top-4 left-4 bg-black/70 text-accent rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold tabular-nums">
                             {index + 1}
                           </div>
                         </div>
@@ -734,15 +732,15 @@ const CollectionDetails: React.FC = () => {
                         <div className="p-4">
                           <h3 className="text-lg font-semibold mb-2 line-clamp-2">{movie.title}</h3>
                           
-                          <div className="flex items-center gap-2 text-sm text-gray-400 mb-3">
+                          <div className="flex items-center gap-2 text-sm text-ink-faint mb-3">
                             <Calendar size={14} />
-                            <span>
+                            <span className="tabular-nums">
                               {movie.release_date ? new Date(movie.release_date).getFullYear() : t('common.unknownDate')}
                             </span>
                           </div>
 
                           {movie.overview && (
-                            <p className="text-gray-400 text-sm line-clamp-3">
+                            <p className="text-ink-muted text-sm line-clamp-3">
                               {movie.overview}
                             </p>
                           )}
@@ -760,12 +758,12 @@ const CollectionDetails: React.FC = () => {
                   {displayedMovies.map((movie, index) => (
                     <motion.div key={movie.id} variants={itemVariants}>
                     <div
-                      className="bg-white/[0.03] rounded-xl border border-white/10 hover:border-red-500/30 transition-all duration-300 group cursor-pointer hover:bg-white/[0.06]"
+                      className="bg-surface rounded-lg transition-all duration-300 group cursor-pointer hover:brightness-110"
                     >
                       <Link to={`/movie/${encodeId(movie.id)}`} className="block">
                         <div className="flex gap-4 p-4">
                           {/* Numéro */}
-                          <div className="flex-shrink-0 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                          <div className="flex-shrink-0 w-8 h-8 bg-rule text-accent rounded-full flex items-center justify-center text-sm font-semibold tabular-nums">
                             {index + 1}
                           </div>
 
@@ -780,8 +778,8 @@ const CollectionDetails: React.FC = () => {
                                 decoding="async"
                               />
                             ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                                <Film size={20} className="text-gray-500" />
+                              <div className="w-full h-full bg-rule flex items-center justify-center">
+                                <Film size={20} className="text-ink-faint" />
                               </div>
                             )}
                           </div>
@@ -792,24 +790,24 @@ const CollectionDetails: React.FC = () => {
                               <div className="flex-1 min-w-0">
                                 <h3 className="text-lg font-semibold mb-1 truncate">{movie.title}</h3>
                                 
-                                <div className="flex items-center gap-4 text-sm text-gray-400 mb-2">
+                                <div className="flex items-center gap-4 text-sm text-ink-faint mb-2">
                                   <div className="flex items-center gap-1">
                                     <Calendar size={14} />
-                                    <span>
+                                    <span className="tabular-nums">
                                       {movie.release_date ? new Date(movie.release_date).getFullYear() : t('common.unknownDate')}
                                     </span>
                                   </div>
                                   
                                   {movie.vote_average > 0 && (
                                     <div className="flex items-center gap-1">
-                                      <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                                      <span>{movie.vote_average.toFixed(1)}</span>
+                                      <Star size={14} className="text-accent fill-accent" />
+                                      <span className="text-white tabular-nums">{movie.vote_average.toFixed(1)}</span>
                                     </div>
                                   )}
                                 </div>
 
                                 {movie.overview && (
-                                  <p className="text-gray-400 text-sm line-clamp-2">
+                                  <p className="text-ink-muted text-sm line-clamp-2">
                                     {movie.overview}
                                   </p>
                                 )}
@@ -817,7 +815,7 @@ const CollectionDetails: React.FC = () => {
 
                               {/* Indicateur cliquable */}
                               <div className="flex-shrink-0 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="bg-red-600 hover:bg-red-700 rounded-full p-2 transition-colors">
+                                <div className="bg-white text-black rounded-full p-2 transition-colors">
                                   <Info size={16} />
                                 </div>
                               </div>
@@ -839,100 +837,100 @@ const CollectionDetails: React.FC = () => {
       {collectionStats && (
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="container mx-auto px-4 py-8 relative z-10">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-8 flex items-center gap-3">
-              <TrendingUp className="text-red-500" />
-              <ShinyText text={t('collections.globalStats')} speed={2} color="#ffffff" shineColor="#ef4444" />
+            <h2 className="text-2xl sm:text-3xl font-semibold mb-8 flex items-center gap-3">
+              <TrendingUp className="text-ink-faint" />
+              {t('collections.globalStats')}
             </h2>
             
             {loadingDetails ? (
               <div className="flex items-center justify-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-red-500"></div>
+                <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Budget total */}
-                <AnimatedBorderCard highlightColor="239 68 68" backgroundColor="12 12 12" className="p-6">
+                <div className="bg-surface rounded-lg p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <DollarSign className="text-green-400" size={24} />
+                    <DollarSign className="text-ink-faint" size={24} />
                     <h3 className="text-lg font-semibold">{t('collections.totalBudget')}</h3>
                   </div>
-                  <p className="text-2xl font-bold text-green-400">
+                  <p className="text-2xl font-semibold text-white tabular-nums">
                     {collectionStats.totalBudget > 0
                       ? new Intl.NumberFormat(i18n.language, { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(collectionStats.totalBudget)
                       : t('collections.notAvailableData')
                     }
                   </p>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-sm text-ink-muted mt-1 tabular-nums">
                     {t('collections.average')}: {collectionStats.averageBudget > 0
                       ? new Intl.NumberFormat(i18n.language, { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(collectionStats.averageBudget)
                       : t('collections.notAvailableData')
                     }
                   </p>
-                </AnimatedBorderCard>
+                </div>
 
                 {/* Revenus totaux */}
-                <AnimatedBorderCard highlightColor="239 68 68" backgroundColor="12 12 12" className="p-6">
+                <div className="bg-surface rounded-lg p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <DollarSign className="text-blue-400" size={24} />
+                    <DollarSign className="text-ink-faint" size={24} />
                     <h3 className="text-lg font-semibold">{t('collections.totalRevenue')}</h3>
                   </div>
-                  <p className="text-2xl font-bold text-blue-400">
+                  <p className="text-2xl font-semibold text-white tabular-nums">
                     {collectionStats.totalRevenue > 0
                       ? new Intl.NumberFormat(i18n.language, { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(collectionStats.totalRevenue)
                       : t('collections.notAvailableData')
                     }
                   </p>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-sm text-ink-muted mt-1 tabular-nums">
                     {t('collections.average')}: {collectionStats.averageRevenue > 0
                       ? new Intl.NumberFormat(i18n.language, { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(collectionStats.averageRevenue)
                       : t('collections.notAvailableData')
                     }
                   </p>
-                </AnimatedBorderCard>
+                </div>
 
                 {/* Note moyenne */}
-                <AnimatedBorderCard highlightColor="239 68 68" backgroundColor="12 12 12" className="p-6">
+                <div className="bg-surface rounded-lg p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <Star className="text-yellow-400" size={24} />
+                    <Star className="text-accent" size={24} />
                     <h3 className="text-lg font-semibold">{t('collections.averageRating')}</h3>
                   </div>
-                  <p className="text-2xl font-bold text-yellow-400">
+                  <p className="text-2xl font-semibold text-accent tabular-nums">
                     {collectionStats.averageRating.toFixed(1)}/10
                   </p>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-sm text-ink-muted mt-1 tabular-nums">
                     {t('collections.moviesRated', { count: collectionStats.totalMovies })}
                   </p>
-                </AnimatedBorderCard>
+                </div>
 
                 {/* Durée totale */}
-                <AnimatedBorderCard highlightColor="239 68 68" backgroundColor="12 12 12" className="p-6">
+                <div className="bg-surface rounded-lg p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <Film className="text-purple-400" size={24} />
+                    <Film className="text-ink-faint" size={24} />
                     <h3 className="text-lg font-semibold">{t('collections.totalDuration')}</h3>
                   </div>
-                  <p className="text-2xl font-bold text-purple-400">
+                  <p className="text-2xl font-semibold text-white tabular-nums">
                     {Math.floor(collectionStats.totalRuntime / 60)}h {collectionStats.totalRuntime % 60}min
                   </p>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-sm text-ink-muted mt-1 tabular-nums">
                     {collectionStats.totalMovies} {t('collections.films')}
                   </p>
-                </AnimatedBorderCard>
+                </div>
 
                 {/* Bénéfice/Perte */}
                 {collectionStats.totalBudget > 0 && collectionStats.totalRevenue > 0 && (
                   <div className="col-span-full">
-                    <AnimatedBorderCard highlightColor="239 68 68" backgroundColor="12 12 12" className="p-6">
+                    <div className="bg-surface rounded-lg p-6">
                       <div className="flex items-center gap-3 mb-3">
-                        <TrendingUp className={collectionStats.profitMargin > 0 ? "text-green-400" : "text-red-400"} size={24} />
+                        <TrendingUp className={collectionStats.profitMargin > 0 ? "text-positive" : "text-negative"} size={24} />
                         <h3 className="text-lg font-semibold">{t('collections.profitLoss')}</h3>
                       </div>
-                      <p className={`text-2xl font-bold ${collectionStats.profitMargin > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      <p className={`text-2xl font-semibold tabular-nums ${collectionStats.profitMargin > 0 ? 'text-positive' : 'text-negative'}`}>
                         {new Intl.NumberFormat(i18n.language, { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(collectionStats.totalRevenue - collectionStats.totalBudget)}
                         <span className="ml-2 text-lg">
                           ({collectionStats.profitMargin > 0 ? '+' : ''}{collectionStats.profitMargin.toFixed(1)}%)
                         </span>
                       </p>
-                    </AnimatedBorderCard>
+                    </div>
                   </div>
                 )}
               </div>
@@ -945,90 +943,90 @@ const CollectionDetails: React.FC = () => {
       {productionInfo && (
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="container mx-auto px-4 py-8 relative z-10">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-8 flex items-center gap-3">
-              <Building className="text-red-500" />
-              <ShinyText text={t('collections.productionInfo')} speed={2} color="#ffffff" shineColor="#ef4444" />
+            <h2 className="text-2xl sm:text-3xl font-semibold mb-8 flex items-center gap-3">
+              <Building className="text-ink-faint" />
+              {t('collections.productionInfo')}
             </h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Sociétés de production */}
               {productionInfo.productionCompanies.length > 0 && (
-                <AnimatedBorderCard highlightColor="239 68 68" backgroundColor="12 12 12" className="p-6">
+                <div className="bg-surface rounded-lg p-6">
                   <div className="flex items-center gap-3 mb-4">
-                    <Building className="text-blue-400" size={24} />
+                    <Building className="text-ink-faint" size={24} />
                     <h3 className="text-xl font-semibold">{t('collections.productionCompanies')}</h3>
                   </div>
                   <div className="space-y-3">
                     {productionInfo.productionCompanies.map((company) => (
                       <div key={company.id} className="flex justify-between items-center">
-                        <span className="text-gray-300">{company.name}</span>
-                        <span className="text-gray-400 text-sm bg-gray-700 px-2 py-1 rounded">
+                        <span className="text-ink-muted">{company.name}</span>
+                        <span className="text-ink-faint text-sm bg-rule px-2 py-1 rounded tabular-nums">
                           {t('collections.filmCount', { count: company.count })}
                         </span>
                       </div>
                     ))}
                   </div>
-                </AnimatedBorderCard>
+                </div>
               )}
 
               {/* Pays de production */}
               {productionInfo.productionCountries.length > 0 && (
-                <AnimatedBorderCard highlightColor="239 68 68" backgroundColor="12 12 12" className="p-6">
+                <div className="bg-surface rounded-lg p-6">
                   <div className="flex items-center gap-3 mb-4">
-                    <MapPin className="text-green-400" size={24} />
+                    <MapPin className="text-ink-faint" size={24} />
                     <h3 className="text-xl font-semibold">{t('collections.productionCountries')}</h3>
                   </div>
                   <div className="space-y-3">
                     {productionInfo.productionCountries.map((country) => (
                       <div key={country.code} className="flex justify-between items-center">
-                        <span className="text-gray-300">{country.name}</span>
-                        <span className="text-gray-400 text-sm bg-gray-700 px-2 py-1 rounded">
+                        <span className="text-ink-muted">{country.name}</span>
+                        <span className="text-ink-faint text-sm bg-rule px-2 py-1 rounded tabular-nums">
                           {t('collections.filmCount', { count: country.count })}
                         </span>
                       </div>
                     ))}
                   </div>
-                </AnimatedBorderCard>
+                </div>
               )}
 
               {/* Langues */}
               {productionInfo.spokenLanguages.length > 0 && (
-                <AnimatedBorderCard highlightColor="239 68 68" backgroundColor="12 12 12" className="p-6">
+                <div className="bg-surface rounded-lg p-6">
                   <div className="flex items-center gap-3 mb-4">
-                    <Languages className="text-purple-400" size={24} />
+                    <Languages className="text-ink-faint" size={24} />
                     <h3 className="text-xl font-semibold">{t('collections.languages')}</h3>
                   </div>
                   <div className="space-y-3">
                     {productionInfo.spokenLanguages.map((language) => (
                       <div key={language.code} className="flex justify-between items-center">
-                        <span className="text-gray-300">{language.name}</span>
-                        <span className="text-gray-400 text-sm bg-gray-700 px-2 py-1 rounded">
+                        <span className="text-ink-muted">{language.name}</span>
+                        <span className="text-ink-faint text-sm bg-rule px-2 py-1 rounded tabular-nums">
                           {t('collections.filmCount', { count: language.count })}
                         </span>
                       </div>
                     ))}
                   </div>
-                </AnimatedBorderCard>
+                </div>
               )}
 
               {/* Genres */}
               {productionInfo.genres.length > 0 && (
-                <AnimatedBorderCard highlightColor="239 68 68" backgroundColor="12 12 12" className="p-6">
+                <div className="bg-surface rounded-lg p-6">
                   <div className="flex items-center gap-3 mb-4">
-                    <Film className="text-orange-400" size={24} />
+                    <Film className="text-ink-faint" size={24} />
                     <h3 className="text-xl font-semibold">{t('collections.mainGenres')}</h3>
                   </div>
                   <div className="space-y-3">
                     {productionInfo.genres.map((genre) => (
                       <div key={genre.id} className="flex justify-between items-center">
-                        <span className="text-gray-300">{genre.name}</span>
-                        <span className="text-gray-400 text-sm bg-gray-700 px-2 py-1 rounded">
+                        <span className="text-ink-muted">{genre.name}</span>
+                        <span className="text-ink-faint text-sm bg-rule px-2 py-1 rounded tabular-nums">
                           {t('collections.filmCount', { count: genre.count })}
                         </span>
                       </div>
                     ))}
                   </div>
-                </AnimatedBorderCard>
+                </div>
               )}
             </div>
           </div>
@@ -1041,20 +1039,20 @@ const CollectionDetails: React.FC = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="py-12 relative z-10">
           <div className="container mx-auto px-4">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-8">
-                <ShinyText text={t('collections.similarCollections')} speed={2} color="#ffffff" shineColor="#ef4444" />
+              <h2 className="text-2xl sm:text-3xl font-semibold mb-8">
+                {t('collections.similarCollections')}
               </h2>
               
               {loadingSimilar ? (
                 <div className="flex items-center justify-center h-32">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-red-500"></div>
+                  <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
                 </div>
               ) : (
                 <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {similarCollections.map((similarCollection) => (
                     <motion.div key={similarCollection.id} variants={itemVariants}>
                     <div
-                      className="bg-white/[0.03] rounded-xl overflow-hidden border border-white/10 hover:border-red-500/30 transition-all duration-300 group cursor-pointer hover:bg-white/[0.06]"
+                      className="bg-surface rounded-lg overflow-hidden transition-all duration-300 group cursor-pointer hover:brightness-110"
                     >
                       <Link to={`/collection/${similarCollection.id}`} className="block">
                         <div className="relative">
@@ -1067,16 +1065,16 @@ const CollectionDetails: React.FC = () => {
                               decoding="async"
                             />
                           ) : (
-                            <div className="w-full h-48 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                              <Film size={48} className="text-gray-500" />
+                            <div className="w-full h-48 bg-rule flex items-center justify-center">
+                              <Film size={48} className="text-ink-faint" />
                             </div>
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                           <div className="absolute bottom-4 left-4 right-4">
-                            <h3 className="text-xl font-bold text-white mb-2">{similarCollection.name}</h3>
-                            <div className="flex items-center gap-2 text-sm text-gray-300">
+                            <h3 className="text-xl font-semibold text-white mb-2">{similarCollection.name}</h3>
+                            <div className="flex items-center gap-2 text-sm text-ink-muted">
                               <Film size={16} />
-                              <span>{similarCollection.parts?.filter(movie => movie.poster_path).length || 0} {t('collections.films')}</span>
+                              <span className="tabular-nums">{similarCollection.parts?.filter(movie => movie.poster_path).length || 0} {t('collections.films')}</span>
                             </div>
                           </div>
                         </div>
@@ -1121,10 +1119,10 @@ const CollectionDetails: React.FC = () => {
                                   }
                                 }));
                               }}
-                              className={`flex items-center gap-1 px-3 py-1.5 text-white text-xs rounded-lg transition-colors ${
+                              className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded border transition-colors ${
                                 similarCollectionsStatus[similarCollection.id]?.watchlist
-                                  ? 'bg-blue-700 hover:bg-blue-800'
-                                  : 'bg-blue-600 hover:bg-blue-700'
+                                  ? 'bg-raised border-ink-faint text-white'
+                                  : 'border-control text-ink-muted hover:text-white hover:border-ink-faint'
                               }`}
                             >
                               <Bookmark size={14} className={similarCollectionsStatus[similarCollection.id]?.watchlist ? 'fill-current' : ''} />
@@ -1168,10 +1166,10 @@ const CollectionDetails: React.FC = () => {
                                   }
                                 }));
                               }}
-                              className={`flex items-center gap-1 px-3 py-1.5 text-white text-xs rounded-lg transition-colors ${
+                              className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded border transition-colors ${
                                 similarCollectionsStatus[similarCollection.id]?.favorites
-                                  ? 'bg-red-700 hover:bg-red-800'
-                                  : 'bg-red-600 hover:bg-red-700'
+                                  ? 'bg-raised border-ink-faint text-white'
+                                  : 'border-control text-ink-muted hover:text-white hover:border-ink-faint'
                               }`}
                             >
                               <Heart size={14} className={similarCollectionsStatus[similarCollection.id]?.favorites ? 'fill-current' : ''} />
@@ -1187,14 +1185,14 @@ const CollectionDetails: React.FC = () => {
                                 setSelectedCollection(similarCollection);
                                 setShowAddToListMenu(true);
                               }}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-lg transition-colors"
+                              className="flex items-center gap-1 px-3 py-1.5 border border-control text-ink-muted hover:text-white hover:border-ink-faint text-xs rounded transition-colors"
                             >
                               <Plus size={14} />
                               {t('collections.list')}
                             </button>
                           </div>
 
-                          <p className="text-gray-300 text-sm mb-4 line-clamp-3">
+                          <p className="text-ink-muted text-sm mb-4 line-clamp-3">
                             {similarCollection.overview || t('collections.discoverCollection')}
                           </p>
                           
@@ -1210,7 +1208,7 @@ const CollectionDetails: React.FC = () => {
                                   return similarCollection.parts?.slice(0, moviesToShow).map((movie) => (
                                     <div
                                       key={movie.id}
-                                      className="w-14 h-20 sm:w-12 sm:h-16 rounded overflow-hidden hover:scale-110 transition-transform border border-gray-600"
+                                      className="w-14 h-20 sm:w-12 sm:h-16 rounded overflow-hidden hover:brightness-110 transition border border-rule"
                                       onClick={(e) => e.stopPropagation()}
                                     >
                                       {movie.poster_path ? (
@@ -1222,8 +1220,8 @@ const CollectionDetails: React.FC = () => {
                                           decoding="async"
                                         />
                                       ) : (
-                                        <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                                          <Film size={16} className="text-gray-500" />
+                                        <div className="w-full h-full bg-rule flex items-center justify-center">
+                                          <Film size={16} className="text-ink-faint" />
                                         </div>
                                       )}
                                     </div>
@@ -1235,7 +1233,7 @@ const CollectionDetails: React.FC = () => {
                                       {similarCollection.parts?.slice(0, 4).map((movie) => (
                                         <div
                                           key={movie.id}
-                                          className="w-14 h-20 sm:w-12 sm:h-16 rounded overflow-hidden hover:scale-110 transition-transform border border-gray-600"
+                                          className="w-14 h-20 sm:w-12 sm:h-16 rounded overflow-hidden hover:brightness-110 transition border border-rule"
                                           onClick={(e) => e.stopPropagation()}
                                         >
                                           {movie.poster_path ? (
@@ -1247,13 +1245,13 @@ const CollectionDetails: React.FC = () => {
                                               decoding="async"
                                             />
                                           ) : (
-                                            <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                                              <Film size={16} className="text-gray-500" />
+                                            <div className="w-full h-full bg-rule flex items-center justify-center">
+                                              <Film size={16} className="text-ink-faint" />
                                             </div>
                                           )}
                                         </div>
                                       ))}
-                                      <div className="w-14 h-20 sm:w-12 sm:h-16 bg-gray-700/50 rounded flex items-center justify-center text-xs text-gray-400 border border-gray-600">
+                                      <div className="w-14 h-20 sm:w-12 sm:h-16 bg-rule rounded flex items-center justify-center text-xs text-ink-muted border border-rule tabular-nums">
                                         +{totalMovies - 4}
                                       </div>
                                     </>
@@ -1292,7 +1290,7 @@ const CollectionDetails: React.FC = () => {
           />
         </>
       )}
-    </SquareBackground>
+    </div>
   );
 };
 

@@ -2,11 +2,10 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, SlidersHorizontal, LayoutGrid, List, Loader2 } from 'lucide-react';
+import { ArrowLeft, SlidersHorizontal, LayoutGrid, List } from 'lucide-react';
 import SEO from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SquareBackground } from '../components/ui/square-background';
-import ShinyText from '../components/ui/shiny-text';
+import { Ring } from '@/components/ui/loading/ring';
 import CustomDropdown from '../components/CustomDropdown';
 import { SearchGridCard, SearchListCard } from '../components/SearchCard';
 import { getTmdbLanguage } from '../i18n';
@@ -96,23 +95,23 @@ const PaginationBar = ({ currentPage, maxPages, onSelect }: { currentPage: numbe
   return (
     <div className="flex justify-center items-center gap-1.5 flex-wrap my-8">
       <motion.button whileTap={{ scale: 0.92 }} onClick={() => onSelect(1)} disabled={currentPage <= 1}
-        className={`min-w-[40px] h-10 rounded-full text-sm font-medium transition-all ${currentPage === 1 ? 'bg-red-600 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10'} disabled:opacity-30`}>
+        className={`min-w-[40px] h-10 rounded-full text-sm font-medium transition-all border ${currentPage === 1 ? 'text-white border-ink-faint' : 'text-ink-muted border-control hover:bg-raised hover:text-white'} disabled:opacity-30`}>
         1
       </motion.button>
-      {currentPage > 4 && <span className="text-white/20 px-1">...</span>}
+      {currentPage > 4 && <span className="text-ink-faint px-1">...</span>}
       {Array.from({ length: 5 }, (_, i) => {
         const p = Math.max(2, currentPage - 2) + i;
         return p > 1 && p < maxPages ? (
           <motion.button key={p} whileTap={{ scale: 0.92 }} onClick={() => onSelect(p)}
-            className={`min-w-[40px] h-10 rounded-full text-sm font-medium transition-all ${p === currentPage ? 'bg-red-600 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10'}`}>
+            className={`min-w-[40px] h-10 rounded-full text-sm font-medium transition-all border ${p === currentPage ? 'text-white border-ink-faint' : 'text-ink-muted border-control hover:bg-raised hover:text-white'}`}>
             {p}
           </motion.button>
         ) : null;
       })}
-      {currentPage < maxPages - 3 && <span className="text-white/20 px-1">...</span>}
+      {currentPage < maxPages - 3 && <span className="text-ink-faint px-1">...</span>}
       {maxPages > 1 && (
         <motion.button whileTap={{ scale: 0.92 }} onClick={() => onSelect(maxPages)} disabled={currentPage >= maxPages}
-          className={`min-w-[40px] h-10 rounded-full text-sm font-medium transition-all ${currentPage === maxPages ? 'bg-red-600 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10'} disabled:opacity-30`}>
+          className={`min-w-[40px] h-10 rounded-full text-sm font-medium transition-all border ${currentPage === maxPages ? 'text-white border-ink-faint' : 'text-ink-muted border-control hover:bg-raised hover:text-white'} disabled:opacity-30`}>
           {maxPages}
         </motion.button>
       )}
@@ -299,38 +298,37 @@ const GenrePage: React.FC = () => {
   // Initial loading
   if (initialLoad) {
     return (
-      <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" mode="combined">
+      <div className="min-h-screen bg-black">
         <div className="min-h-screen flex flex-col justify-center items-center">
-          <Loader2 className="w-12 h-12 text-red-500 animate-spin mb-4" />
-          <p className="text-white/60 animate-pulse">{t('genres.loadingGenre', { genre: genreName })}</p>
+          <Ring aria-hidden="true" className="h-6 w-6 text-ink-faint mb-4" />
+          <p className="text-ink-muted">{t('genres.loadingGenre', { genre: genreName })}</p>
         </div>
-      </SquareBackground>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" mode="combined">
+      <div className="min-h-screen bg-black">
         <div className="min-h-screen flex justify-center items-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-red-500">{t('common.error')}</h1>
-            <p className="mt-2 text-white/60">{error}</p>
+            <h1 className="text-2xl font-semibold text-ink">{t('common.error')}</h1>
+            <p className="mt-2 text-ink-muted">{error}</p>
             <motion.button
-              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => window.location.reload()}
-              className="mt-4 px-6 py-2 bg-red-600 hover:bg-red-500 rounded-full text-white font-medium transition-colors"
+              className="mt-4 h-9 px-6 bg-white text-black rounded-full hover:bg-neutral-200 font-medium transition-colors"
             >
               {t('common.retry')}
             </motion.button>
           </div>
         </div>
-      </SquareBackground>
+      </div>
     );
   }
 
   return (
-    <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" mode="combined">
+    <div className="min-h-screen bg-black">
       <motion.div
         className="min-h-screen pt-24 pb-16 px-4 md:px-8"
         initial={{ opacity: 0 }}
@@ -351,30 +349,28 @@ const GenrePage: React.FC = () => {
           >
             <div className="flex items-center gap-3">
               <motion.button
-                whileHover={{ x: -3 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => navigate(-1)}
-                className="p-2 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all"
+                className="p-2 rounded-lg bg-surface border border-rule hover:bg-raised transition-colors"
               >
-          <ArrowLeft className="w-5 h-5 text-white opacity-70" />
+          <ArrowLeft className="w-5 h-5 text-ink-muted" />
               </motion.button>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl md:text-3xl font-bold">
-                  <ShinyText text={genreName} speed={4} />
+                <h1 className="text-2xl md:text-3xl font-semibold text-ink">
+                  {genreName}
                 </h1>
-                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm text-white/60">
+                <span className="px-3 py-1 rounded-full bg-surface border border-rule text-sm text-ink-muted">
                   {contentTypeLabel}
                 </span>
               </div>
             </div>
 
             <motion.button
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all ${isFilterOpen
-                ? 'bg-red-600 border border-red-500 hover:bg-red-500'
-                : 'bg-white/5 backdrop-blur-md border border-white/10 hover:border-red-500/40 hover:bg-red-500/10'
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-colors border ${isFilterOpen
+                ? 'bg-raised border-control text-white'
+                : 'bg-surface border-rule text-ink-muted hover:bg-raised hover:text-white'
                 }`}
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
               <SlidersHorizontal className="w-4 h-4" />
@@ -386,7 +382,7 @@ const GenrePage: React.FC = () => {
           <AnimatePresence>
             {isFilterOpen && (
               <motion.div
-                className="mb-8 p-5 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10"
+                className="mb-8 p-5 rounded-lg bg-surface"
                 initial={{ opacity: 0, y: -20, height: 0 }}
                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                 exit={{ opacity: 0, y: -20, height: 0 }}
@@ -395,7 +391,7 @@ const GenrePage: React.FC = () => {
                 <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
                   {/* Sort */}
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="flex-1">
-                    <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">{t('genres.sort')}</label>
+                    <label className="block text-xs font-medium text-ink-faint mb-2">{t('genres.sort')}</label>
                     <CustomDropdown
                       options={sortOptions}
                       value={sortBy}
@@ -406,7 +402,7 @@ const GenrePage: React.FC = () => {
 
                   {/* Items per row */}
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex-1">
-                    <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">{t('genres.itemsPerRow')}</label>
+                    <label className="block text-xs font-medium text-ink-faint mb-2">{t('genres.itemsPerRow')}</label>
                     <CustomDropdown
                       options={gridOptions}
                       value={String(resultsPerRow)}
@@ -418,27 +414,25 @@ const GenrePage: React.FC = () => {
                   {/* View toggle */}
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="flex gap-2">
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setViewType('grid')}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${viewType === 'grid'
-                        ? 'bg-red-600 text-white'
-                        : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors ${viewType === 'grid'
+                        ? 'bg-raised border-control text-white'
+                        : 'bg-surface border-rule text-ink-muted hover:bg-raised hover:text-white'
                         }`}
                     >
-                      <LayoutGrid className={`w-4 h-4 transition-[color,opacity] ${(viewType === 'grid' ? "text-white opacity-100" : "text-white opacity-60")}`} />
+                      <LayoutGrid className="w-4 h-4" />
                       <span className="text-sm hidden sm:inline">{t('genres.grid')}</span>
                     </motion.button>
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setViewType('list')}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${viewType === 'list'
-                        ? 'bg-red-600 text-white'
-                        : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors ${viewType === 'list'
+                        ? 'bg-raised border-control text-white'
+                        : 'bg-surface border-rule text-ink-muted hover:bg-raised hover:text-white'
                         }`}
                     >
-                      <List className={`w-4 h-4 transition-[color,opacity] ${(viewType === 'list' ? "text-white opacity-100" : "text-white opacity-60")}`} />
+                      <List className="w-4 h-4" />
                       <span className="text-sm hidden sm:inline">{t('genres.listView')}</span>
                     </motion.button>
                   </motion.div>
@@ -454,7 +448,7 @@ const GenrePage: React.FC = () => {
               mise en page à chaque changement de page. */}
           {loading && content.length === 0 ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="w-8 h-8 text-red-500 animate-spin" />
+              <Ring aria-hidden="true" className="h-6 w-6 text-ink-faint" />
             </div>
           ) : content.length === 0 ? (
             <motion.div
@@ -463,11 +457,10 @@ const GenrePage: React.FC = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <p className="text-lg text-white/60">{t('genres.noContent')}</p>
+              <p className="text-lg text-ink-muted">{t('genres.noContent')}</p>
               <motion.button
-                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="mt-4 px-6 py-2 bg-red-600 hover:bg-red-500 rounded-full text-white font-medium transition-colors"
+                className="mt-4 h-9 px-6 bg-white text-black rounded-full hover:bg-neutral-200 font-medium transition-colors"
                 onClick={() => navigate(-1)}
               >
                 {t('common.back')}
@@ -520,7 +513,7 @@ const GenrePage: React.FC = () => {
           )}
         </div>
       </motion.div>
-    </SquareBackground>
+    </div>
   );
 };
 

@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
-import { Info, Star, Loader2 } from 'lucide-react';
+import { Info, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import CatalogSkeleton from '../components/skeletons/CatalogSkeleton';
 
-import TelegramPromotion from '../components/TelegramPromotion';
-import HeroSlider from '../components/HeroSlider';
-import CinemaHero from '../components/CinemaHero';
+import WhatsAppPromotion from '../components/WhatsAppPromotion';
 import EditorialHero from '../components/EditorialHero';
 import CineHDLoadingScreen from '../components/CineHDLoadingScreen';
 import HomeBackground from '../components/HomeBackground';
@@ -17,7 +15,7 @@ import EmblaCarouselPlatforms from '../components/EmblaCarouselPlatforms';
 import { useWrappedTracker } from '../hooks/useWrappedTracker';
 import { useScrollBackground } from '../hooks/useScrollBackground';
 import LazySection from '../components/LazySection';
-import { SquareBackground } from '../components/ui/square-background';
+import { Ring } from '@/components/ui/loading/ring';
 import { SITE_URL } from '../config/runtime';
 import { getTmdbLanguage } from '../i18n';
 import { getPersonalizedRecommendations, isRecommendationsEnabled, PersonalizedRecommendations } from '../services/recommendationService';
@@ -183,12 +181,11 @@ const homeStyles = `
 
 /* Editorial section heading */
 .section-title {
-  font-family: "Playfair Display", Georgia, serif;
   font-size: clamp(1.55rem, 2.6vw, 2.25rem);
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.05;
   letter-spacing: -0.02em;
-  color: #f7f8f9;
+  color: #ffffff;
   padding-bottom: 0.5rem;
   display: inline-block;
   position: relative;
@@ -201,7 +198,7 @@ const homeStyles = `
   bottom: 0;
   width: 40px;
   height: 1px;
-  background: #c89028;
+  background: #2a2a2a;
   transform-origin: left;
   animation: homeExpandWidth 0.6s ease-out 0.3s backwards;
 }
@@ -927,7 +924,6 @@ const Home: React.FC = () => {
 
   // NOTE perf : l'ancien setInterval de rotation du hero a été supprimé — il pilotait un state
   // (currentHeroIndex) utilisé nulle part et re-rendait tout Home toutes les 6s.
-  // HeroSlider gère déjà son propre autoplay en interne.
 
 
 
@@ -1096,30 +1092,30 @@ const Home: React.FC = () => {
 
   // Memoized carousel titles — must be before any early return (Rules of Hooks)
   const yourHistoryTitle = useMemo(
-    () => <CarouselTitle icon="⏯️" iconClass="text-blue-500" label={t('home.yourHistory')} />,
+    () => <CarouselTitle label={t('home.yourHistory')} />,
     [t]
   );
 
   const trendingTodayTitle = useMemo(
-    () => <CarouselTitle icon="🔥" iconClass="text-red-600" label={t('home.trendingToday')} />,
+    () => <CarouselTitle label={t('home.trendingToday')} />,
     [t]
   );
 
   const usersAlsoWatchedTitle = useMemo(
-    () => <CarouselTitle icon="👥" iconClass="text-green-500" label={t('home.usersAlsoWatched')} />,
+    () => <CarouselTitle label={t('home.usersAlsoWatched')} />,
     [t]
   );
 
   const becauseYouWatchedTitles = useMemo(
     () => (personalizedReco?.becauseYouWatched || []).map((group) =>
-      <CarouselTitle icon="✨" iconClass="text-purple-500" label={t('home.becauseYouWatched', { title: group.title })} />
+      <CarouselTitle label={t('home.becauseYouWatched', { title: group.title })} />
     ),
     [personalizedReco?.becauseYouWatched, t]
   );
 
   const topGenresTitles = useMemo(
     () => (personalizedReco?.topGenres || []).map((group) =>
-      <CarouselTitle icon="🎯" iconClass="text-yellow-500" label={t('home.popularInGenre', { genre: group.genreName })} />
+      <CarouselTitle label={t('home.popularInGenre', { genre: group.genreName })} />
     ),
     [personalizedReco?.topGenres, t]
   );
@@ -1130,7 +1126,7 @@ const Home: React.FC = () => {
   );
 
   const platformsTitle = useMemo(
-    () => <CarouselTitle icon="🎬" iconClass="text-white" label={t('home.streamingPlatforms')} />,
+    () => <CarouselTitle label={t('home.streamingPlatforms')} />,
     [t]
   );
 
@@ -1150,7 +1146,7 @@ const Home: React.FC = () => {
   }
 
   return (
-    <SquareBackground squareSize={48} borderColor="rgba(0, 0, 0, 0)" mode="static" className="w-full min-h-screen bg-transparent text-white">
+    <div className="w-full min-h-screen bg-black text-white">
       <HomeBackground images={HOME_BACKGROUNDS} activeIndex={homeBackgroundIndex} />
       <motion.div
         initial={{ opacity: 0 }}
@@ -1165,7 +1161,7 @@ const Home: React.FC = () => {
             animate={{ opacity: 1 }}
             className="flex items-center justify-center min-h-screen"
           >
-            <Loader2 className="w-12 h-12 text-[#C89028] animate-spin" />
+            <Ring className="h-6 w-6 text-ink-faint" aria-hidden="true" />
           </motion.div>
         ) : (
           <>
@@ -1284,7 +1280,7 @@ const Home: React.FC = () => {
               {!loading && (
                 <div>
                   <div className="home-section">
-                    <TelegramPromotion />
+                    <WhatsAppPromotion />
                   </div>
 
                   {/* Tendances - Lazy loaded (index 3) */}
@@ -1337,7 +1333,7 @@ const Home: React.FC = () => {
                       style={{ zIndex: 11 }}
                     >
                       <div
-                        className="w-full min-h-[400px] h-[65svh] max-h-[700px] bg-cover bg-no-repeat relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+                        className="w-full min-h-[400px] h-[65svh] max-h-[700px] bg-cover bg-no-repeat relative rounded-lg overflow-hidden"
                         style={{
                           backgroundImage: 'url("/apothecary_backdrop.jpg")',
                           backgroundPosition: 'center 30%'
@@ -1349,49 +1345,49 @@ const Home: React.FC = () => {
                           style={{
                             backgroundImage: `linear-gradient(
                               to right,
-                              rgba(15, 23, 42, 0.92) 0%,
-                              rgba(15, 23, 42, 0.58) 28%,
-                              rgba(15, 23, 42, 0.10) 56%,
-                              rgba(15, 23, 42, 0.40) 78%,
-                              rgba(15, 23, 42, 0.84) 100%
+                              rgba(0, 0, 0, 0.92) 0%,
+                              rgba(0, 0, 0, 0.58) 28%,
+                              rgba(0, 0, 0, 0.10) 56%,
+                              rgba(0, 0, 0, 0.40) 78%,
+                              rgba(0, 0, 0, 0.84) 100%
                             )`,
                           }}
                         ></div>
                         <div className="flex items-start justify-center flex-col h-full z-20 relative gap-5 px-6 md:px-12 py-10">
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600/90 border border-red-500/40 text-white text-xs font-semibold uppercase tracking-wider">
-                            🔥 {t('home.teamSelection')}
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-control text-white text-xs font-medium">
+                            {t('home.teamSelection')}
                           </span>
-                          <span className="text-white text-4xl sm:text-5xl font-bold leading-tight">
+                          <span className="text-white text-4xl sm:text-5xl font-semibold leading-tight">
                             {t('home.featuredSpotlightTitle')}
                           </span>
                           <div className="flex flex-row gap-2 items-center flex-wrap">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white/90 text-xs font-medium">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full border border-control text-ink-muted text-xs font-medium">
                               12+
                             </span>
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-semibold">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-control text-accent text-xs font-semibold tabular-nums">
                               <Star className="w-3 h-3 fill-current" />
                               {t('nav.collections') === 'Collections' ? '8.6' : '8,6'}/10
                             </span>
-                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/10 text-white/80 text-xs font-medium">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full border border-control text-ink-muted text-xs font-medium">
                               {t('home.featuredSpotlightGenreAnimation')}
                             </span>
-                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/10 text-white/80 text-xs font-medium">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full border border-control text-ink-muted text-xs font-medium">
                               {t('home.featuredSpotlightGenreComedy')}
                             </span>
-                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/10 text-white/80 text-xs font-medium">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full border border-control text-ink-muted text-xs font-medium">
                               {t('home.featuredSpotlightGenreDrama')}
                             </span>
-                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/10 text-white/80 text-xs font-medium">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full border border-control text-ink-muted text-xs font-medium tabular-nums">
                               24 min / {t('home.perEpisode')}
                             </span>
                           </div>
-                          <p className="text-white/80 my-0 w-full lg:w-2/3 xl:w-1/2 line-clamp-4 leading-relaxed">
+                          <p className="text-ink-muted my-0 w-full lg:w-2/3 xl:w-1/2 line-clamp-4 leading-relaxed">
                             {t('home.featuredSpotlightDescription')}
                           </p>
-                          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                          <motion.div whileTap={{ scale: 0.97 }}>
                             <Link
                               to="/tv/fFFB6OvEJ1NFH93LdfdR0Svt2TsSUhSZBmdU2a"
-                              className="inline-flex items-center gap-2 bg-white hover:bg-white/90 text-black px-6 md:px-7 py-3 rounded-2xl font-semibold transition-colors shadow-lg"
+                              className="inline-flex items-center gap-2 bg-white hover:bg-neutral-200 text-black px-6 md:px-7 py-3 rounded-full font-semibold transition-colors"
                             >
                               <Info className="w-5 h-5" />
                               {t('home.viewDetails')}
@@ -1445,7 +1441,7 @@ const Home: React.FC = () => {
         onConfirm={confirmContinueWatchingRemoval}
         onCancel={() => setContinueWatchingRemoval(null)}
       />
-    </SquareBackground>
+    </div>
   );
 };
 

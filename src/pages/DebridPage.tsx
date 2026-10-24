@@ -29,7 +29,7 @@ import { SquareBackground } from '../components/ui/square-background';
 import ShinyText from '../components/ui/shiny-text';
 import AnimatedBorderCard from '../components/ui/animated-border-card';
 import { Button } from '../components/ui/button';
-import { BESTDEBRID_API_BASE, MAIN_API } from '../config/runtime';
+import { MAIN_API } from '../config/runtime';
 import { getVipHeaders } from '../utils/vipUtils';
 import { getDebridProviders, unlockDebridLink } from '@/services/debridService';
 import { isDebridProvider, selectAvailableDebridProvider } from '@/utils/debridProviders';
@@ -106,43 +106,6 @@ const getStringValue = (value: unknown): string =>
 const getNumberValue = (value: unknown): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : 0;
 
-const parseHumanReadableSize = (value: unknown): number => {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value !== 'string') {
-    return 0;
-  }
-
-  const normalized = value.trim().replace(',', '.');
-  const match = normalized.match(/^(\d+(?:\.\d+)?)\s*([KMGTP]?i?B)$/i);
-  if (!match) {
-    return 0;
-  }
-
-  const amount = Number.parseFloat(match[1]);
-  if (!Number.isFinite(amount)) {
-    return 0;
-  }
-
-  const unit = match[2].toUpperCase();
-  const multipliers: Record<string, number> = {
-    KB: 1000,
-    MB: 1000 ** 2,
-    GB: 1000 ** 3,
-    TB: 1000 ** 4,
-    PB: 1000 ** 5,
-    KIB: 1024,
-    MIB: 1024 ** 2,
-    GIB: 1024 ** 3,
-    TIB: 1024 ** 4,
-    PIB: 1024 ** 5,
-  };
-
-  return Math.round(amount * (multipliers[unit] || 0));
-};
-
 const getHostnameFromUrl = (value: string): string => {
   try {
     return new URL(value).hostname.replace(/^www\./i, '');
@@ -177,26 +140,6 @@ const extractDebridErrorMessage = (payload: unknown): string | null => {
   }
 
   return null;
-};
-
-const getBestDebridCandidate = (payload: unknown): Record<string, unknown> | null => {
-  if (Array.isArray(payload)) {
-    return payload.find(isRecord) ?? null;
-  }
-
-  if (!isRecord(payload)) {
-    return null;
-  }
-
-  if (Array.isArray(payload.data)) {
-    return payload.data.find(isRecord) ?? null;
-  }
-
-  if (isRecord(payload.data)) {
-    return payload.data;
-  }
-
-  return payload;
 };
 
 interface DebridHistoryItem {
@@ -301,50 +244,20 @@ const DebridPage: React.FC = () => {
     return () => controller.abort();
   }, [isVip]);
 
-  const fetchBestDebridApiKey = useCallback(async (): Promise<string> => {
-    let payload: unknown = null;
-    let response: Response;
-
-    try {
-      response = await fetch(`${MAIN_API}/api/debrid/bestdebrid-key`, {
-        method: 'GET',
-        headers: getVipHeaders(),
-        cache: 'no-store',
-      });
-    } catch {
-      throw new Error(t('debrid.bestdebridConfigRequestFailed'));
-    }
-
-    try {
-      payload = await response.json();
-    } catch {
-      payload = null;
-    }
-
-    if (!response.ok) {
-      throw new Error(extractDebridErrorMessage(payload) || t('debrid.bestdebridConfigRequestFailed'));
-    }
-
-    if (!isRecord(payload) || payload.success !== true || typeof payload.apiKey !== 'string' || !payload.apiKey.trim()) {
-      throw new Error(t('debrid.bestdebridMissingKey'));
-    }
-
-    return payload.apiKey.trim();
-  }, [t]);
-
   const unlockWithBestDebrid = useCallback(async (targetUrl: string): Promise<DebridResult> => {
-    const apiKey = await fetchBestDebridApiKey();
-
-    const endpoint = new URL(`${BESTDEBRID_API_BASE}/generateLink`);
-    endpoint.searchParams.set('auth', apiKey);
-    endpoint.searchParams.set('link', targetUrl);
-
+    // La clé API BestDebrid ne quitte plus le backend : le lien est généré par
+    // /api/debrid/generate côté serveur (la clé n'était exposée qu'aux VIP).
     let payload: unknown = null;
     let response: Response;
 
     try {
-      response = await fetch(endpoint.toString(), {
-        method: 'GET',
+      response = await fetch(`${MAIN_API}/api/debrid/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getVipHeaders(),
+        },
+        body: JSON.stringify({ link: targetUrl }),
         cache: 'no-store',
       });
     } catch {
@@ -361,33 +274,20 @@ const DebridPage: React.FC = () => {
       throw new Error(extractDebridErrorMessage(payload) || t('debrid.bestdebridRequestFailed'));
     }
 
-    const candidate = getBestDebridCandidate(payload);
-    if (!candidate) {
+    if (!isRecord(payload) || typeof payload.link !== 'string' || !payload.link.trim()) {
       throw new Error(t('debrid.bestdebridInvalidResponse'));
     }
 
-    const originalLink = getStringValue(candidate.original_link);
-    const sourceLink = getStringValue(candidate.link);
-    const directLink = (
-      sourceLink &&
-      sourceLink !== targetUrl &&
-      (!originalLink || sourceLink !== originalLink)
-    )
-      ? sourceLink
-      : getStringValue(candidate.download) || getStringValue(candidate.streammp4);
-
-    if (!directLink) {
-      throw new Error(t('debrid.bestdebridInvalidResponse'));
-    }
+    const directLink = payload.link.trim();
 
     return {
       link: directLink,
-      filename: getStringValue(candidate.filename) || getFilenameFromUrl(directLink) || getFilenameFromUrl(targetUrl) || 'download.bin',
-      filesize: getNumberValue(candidate.filesize) || parseHumanReadableSize(candidate.size),
-      host: getStringValue(candidate.hoster) || getStringValue(candidate.host) || getHostnameFromUrl(targetUrl) || getHostnameFromUrl(directLink),
+      filename: getStringValue(payload.filename) || getFilenameFromUrl(directLink) || getFilenameFromUrl(targetUrl) || 'download.bin',
+      filesize: getNumberValue(payload.filesize),
+      host: getStringValue(payload.host) || getHostnameFromUrl(targetUrl) || getHostnameFromUrl(directLink),
       provider: 'bestdebrid',
     };
-  }, [fetchBestDebridApiKey, t]);
+  }, [t]);
 
   const handleDebrid = useCallback(async (linkToDebrid?: string, providerOverride?: DebridProvider) => {
     const targetUrl = (linkToDebrid || url).trim();

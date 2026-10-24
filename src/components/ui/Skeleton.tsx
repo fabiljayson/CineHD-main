@@ -39,9 +39,11 @@ const variantStyle: Record<Variant, React.CSSProperties | undefined> = {
 // Couleurs par défaut alignées sur le thème sombre du site (body bg = #000).
 // Sans ça, react-loading-skeleton utilise #ebebeb / #f5f5f5 (presque blanc) →
 // effet "flash blanc" pendant le scroll quand des sections se chargent.
+// Règle maison true-black-flat : highlight == base (aucun shimmer, même quand
+// l'animation est activée par la préférence utilisateur).
 // Override possible via les props baseColor / highlightColor au cas par cas.
 const DARK_BASE = '#1a1a1a';
-const DARK_HIGHLIGHT = '#2a2a2a';
+const DARK_HIGHLIGHT = '#1a1a1a';
 
 export const Skeleton: React.FC<SkeletonProps> = ({
   variant = 'default',

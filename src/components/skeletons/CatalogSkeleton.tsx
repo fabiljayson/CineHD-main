@@ -17,12 +17,12 @@ const DiscoveryRowSkeleton = ({ platforms = false }: { platforms?: boolean }) =>
     <div className="overflow-hidden">
       <div className={`flex pl-4 md:pl-6 ${platforms ? 'gap-6 pr-8 md:pr-16 py-8' : 'gap-4 md:gap-6 pr-4 md:pr-6 py-4'}`}>
         {Array.from({ length: 8 }, (_, index) => (
-          <div key={index} className={`flex-none relative rounded-xl overflow-hidden ${platforms ? 'w-[250px] h-[150px]' : 'w-[180px] h-[100px] md:w-[220px] md:h-[120px]'}`}>
-            <Skeleton height="100%" className="!rounded-xl" />
+          <div key={index} className={`flex-none relative rounded-lg overflow-hidden ${platforms ? 'w-[250px] h-[150px]' : 'w-[180px] h-[100px] md:w-[220px] md:h-[120px]'}`}>
+            <Skeleton height="100%" className="!rounded-lg" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <Skeleton width={platforms ? 110 : 90} height={platforms ? 40 : 24} baseColor="#2a2a2a" highlightColor="#333" />
+              <Skeleton width={platforms ? 110 : 90} height={platforms ? 40 : 24} baseColor="#2a2a2a" highlightColor="#2a2a2a" />
             </div>
-            {platforms && <div className="absolute bottom-2 inset-x-4"><Skeleton height={24} className="!rounded-lg" baseColor="#2a2a2a" highlightColor="#333" /></div>}
+            {platforms && <div className="absolute bottom-2 inset-x-4"><Skeleton height={24} className="!rounded-lg" baseColor="#2a2a2a" highlightColor="#2a2a2a" /></div>}
           </div>
         ))}
       </div>

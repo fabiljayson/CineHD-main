@@ -16,6 +16,7 @@ import { ADMIN_BYPASS_TOKEN } from '../utils/turnstileBypass';
 import { getOverlayPortalRoot } from '@/utils/overlayPortal';
 import { Skeleton } from './ui/Skeleton';
 import { TURNSTILE_SITE_KEY } from '../utils/turnstileKeys';
+import { SUPPORT_WHATSAPP_URL } from '../config/support';
 
 const MAIN_API = import.meta.env.VITE_MAIN_API;
 
@@ -1878,12 +1879,12 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ contentType, contentI
                 {t('comments.requestPage')}
               </Link>
               <a
-                href="https://t.me/ix_annonces"
+                href={SUPPORT_WHATSAPP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
               >
-                Telegram
+                WhatsApp
                 <ExternalLink className="w-4 h-4" />
               </a>
             </div>

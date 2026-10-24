@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { Loader, ChevronRight, Film, Tv } from 'lucide-react';
+import { ChevronRight, Film, Tv } from 'lucide-react';
+import { Ring } from '@/components/ui/loading/ring';
 
 import HeroSlider from '../components/HeroSlider';
 import CarouselTitle from '../components/CarouselTitle';
@@ -54,28 +55,19 @@ const sliderStyles = `
 }
 
 .section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   position: relative;
-  background: linear-gradient(90deg, #ffffff, #e2e2e2);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.5px;
+  color: #ffffff;
+  letter-spacing: 0;
   padding-bottom: 0.5rem;
-  text-transform: uppercase;
   display: inline-block;
   animation: fadeInTitle 0.8s ease-out forwards;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
 }
 
 .section-title:hover {
-  background: linear-gradient(90deg, #ff3333, #ff9999);
-  -webkit-background-clip: text;
-  background-clip: text;
-  transform: translateY(-2px);
-  text-shadow: 0px 4px 8px rgba(255, 51, 51, 0.4);
+  color: #b4b4b4;
 }
 
 @keyframes fadeInTitle {
@@ -89,17 +81,12 @@ const sliderStyles = `
   left: 0;
   bottom: 0;
   width: 40px;
-  height: 3px;
-  background: linear-gradient(90deg, #f11 0%, #f66 100%);
-  border-radius: 3px;
+  height: 2px;
+  background: #1a1a1a;
+  border-radius: 2px;
   animation: expandWidth 0.6s ease-out forwards 0.3s;
   transform-origin: left;
-  transition: all 0.3s ease;
-}
-
-.section-title:hover::after {
-  width: 100%;
-  background: linear-gradient(90deg, #ff3333, #ff9999);
+  transition: width 0.3s ease;
 }
 
 @keyframes expandWidth {
@@ -114,125 +101,6 @@ const sliderStyles = `
   overflow: visible !important;
   position: relative;
   z-index: 1;
-}
-
-.poster-row {
-  display: flex;
-  gap: 10px;
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  padding: 5rem 0.5rem;
-  margin: -5rem -0.5rem;
-  overflow-x: auto !important;
-  overflow-y: visible !important;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  position: relative;
-  z-index: 5;
-}
-
-.poster-row::-webkit-scrollbar {
-  display: none;
-}
-
-.poster-row.no-scroll {
-  overflow: hidden !important;
-}
-
-.poster-container {
-  position: relative;
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  margin: 0;
-  flex-shrink: 0;
-  z-index: 10;
-  overflow: visible;
-  padding: 0;
-}
-
-.poster-container:hover {
-  z-index: 50;
-  overflow: visible;
-  transform: translateZ(0);
-}
-
-.poster-container:hover ~ .poster-container {
-  transform: translateX(0);
-}
-
-.poster-card {
-  position: relative;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  transform-origin: 0% 0%;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  overflow: visible;
-  cursor: pointer;
-  z-index: 10;
-  margin-bottom: 3rem;
-  margin-top: 1rem;
-}
-
-.poster-card:hover {
-  transform: scale(1.5);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  overflow: visible;
-  transform-style: preserve-3d;
-  position: relative;
-}
-
-.poster-container:has(.poster-card:hover) ~ .poster-container {
-  transform: translateX(100px);
-}
-
-.poster-container:hover ~ .poster-container {
-  transition-delay: 0.12s;
-  transform: translateX(100px);
-}
-
-.poster-card .hover-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #141414;
-  opacity: 0;
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  transition: opacity 0.3s ease;
-  overflow: hidden;
-}
-
-.poster-card:hover .hover-content {
-  opacity: 1;
-}
-
-.poster-card:hover img.poster {
-  opacity: 0;
-}
-
-.card-buttons {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  align-items: center;
-}
-
-.card-buttons a {
-  transition: transform 0.2s ease;
-}
-
-.card-buttons a:hover {
-  transform: scale(1.2);
-}
-
-.top-content-row {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding-left: 64px;
-  padding-right: 64px;
-  gap: 15px;
 }
 
 /* Provider navigation tabs */
@@ -262,19 +130,18 @@ const sliderStyles = `
 }
 
 .provider-tab.active {
-  background: linear-gradient(135deg, #e50914, #b20710);
-  color: white;
-  box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+  background: #2a2a2a;
+  color: #ffffff;
 }
 
 .provider-tab:not(.active) {
-  color: #aaa;
-  background: rgba(255, 255, 255, 0.08);
+  color: #b4b4b4;
+  background: #111111;
 }
 
 .provider-tab:not(.active):hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  background: #2a2a2a;
 }
 
 @media (max-width: 767px) {
@@ -317,19 +184,19 @@ const sliderStyles = `
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  color: #999;
+  color: #b4b4b4;
   font-size: 0.85rem;
   font-weight: 500;
   padding: 0.4rem 0.8rem;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #111111;
   transition: all 0.2s ease;
   margin-left: 1rem;
 }
 
 .see-all-btn:hover {
-  color: #fff;
-  background: rgba(229, 9, 20, 0.3);
+  color: #ffffff;
+  background: #2a2a2a;
 }
 
 .category-header {
@@ -1160,7 +1027,7 @@ const ProviderContent: React.FC = () => {
   }, [hoveredCategoryItemsMap]);
 
   const trendingTitle = useMemo(
-    () => <CarouselTitle icon="🔥" iconClass="text-red-600" label={t('providerCatalog.todayTrends')} />,
+    () => <CarouselTitle label={t('providerCatalog.todayTrends')} />,
     [t]
   );
 
@@ -1171,10 +1038,10 @@ const ProviderContent: React.FC = () => {
 
         {loading ? (
           <div className="flex justify-center items-center h-screen">
-            <Loader className="animate-spin text-red-600" size={48} />
+            <Ring aria-hidden="true" className="h-12 w-12 text-ink-faint" />
           </div>
         ) : error ? (
-          <div className="text-center text-red-500 mt-24 pt-16">{error}</div>
+          <div className="text-center text-negative mt-24 pt-16">{error}</div>
         ) : (
           <div className="pb-12 -mt-8">
             {/* Featured Content/Hero Banner */}
@@ -1199,10 +1066,10 @@ const ProviderContent: React.FC = () => {
             {showSearch && searchQuery && (
               <div className="container mx-auto px-4 mt-6">
                 <div className="mt-24 pt-4">
-                  <h2 className="text-xl font-bold mb-4">{t('providerCatalog.searchResultsFor', { query: searchQuery })}</h2>
+                  <h2 className="text-xl font-semibold mb-4">{t('providerCatalog.searchResultsFor', { query: searchQuery })}</h2>
                   {isSearching ? (
                     <div className="flex justify-center py-8">
-                      <Loader className="animate-spin" />
+                      <Ring aria-hidden="true" className="h-5 w-5 text-ink-faint" />
                     </div>
                   ) : searchResults.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -1217,7 +1084,7 @@ const ProviderContent: React.FC = () => {
                             <img
                               src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
                               alt={item.title || item.name}
-                              className="w-full h-auto rounded-md transition-transform duration-300 group-hover:scale-105"
+                              className="w-full h-auto rounded-md transition-[filter] duration-300 group-hover:brightness-[1.08]"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.onerror = null;
@@ -1225,17 +1092,17 @@ const ProviderContent: React.FC = () => {
                               }}
                             />
                           ) : (
-                            <div className="w-full aspect-[2/3] bg-gray-800 rounded-md flex items-center justify-center">
-                              <span className="text-gray-400">{item.title || item.name || 'No image'}</span>
+                            <div className="w-full aspect-[2/3] bg-[#1a1a1a] rounded-md flex items-center justify-center">
+                              <span className="text-ink-faint">{item.title || item.name || 'No image'}</span>
                             </div>
                           )}
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 rounded-md">
                             <div>
-                              <h3 className="text-lg font-bold">{item.title || item.name}</h3>
-                              <div className="mt-2 text-sm">
+                              <h3 className="text-lg font-semibold">{item.title || item.name}</h3>
+                              <div className="mt-2 text-sm tabular-nums">
                                 {t('providerCatalog.rating')}: {item.vote_average?.toFixed(1)}/10
                               </div>
-                              <div className="mt-1 text-sm text-gray-300">
+                              <div className="mt-1 text-sm text-ink-muted">
                                 {item.media_type === 'movie' ? t('providerCatalog.filmLabel') : t('providerCatalog.seriesLabel')}
                               </div>
                             </div>
@@ -1245,7 +1112,7 @@ const ProviderContent: React.FC = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-gray-400">
+                    <div className="text-center py-8 text-ink-faint">
                       {t('providerCatalog.noResultsFor', { query: searchQuery })}
                     </div>
                   )}

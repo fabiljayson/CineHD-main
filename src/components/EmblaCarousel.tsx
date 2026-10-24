@@ -165,7 +165,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
         }}
       />
       {!loaded && (
-        <div className="absolute inset-0 bg-gray-900" aria-hidden="true" />
+        <div className="absolute inset-0 bg-surface" aria-hidden="true" />
       )}
     </div>
   );
@@ -314,18 +314,18 @@ export const CarouselCard = React.memo<{
       }}
     >
       <div
-        className={`${renderContent ? 'carousel-card' : ''} ${palette ? 'media-color-card' : ''} h-full relative group rounded-xl overflow-hidden bg-white/5 border border-white/10 hover:border-white/20 transition-[transform,background-color,border-color] duration-200 ease-out`}
+        className={`${renderContent ? 'carousel-card' : ''} ${palette ? 'media-color-card' : ''} h-full relative group rounded-lg overflow-hidden bg-surface transition-transform duration-200 ease-out hover:brightness-110`}
         style={palette?.style}
       >
         {renderContent && <>
         {/* Type badge */}
-        {!preview?.customImage && <span className="absolute top-2 left-2 z-10 px-2 py-1 rounded-lg bg-black/75 text-[10px] font-semibold uppercase tracking-wider text-white/80">
+        {!preview?.customImage && <span className="absolute top-2 left-2 z-10 px-2 py-1 rounded-md bg-black/70 text-[10px] font-medium text-white/80">
           {typeLabel}
         </span>}
 
         {/* Episode badge for history TV items */}
         {isHistory && 'currentEpisode' in item && item.currentEpisode && item.media_type === 'tv' && (
-          <span className="absolute top-9 left-2 z-10 px-2 py-1 rounded-lg bg-red-600 text-[10px] font-semibold tracking-wider text-white">
+          <span className="absolute top-9 left-2 z-10 px-2 py-1 rounded-md bg-black/70 border border-white/10 text-[10px] font-medium tabular-nums text-white/90">
             S{item.currentEpisode.season}:E{item.currentEpisode.episode}
           </span>
         )}
@@ -343,7 +343,7 @@ export const CarouselCard = React.memo<{
             }}
             title={t('common.deleteAll')}
             aria-label={t('common.deleteAll')}
-            className="absolute top-2 right-2 z-20 p-2 rounded-full bg-red-600/95 hover:bg-red-600 active:scale-[0.85] text-white transition-[colors,transform] duration-150"
+            className="absolute top-2 right-2 z-20 p-2 rounded-full bg-black/70 hover:bg-negative active:scale-[0.85] text-white transition-[background-color,transform] duration-150"
           >
             <Trash className="w-3.5 h-3.5" />
           </button>
@@ -354,7 +354,7 @@ export const CarouselCard = React.memo<{
             title={preview ? undefined : starred ? t('profile.removeFromWatchlist') : t('profile.addToWatchlist')}
             aria-label={preview ? undefined : starred ? t('profile.removeFromWatchlist') : t('profile.addToWatchlist')}
             aria-hidden={preview ? true : undefined}
-            className={`absolute top-2 right-2 z-20 p-2 rounded-full active:scale-[0.7] transition-[opacity,background-color,transform] duration-200 ${hoverVisibility} ${starred ? 'bg-yellow-500/40 border border-yellow-400/50' : 'bg-black/65 hover:bg-black/80'}`}
+            className={`absolute top-2 right-2 z-20 p-2 rounded-full active:scale-[0.7] transition-[opacity,background-color,transform] duration-200 ${hoverVisibility} ${starred ? 'bg-white hover:bg-neutral-200' : 'bg-black/65 hover:bg-black/80'}`}
           >
             {/* initial={false} : pas de spring au mount (jusqu'à 30 cards par row révélée
                 au scroll) ; le pop ne joue qu'au passage à starred via les keyframes */}
@@ -364,7 +364,7 @@ export const CarouselCard = React.memo<{
               transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             >
               <Star
-                className={`w-4 h-4 transition-colors duration-150 ${starred ? 'text-yellow-400' : 'text-white'}`}
+                className={`w-4 h-4 transition-colors duration-150 ${starred ? 'text-black' : 'text-white'}`}
                 fill={starred ? 'currentColor' : 'none'}
               />
             </motion.div>
@@ -377,7 +377,7 @@ export const CarouselCard = React.memo<{
           <LazyImage
             {...posterImage}
             alt={title || t('common.poster')}
-            className="rounded-xl w-full h-full"
+            className="rounded-lg w-full h-full"
             placeholder={POSTER_FALLBACK}
             priority={priority}
             customImage={preview?.customImage}
@@ -402,7 +402,7 @@ export const CarouselCard = React.memo<{
         <div className={`absolute bottom-0 left-0 right-0 p-3 ${hoverVisibility} ${preview?.focused ? '' : 'md:translate-y-2 md:group-hover:translate-y-0 md:group-has-[:focus-visible]:translate-y-0'} transition-[opacity,transform] duration-300 pointer-events-none`}>
           {/* Le titre reste lisible pendant le chargement ou si le logo échoue. */}
           <div className="relative mb-1.5 h-7">
-            <h3 className={`absolute bottom-0 left-0 w-full text-sm font-bold text-white line-clamp-1 transition-opacity duration-200 ease-[ease] ${isLogoReady ? 'opacity-0' : 'opacity-100'}`}>
+            <h3 className={`absolute bottom-0 left-0 w-full text-sm font-medium text-white line-clamp-1 transition-opacity duration-200 ease-[ease] ${isLogoReady ? 'opacity-0' : 'opacity-100'}`}>
               {title}
             </h3>
             <div aria-hidden="true" className={`absolute inset-0 flex items-end transition-opacity duration-200 ease-[ease] ${isLogoReady ? 'opacity-100' : 'opacity-0'}`}>
@@ -423,8 +423,8 @@ export const CarouselCard = React.memo<{
           <div className="flex items-center gap-2 mb-1">
             {item.vote_average ? (
               <div className="flex items-center gap-1">
-                <Star className="w-3 h-3 text-yellow-400" />
-                <span className="text-xs text-white/80">
+                <Star className="w-3 h-3 text-accent" />
+                <span className="text-xs text-white/80 tabular-nums">
                   {item.vote_average.toFixed(1)}
                 </span>
               </div>
@@ -432,7 +432,7 @@ export const CarouselCard = React.memo<{
             {year && (
               <div className="flex items-center gap-1">
             <Calendar className="w-3 h-3 text-white opacity-60" />
-                <span className="media-card-muted text-xs text-white/60">{year}</span>
+                <span className="media-card-muted text-xs text-white/60 tabular-nums">{year}</span>
               </div>
             )}
           </div>
@@ -443,11 +443,11 @@ export const CarouselCard = React.memo<{
           )}
         </div>
 
-        {/* Progress bar for history items */}
+        {/* The signature: viewer progress as a gold rule at the poster foot */}
         {isHistory && progressData.percentage > 0 && (
-          <div className="absolute left-0 right-0 bottom-0 h-1 bg-black/50 overflow-hidden rounded-b-xl z-10">
+          <div className="absolute left-0 right-0 bottom-0 h-0.5 bg-black/60 overflow-hidden rounded-b-lg z-10">
             <div
-              className="h-full bg-red-600"
+              className="h-full bg-accent"
               style={{ width: `${progressData.percentage}%` }}
             />
           </div>
@@ -745,7 +745,7 @@ const EmblaCarousel: React.FC<EmblaCarouselProps> = ({
             {onViewAll && (
               <button
                 onClick={onViewAll}
-                className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-gray-300 hover:text-white bg-gray-800/50 hover:bg-gray-700/70 rounded-full transition-all duration-200 border border-gray-700/50 hover:border-gray-600"
+                className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-ink-muted hover:text-ink bg-surface hover:bg-raised rounded-full transition-colors border border-rule hover:border-control"
               >
                 <span>{t('common.viewAll')}</span>
                 <ChevronRight className="w-3 h-3" />
@@ -755,7 +755,7 @@ const EmblaCarousel: React.FC<EmblaCarouselProps> = ({
           {isHistory && onRemoveAll && limitedItems.length > 0 && (
             <button
               onClick={onRemoveAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-700/80 hover:bg-red-700 text-white text-xs font-medium rounded-full transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-surface hover:bg-raised text-negative text-xs font-medium rounded-full transition-colors border border-rule hover:border-negative"
               aria-label="Supprimer tout"
             >
               <Trash2 className="w-3.5 h-3.5" />

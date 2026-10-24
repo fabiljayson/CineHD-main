@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, X } from "lucide-react";
 import { getOverlayPortalRoot } from "../utils/overlayPortal";
+import { SUPPORT_WHATSAPP_URL, SUPPORT_WHATSAPP_DISPLAY } from '../config/support';
 
 const DonButton: React.FC = () => {
   const { t } = useTranslation();
@@ -160,17 +161,14 @@ const DonButton: React.FC = () => {
                   <p className="text-sm text-gray-400 mb-2">{t('donate.recoverVipAfterDonation')}</p>
                   <div className="space-y-2">
                     <p className="text-sm">
-                      📱 <span className="font-medium">Discord:</span> mysticsaba_alt
-                    </p>
-                    <p className="text-sm">
-                      📱 <span className="font-medium">Telegram:</span>{" "}
+                      📱 <span className="font-medium">WhatsApp:</span>{" "}
                       <a
-                        href="https://t.me/ix_annonces"
+                        href={SUPPORT_WHATSAPP_URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-400 hover:text-blue-300 underline transition-colors"
+                        className="text-emerald-400 hover:text-emerald-300 underline transition-colors"
                       >
-                        t.me/ix_annonces
+                        {SUPPORT_WHATSAPP_DISPLAY}
                       </a>
                     </p>
                   </div>

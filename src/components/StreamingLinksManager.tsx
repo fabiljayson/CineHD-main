@@ -19,6 +19,7 @@ import {
   addDownloadLinks,
   deleteDownloadLink,
 } from '@/services/downloadLinksService';
+import { SUPPORT_WHATSAPP_DISPLAY } from '../config/support';
 
 interface MovieResult {
   id: number;
@@ -809,9 +810,8 @@ const StreamingLinksManager: React.FC = () => {
                   <strong>Nettoyez :</strong> supprimez vos propres liens morts ou périmés.
                 </li>
                 <li>
-                  <strong>Une question / un doute ?</strong> MP&nbsp;: Discord{' '}
-                  <span className="font-mono text-amber-200">mysticsaba_alt</span> · Telegram{' '}
-                  <span className="font-mono text-amber-200">MysticSaba</span>.
+                  <strong>Une question / un doute ?</strong> MP&nbsp;: WhatsApp{' '}
+                  <span className="font-mono text-amber-200">{SUPPORT_WHATSAPP_DISPLAY}</span>.
                 </li>
               </ul>
               </div>

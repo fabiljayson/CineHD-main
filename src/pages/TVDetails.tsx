@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import axios from 'axios';
-import { Loader, Video, Star, Calendar, List, Check, FolderPlus, ChevronRight, AlertTriangle, Play, X, MapPin, Languages, Building, ArrowLeft, Image, Download, Shield, EyeOff, MessageSquare, Archive, CheckCircle, Info } from 'lucide-react';
+import { Video, Star, Calendar, List, Check, FolderPlus, ChevronRight, AlertTriangle, Play, X, MapPin, Languages, Building, ArrowLeft, Image, Download, Shield, EyeOff, MessageSquare, Archive, CheckCircle, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
@@ -53,6 +53,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { useImageQuality, useImageViewport } from '../hooks/useImageQuality';
 import { useImageSlot } from '../hooks/useImageSlot';
 import { getCoverImageWidth, getTmdbImageProps, getTmdbImageUrl } from '../utils/tmdbImages';
+import { Ring } from '@/components/ui/loading/ring';
 import { readLocalStorage } from '../utils/browserStorage';
 
 const MAIN_API = import.meta.env.VITE_MAIN_API;
@@ -236,14 +237,14 @@ const LazyTVImage = ({ src, srcSet, sizes, alt, className, onLoad }: {
   return (
     <div ref={imgRef} className={className}>
       {!isInView ? (
-        <div className="w-full h-full bg-gray-800 animate-pulse flex items-center justify-center">
-          <Image className="w-8 h-8 text-gray-600" />
+        <div className="w-full h-full bg-[#1a1a1a] flex items-center justify-center">
+          <Image className="w-8 h-8 text-ink-faint" />
         </div>
       ) : (
         <>
           {!isLoaded && (
-            <div className="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center">
-              <Image className="w-8 h-8 text-gray-600" />
+            <div className="absolute inset-0 bg-[#1a1a1a] flex items-center justify-center">
+              <Image className="w-8 h-8 text-ink-faint" />
             </div>
           )}
           <img
@@ -528,7 +529,7 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
     <div className="mb-8">
       <motion.button
         onClick={handleToggleImages}
-        className="flex items-center gap-3 text-xl font-bold text-white hover:text-blue-400 transition-colors"
+        className="flex items-center gap-3 text-xl font-semibold text-white hover:opacity-80 transition-opacity"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
@@ -554,7 +555,7 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
           >
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader className="w-8 h-8 animate-spin text-blue-400" />
+                <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
               </div>
             ) : images ? (
               <div>
@@ -571,14 +572,14 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
                         role="tab"
                         aria-selected={isActive}
                         onClick={() => setSelectedCategory(category)}
-                        className={`relative flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60 ${
-                          isActive ? 'text-white' : 'text-gray-400 hover:text-white'
+                        className={`relative flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
+                          isActive ? 'text-white' : 'text-ink-muted hover:text-white'
                         }`}
                       >
                         {isActive && (
                           <motion.div
                             layoutId="tv-images-tabs-indicator"
-                            className="absolute inset-0 bg-red-600 rounded-lg shadow-sm shadow-red-600/30"
+                            className="absolute inset-0 bg-raised"
                             transition={{ type: 'spring', bounce: 0.15, duration: 0.45 }}
                           />
                         )}
@@ -599,8 +600,8 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
                             </svg>
                           )}
                           <span>{t(labelKey)}</span>
-                          <span className={`text-[11px] leading-none px-1.5 py-0.5 rounded-full font-semibold ${
-                            isActive ? 'bg-white/25 text-white' : 'bg-gray-800/70 text-gray-400'
+                          <span className={`text-[11px] leading-none px-1.5 py-0.5 rounded-full font-medium tabular-nums ${
+                            isActive ? 'bg-white/25 text-white' : 'bg-raised text-ink-muted'
                           }`}>
                             {getCategoryCount(category)}
                           </span>
@@ -615,12 +616,12 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
                   <div className="relative mb-6 language-dropdown">
                     <motion.button
                       onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                      className="flex items-center justify-between w-full md:w-64 px-4 py-3 bg-gray-800/70 hover:bg-gray-700/70 rounded-xl border border-gray-600/50 text-white transition-all duration-200 backdrop-blur-sm"
+                      className="flex items-center justify-between w-full md:w-64 px-4 py-3 bg-surface hover:bg-raised rounded-lg border border-control text-white transition-colors"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <div className="flex items-center gap-3">
-                        <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-4 h-4 text-ink-faint" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389c-.188-.196-.373-.396-.554-.6a19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.89c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 5.982a.869.869 0 01.02.037l.99 1.98a1 1 0 11-1.79.895L15.383 16h-4.764l-.724 1.447a1 1 0 11-1.788-.894l.99-1.98.019-.038 2.99-5.982A1 1 0 0113 8zm-1.382 6h2.764L13 11.236 11.618 14z" clipRule="evenodd" />
                         </svg>
                         <span className="font-medium">
@@ -651,7 +652,7 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -10, scale: 0.95 }}
                           transition={{ duration: 0.2 }}
-                          className="absolute left-0 md:left-0 w-full md:w-64 mt-2 bg-gray-800/95 backdrop-blur-md rounded-xl border border-gray-600/50 shadow-2xl z-[9999] overflow-hidden max-h-64 overflow-y-auto"
+                          className="absolute left-0 md:left-0 w-full md:w-64 mt-2 bg-raised rounded-lg border border-control z-[9999] overflow-hidden max-h-64 overflow-y-auto"
                         >
                           <div className="py-2">
                             <motion.button
@@ -659,12 +660,12 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
                                 setSelectedLanguage('all');
                                 setShowLanguageDropdown(false);
                               }}
-                              className={`w-full px-4 py-3 text-left hover:bg-gray-700/50 transition-colors flex items-center justify-between ${selectedLanguage === 'all' ? 'bg-blue-600/20 text-blue-400' : 'text-gray-300'
+                              className={`w-full px-4 py-3 text-left hover:bg-white/5 transition-colors flex items-center justify-between ${selectedLanguage === 'all' ? 'bg-white/10 text-white' : 'text-ink-muted'
                                 }`}
                               whileHover={{ x: 4 }}
                             >
                               <span>{t('details.allLanguages')}</span>
-                              <span className="text-xs bg-gray-600/50 px-2 py-1 rounded-full">
+                              <span className="text-xs tabular-nums bg-white/10 px-2 py-1 rounded-full">
                                 {images?.[selectedCategory]?.length || 0}
                               </span>
                             </motion.button>
@@ -675,12 +676,12 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
                                   setSelectedLanguage(langCode);
                                   setShowLanguageDropdown(false);
                                 }}
-                                className={`w-full px-4 py-3 text-left hover:bg-gray-700/50 transition-colors flex items-center justify-between ${selectedLanguage === langCode ? 'bg-blue-600/20 text-blue-400' : 'text-gray-300'
+                                className={`w-full px-4 py-3 text-left hover:bg-white/5 transition-colors flex items-center justify-between ${selectedLanguage === langCode ? 'bg-white/10 text-white' : 'text-ink-muted'
                                   }`}
                                 whileHover={{ x: 4 }}
                               >
                                 <span>{getLanguageDisplayName(langCode)}</span>
-                                <span className="text-xs bg-gray-600/50 px-2 py-1 rounded-full">
+                                <span className="text-xs tabular-nums bg-white/10 px-2 py-1 rounded-full">
                                   {images?.[selectedCategory]?.filter(img =>
                                     langCode === 'no-text' ? img.iso_639_1 === null : img.iso_639_1 === langCode
                                   ).length || 0}
@@ -700,9 +701,9 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
                     <motion.button
                       onClick={downloadAllAsZip}
                       disabled={isDownloadingZip}
-                      className={`relative overflow-hidden flex items-center gap-3 px-5 py-3 rounded-xl font-semibold transition-all duration-300 ${isDownloadingZip
-                        ? 'bg-gray-700 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-lg hover:shadow-emerald-500/25'
+                      className={`relative overflow-hidden flex items-center gap-3 px-5 py-3 rounded-full font-medium transition-colors ${isDownloadingZip
+                        ? 'bg-raised cursor-not-allowed text-ink-faint'
+                        : 'border border-control text-white hover:bg-raised'
                         }`}
                       whileHover={!isDownloadingZip ? { scale: 1.02, y: -2 } : {}}
                       whileTap={!isDownloadingZip ? { scale: 0.98 } : {}}
@@ -710,7 +711,7 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
                       {/* Barre de progression en arrière-plan */}
                       {isDownloadingZip && (
                         <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600"
+                          className="absolute inset-0 bg-white/15"
                           initial={{ width: '0%' }}
                           animate={{ width: `${zipProgress}%` }}
                           transition={{ duration: 0.3 }}
@@ -722,35 +723,35 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
                           <>
                             <Archive className="w-5 h-5" />
                             <span>{t('details.downloadZip')}</span>
-                            <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                            <span className="text-xs tabular-nums bg-white/15 px-2 py-1 rounded-full">
                               {t('details.imagesCount', { count: getImagesByCategory().length })}
                             </span>
                           </>
                         )}
                         {zipStatus === 'downloading' && (
                           <>
-                            <Loader className="w-5 h-5 animate-spin" />
-                            <span>{t('details.downloading')} {downloadedCount}/{getImagesByCategory().length}</span>
-                            <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                            <Ring className="h-4 w-4 text-ink-faint" aria-hidden="true" />
+                            <span>{t('details.downloading')} <span className="tabular-nums">{downloadedCount}/{getImagesByCategory().length}</span></span>
+                            <span className="text-xs tabular-nums bg-white/15 px-2 py-1 rounded-full">
                               {zipProgress}%
                             </span>
                           </>
                         )}
                         {zipStatus === 'zipping' && (
                           <>
-                            <Loader className="w-5 h-5 animate-spin" />
+                            <Ring className="h-4 w-4 text-ink-faint" aria-hidden="true" />
                             <span>{t('details.compressing')}</span>
                           </>
                         )}
                         {zipStatus === 'complete' && (
                           <>
-                            <CheckCircle className="w-5 h-5 text-green-300" />
+                            <CheckCircle className="w-5 h-5 text-positive" />
                             <span>{t('details.downloadComplete')}</span>
                           </>
                         )}
                         {zipStatus === 'error' && (
                           <>
-                            <AlertTriangle className="w-5 h-5 text-red-300" />
+                            <AlertTriangle className="w-5 h-5 text-negative" />
                             <span>{t('details.downloadError')}</span>
                           </>
                         )}
@@ -759,9 +760,9 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
 
                     {/* Barre de progression visible */}
                     {isDownloadingZip && zipStatus !== 'complete' && (
-                      <div className="mt-3 bg-gray-800 rounded-full h-2 overflow-hidden">
+                      <div className="mt-3 bg-raised rounded-full h-2 overflow-hidden">
                         <motion.div
-                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-400"
+                          className="h-full bg-accent"
                           initial={{ width: '0%' }}
                           animate={{ width: `${zipProgress}%` }}
                           transition={{ duration: 0.3 }}
@@ -803,7 +804,7 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
                           image.file_path,
                           `tv-${tvId}-${selectedCategory}-${index + 1}.jpg`
                         )}
-                        className="absolute top-2 right-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors shadow-lg md:hidden"
+                        className="absolute top-2 right-2 bg-raised hover:bg-white hover:text-black border border-control text-white p-2 rounded-full transition-colors md:hidden"
                         whileTap={{ scale: 0.9 }}
                       >
                         <Download className="w-4 h-4" />
@@ -855,7 +856,7 @@ const TVImagesSection = ({ tvId }: { tvId: string }) => {
                             image.file_path,
                             `tv-${tvId}-${selectedCategory}-${index + 1}.jpg`
                           )}
-                          className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-colors shadow-lg"
+                          className="bg-raised hover:bg-white hover:text-black border border-control text-white p-3 rounded-full transition-colors"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                         >
@@ -1907,18 +1908,18 @@ const TVDetails: React.FC = () => {
         {/* Première ligne avec Regarder et Bande-annonce */}
         <div className="flex flex-wrap gap-3 w-full min-w-0">
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={handleContinueWatching}
-            className="flex flex-col items-center gap-2 px-4 sm:px-6 py-4 sm:py-5 bg-red-600 hover:bg-red-700 rounded-lg flex-1 min-w-0 justify-center text-xs sm:text-sm"
+            className="flex items-center justify-center gap-2 px-5 sm:px-6 h-11 rounded-full bg-white text-black hover:bg-neutral-200 flex-1 min-w-0 text-sm font-medium transition-colors"
           >
-            <Play className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-            <div className="text-center">
+            <Play className="w-5 h-5 flex-shrink-0" />
+            <div className="text-center min-w-0">
               {continueWatchingData.hasProgress ? (
-                <div className="flex flex-col items-center text-center w-full">
-                      <span>{t('details.resumeEpisode', { episode: continueWatchingData.episodeNumber, season: getSeasonDisplayName(continueWatchingData.seasonNumber, id, t) })}</span>
-                  <span className="text-xs bg-red-800/80 text-white px-1.5 py-0.5 rounded font-medium mt-1">
+                <div className="flex items-center gap-2 flex-wrap justify-center text-center w-full">
+                      <span className="truncate">{t('details.resumeEpisode', { episode: continueWatchingData.episodeNumber, season: getSeasonDisplayName(continueWatchingData.seasonNumber, id, t) })}</span>
+                  <span className="text-xs tabular-nums bg-black/10 px-1.5 py-0.5 rounded-full font-medium">
                     {formatTime(continueWatchingData.position)}/{formatTime(continueWatchingData.duration)}
                   </span>
                 </div>
@@ -1934,13 +1935,13 @@ const TVDetails: React.FC = () => {
 
           {(!ENABLE_VIP_DOWNLOAD_CHECK || readLocalStorage('is_vip') === 'true') && (
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
               onClick={() => navigate(`/download/tv/${tvShow?.id}`)}
-              className="flex flex-col items-center gap-2 px-4 sm:px-6 py-4 sm:py-5 bg-green-600 hover:bg-green-700 rounded-lg flex-1 min-w-0 justify-center text-xs sm:text-sm"
+              className="flex items-center justify-center gap-2 px-5 sm:px-6 h-11 rounded-full border border-control text-white hover:bg-raised flex-1 min-w-0 text-sm font-medium transition-colors"
             >
-              <Download className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+              <Download className="w-5 h-5 flex-shrink-0" />
               <span className="text-center">{t('details.downloadBtn')}</span>
             </motion.button>
           )}
@@ -1949,23 +1950,23 @@ const TVDetails: React.FC = () => {
         {/* Deuxième ligne avec les autres boutons */}
         <div className="flex flex-wrap gap-3">
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={() => setShowTrailerPopup(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+            className="flex items-center gap-2 px-4 h-9 rounded-full border border-control text-white text-sm hover:bg-raised transition-colors"
             disabled={!trailerVideo}
           >
             <Video className="w-4 h-4" />
             {t('details.bandeAnnonce')}
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => updateWatchStatus('watchlist', !watchStatus.watchlist)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg ${watchStatus.watchlist
-              ? 'bg-red-600 text-white'
-              : 'bg-gray-800 hover:bg-gray-700'
+            className={`flex items-center gap-2 px-4 h-9 rounded-full border text-sm transition-colors ${watchStatus.watchlist
+              ? 'border-control bg-raised text-white'
+              : 'border-control text-ink-muted hover:bg-raised hover:text-white'
               }`}
           >
             <List className="w-4 h-4" />
@@ -1973,12 +1974,12 @@ const TVDetails: React.FC = () => {
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => updateWatchStatus('favorite', !watchStatus.favorite)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg ${watchStatus.favorite
-              ? 'bg-red-600 text-white'
-              : 'bg-gray-800 hover:bg-gray-700'
+            className={`flex items-center gap-2 px-4 h-9 rounded-full border text-sm transition-colors ${watchStatus.favorite
+              ? 'border-control bg-raised text-white'
+              : 'border-control text-ink-muted hover:bg-raised hover:text-white'
               }`}
           >
             <Star className="w-4 h-4" />
@@ -1986,12 +1987,12 @@ const TVDetails: React.FC = () => {
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => updateWatchStatus('watched', !watchStatus.watched)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg ${watchStatus.watched
-              ? 'bg-red-600 text-white'
-              : 'bg-gray-800 hover:bg-gray-700'
+            className={`flex items-center gap-2 px-4 h-9 rounded-full border text-sm transition-colors ${watchStatus.watched
+              ? 'border-control bg-raised text-white'
+              : 'border-control text-ink-muted hover:bg-raised hover:text-white'
               }`}
           >
             <Check className="w-4 h-4" />
@@ -1999,20 +2000,20 @@ const TVDetails: React.FC = () => {
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setShowAddToList(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg"
+            className="flex items-center gap-2 px-4 h-9 rounded-full border border-control text-white text-sm hover:bg-raised transition-colors"
           >
             <FolderPlus className="w-4 h-4" />
             {t('details.addToAList')}
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setShowAntiSpoilerModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-800 hover:bg-purple-700 rounded-lg"
+            className="flex items-center gap-2 px-4 h-9 rounded-full border border-control text-white text-sm hover:bg-raised transition-colors"
             title={t('details.antiSpoilConfig')}
           >
             <Shield className="w-4 h-4" />
@@ -2524,7 +2525,7 @@ const TVDetails: React.FC = () => {
     return <DetailsSkeleton mediaType="tv" />;
   }
 
-  if (error) return <div className="text-center text-red-500">{error}</div>;
+  if (error) return <div className="text-center text-negative">{error}</div>;
   if (!tvShow) return <div className="text-center">{t('details.tvNotFound')}</div>;
 
   // Age restriction check
@@ -2532,20 +2533,20 @@ const TVDetails: React.FC = () => {
   const profileAgeRestriction = currentProfile?.ageRestriction ?? 0;
   if (contentCert && profileAgeRestriction > 0 && !isContentAllowed(contentCert, profileAgeRestriction)) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center px-4">
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <div className="w-20 h-20 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-20 h-20 bg-raised rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">{t('details.contentBlocked')}</h2>
+          <h2 className="text-2xl font-semibold text-white mb-3">{t('details.contentBlocked')}</h2>
           <p className="text-gray-400 mb-6">
             {t('details.contentBlockedDesc', { rating: getClassificationLabel(contentCert, t), age: profileAgeRestriction })}
           </p>
           <button
             onClick={() => navigate(-1)}
-            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+            className="px-6 py-3 bg-white text-black hover:bg-neutral-200 rounded-full transition-colors font-medium"
           >
             {t('details.goBack')}
           </button>
@@ -2570,7 +2571,7 @@ const TVDetails: React.FC = () => {
 
     if (nonEmptyEpisodes.length === 0) {
       return (
-        <div className="text-center p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
+        <div className="text-center p-4 bg-surface border border-rule rounded-lg">
           <p>{t('details.noEpisodesForSeason')}</p>
         </div>
       );
@@ -2704,7 +2705,7 @@ const TVDetails: React.FC = () => {
                       key={`anime-${selectedSeason}-${ep.index}`}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1, transition: { delay: index * 0.05, duration: 0.3 } }}
-                      className={`group relative rounded-xl overflow-hidden border border-white/10 hover:border-red-500 transition-all duration-300 bg-gray-800 flex flex-col ${isSelected ? 'ring-2 ring-red-500' : ''}`}
+                      className={`group relative rounded-lg overflow-hidden border border-rule hover:border-control transition-colors bg-surface flex flex-col ${isSelected ? 'ring-2 ring-white/40' : ''}`}
                       whileHover={{ y: -5, transition: { duration: 0.2 } }}
                     >
                       <button
@@ -2712,17 +2713,14 @@ const TVDetails: React.FC = () => {
                         onClick={() => handleAnimeGridClick(ep)}
                       >
                         <div className="flex flex-col">
-                          <h4 className="text-lg font-medium group-hover:text-red-500 transition-colors mb-2">
+                          <h4 className="text-lg font-medium mb-2">
                             {ep.index}. {ep.name}
                           </h4>
                           <div className="flex flex-wrap gap-2 mt-2">
                             {availableLanguages.map((language: string, i: number) => (
                               <span
                                 key={`lang-badge-${language}-${i}`}
-                                className={`text-white text-xs px-2 py-1 rounded ${language === 'vostfr' ? 'bg-blue-600/70' :
-                                  language === 'vf' ? 'bg-green-600/70' :
-                                    'bg-purple-600/70'
-                                  }`}
+                                className="text-ink-muted text-xs px-2 py-1 rounded-full border border-control"
                               >
                                 {getAnimeLanguageLabel(language, t)}
                               </span>
@@ -2770,7 +2768,7 @@ const TVDetails: React.FC = () => {
                         scale: 1,
                         transition: { delay: index * 0.05, duration: 0.3 }
                       }}
-                      className={`group relative rounded-xl overflow-hidden border border-white/10 hover:border-red-500 transition-all duration-300 bg-white/10 flex flex-col ${isSelected ? 'ring-2 ring-red-500' : ''}`}
+                      className={`group relative rounded-lg overflow-hidden border border-rule hover:border-control transition-colors bg-surface flex flex-col ${isSelected ? 'ring-2 ring-white/40' : ''}`}
                       whileHover={{ y: -5, transition: { duration: 0.2 } }}
                       layout={false}
                     >
@@ -2830,21 +2828,21 @@ const TVDetails: React.FC = () => {
                               </div>
                             )}
                             {airing.kind !== 'unconfirmed' && (
-                              <div className={`absolute top-2 left-2 max-w-[calc(100%-1rem)] text-xs px-2 py-1 rounded-full ${airing.kind === 'aired' ? 'bg-green-700 text-white' : 'bg-yellow-800 text-yellow-50'}`}>
+                              <div className={`absolute top-2 left-2 max-w-[calc(100%-1rem)] text-xs px-2 py-1 rounded-full ${airing.kind === 'aired' ? 'bg-positive/15 text-positive' : 'border border-control text-ink-muted'}`}>
                                 {t(`details.airing.${airing.kind}`)}
                               </div>
                             )}
 
                             {/* Progress badges */}
                             {((isEpisodeWatched) || (hasProgress && displayProgress >= 95)) ? (
-                              <span className="px-3 py-1.5 absolute top-2 right-2 rounded-lg whitespace-nowrap text-xs font-medium flex gap-1 items-center bg-green-500 text-green-900">
+                              <span className="px-3 py-1.5 absolute top-2 right-2 rounded-full whitespace-nowrap text-xs font-medium flex gap-1 items-center bg-positive/15 text-positive">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" aria-hidden="true" className="w-3.5 h-3.5">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                                 </svg>
                                 {t('details.alreadyWatched')}
                               </span>
                             ) : (hasProgress && displayProgress > 0 && displayProgress < 95 && (
-                              <span className="px-3 py-1.5 absolute top-2 right-2 rounded-lg whitespace-nowrap text-xs font-medium flex gap-1 items-center bg-yellow-500 text-yellow-900">
+                              <span className="px-3 py-1.5 absolute top-2 right-2 rounded-full whitespace-nowrap text-xs font-medium flex gap-1 items-center bg-accent/15 text-accent">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" aria-hidden="true" className="w-3.5 h-3.5">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -2854,7 +2852,7 @@ const TVDetails: React.FC = () => {
                             ))}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="bg-red-600/90 rounded-full p-3 transform scale-0 group-hover:scale-100 transition-transform duration-300">
+                                <div className="bg-raised border border-control rounded-full p-3 transform scale-0 group-hover:scale-100 transition-transform duration-300">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-play h-6 w-6 text-white"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
                                 </div>
                               </div>
@@ -2862,9 +2860,9 @@ const TVDetails: React.FC = () => {
 
                             {/* Add progress bar */}
                             {displayProgress > 0 && (
-                              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
+                              <div className="absolute bottom-0 left-0 right-0 h-1 bg-raised">
                                 <div
-                                  className={`h-full ${displayProgress >= 95 ? 'bg-green-500' : 'bg-red-600'} transition-all`}
+                                  className="h-full bg-accent transition-all"
                                   style={{ width: `${displayProgress}%` }}
                                 />
                               </div>
@@ -2874,20 +2872,20 @@ const TVDetails: React.FC = () => {
                           <div className="p-4">
                             <div className="flex items-start justify-between gap-4">
                               <div>
-                                <h4 className="text-lg font-medium group-hover:text-red-500 transition-colors">
+                                <h4 className="text-lg font-medium">
                                   {shouldHide('episodeNames') ? getMaskedContent(ep.name, 'episodeNames', undefined, ep.episode_number) : `${ep.episode_number}. ${ep.name}`}
                                 </h4>
                                 <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-white/60">
                                   {(airing.date || airing.timestamp !== null) && (
                                     <div className="flex items-start gap-1.5">
-                                      <Calendar className="h-3.5 w-3.5 shrink-0 mt-1 text-red-400 opacity-70" />
+                                      <Calendar className="h-3.5 w-3.5 shrink-0 mt-1 text-ink-faint" />
                                       <span>{airing.kind === 'aired' ? formatAiringDate(airing, i18n.language) : getAiringLabel(airing, t, i18n.language, airingNow)}</span>
                                     </div>
                                   )}
                                   {ep.runtime && (
                                     <div className="flex items-center gap-1.5">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock h-3.5 w-3.5 text-red-400 opacity-70"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                      <span>{Math.floor(ep.runtime / 60)}h {ep.runtime % 60}m</span>
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock h-3.5 w-3.5 text-ink-faint"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                      <span className="tabular-nums">{Math.floor(ep.runtime / 60)}h {ep.runtime % 60}m</span>
                                     </div>
                                   )}
                                 </div>
@@ -2917,7 +2915,7 @@ const TVDetails: React.FC = () => {
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
                                         onClick={toggleCardExpansion(`s${selectedSeason}e${ep.episode_number}`)}
-                                        className="text-xs text-red-400 hover:text-red-300 mt-1 flex items-center"
+                                        className="text-xs text-ink-muted hover:text-white mt-1 flex items-center"
                                       >
                                         {expandedCards[`s${selectedSeason}e${ep.episode_number}`] ? (
                                           <>
@@ -2944,7 +2942,7 @@ const TVDetails: React.FC = () => {
                                     updateWatchStatus('episodeWatchlist', !watchStatus.episodeWatchlist[episodeKey], episodeKey);
                                   }
                                 }}
-                                className={`p-2 rounded ${watchStatus?.episodeWatchlist?.[episodeKey] ? 'text-red-600' : 'text-gray-400'} hover:bg-gray-800`}
+                                className={`p-2 rounded ${watchStatus?.episodeWatchlist?.[episodeKey] ? 'text-white' : 'text-ink-faint'} hover:bg-raised`}
                                 title={t('details.addToWatchlistTitle')}
                               >
                                 <List className="w-4 h-4" />
@@ -2956,7 +2954,7 @@ const TVDetails: React.FC = () => {
                                     updateWatchStatus('episodeWatched', !watchStatus.episodeWatched[episodeKey], episodeKey);
                                   }
                                 }}
-                                className={`p-2 rounded ${watchStatus?.episodeWatched?.[episodeKey] ? 'text-red-600' : 'text-gray-400'} hover:bg-gray-800`}
+                                className={`p-2 rounded ${watchStatus?.episodeWatched?.[episodeKey] ? 'text-white' : 'text-ink-faint'} hover:bg-raised`}
                                 title={t('details.markAsWatched')}
                               >
                                 <Check className="w-4 h-4" />
@@ -3152,51 +3150,19 @@ const TVDetails: React.FC = () => {
         }
         .section-title {
           font-size: 1.5rem;
-          font-weight: 700;
-          position: relative;
-          background: linear-gradient(90deg, #ffffff, #e2e2e2);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
-          letter-spacing: 0.5px;
+          font-weight: 600;
+          color: #ffffff;
           padding-bottom: 0.5rem;
-          text-transform: uppercase;
           display: inline-block;
           animation: fadeInTitle 0.8s ease-out forwards;
-          transition: all 0.3s ease;
+          transition: opacity 0.3s ease;
         }
         .section-title:hover {
-          background: linear-gradient(90deg, #ff3333, #ff9999);
-          -webkit-background-clip: text;
-          background-clip: text;
-          transform: translateY(-2px);
-          text-shadow: 0px 4px 8px rgba(255, 51, 51, 0.4);
-        }
-        .section-title::after {
-          content: '';
-          position: absolute;
-          left: 0;
-          bottom: 0;
-          width: 40px;
-          height: 3px;
-          background: linear-gradient(90deg, #f11 0%, #f66 100%);
-          border-radius: 3px;
-          animation: expandWidth 0.6s ease-out forwards 0.3s;
-          transform-origin: left;
-          transition: all 0.3s ease;
-        }
-        .section-title:hover::after {
-          width: 100%;
-          background: linear-gradient(90deg, #ff3333, #ff9999);
+          opacity: 0.85;
         }
         @keyframes fadeInTitle {
           0% { opacity: 0; transform: translateY(10px); }
           100% { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes expandWidth {
-          0% { width: 0; }
-          100% { width: 40px; }
         }
         
         /* Styles pour no-scroll (copié de MovieDetails) */
@@ -3227,12 +3193,12 @@ const TVDetails: React.FC = () => {
           transition={{ delay: 0.2 }}
           className="mb-8"
         >
-          <h1 className="section-title text-4xl md:text-5xl font-bold">
+          <h1 className="section-title text-4xl md:text-5xl font-semibold">
             {tvShow.name} {tvYear && <>({tvYear})</>}
           </h1>
           {(showAiring.kind !== 'unconfirmed' || showAiring.date) && (
             <p className="mt-3">
-              <span className={`inline-block max-w-full text-sm font-medium ${showAiring.kind === 'unconfirmed' ? 'text-gray-300' : `px-2 py-1 rounded-md ${showAiring.kind === 'aired' ? 'bg-green-700 text-white' : 'bg-yellow-800 text-yellow-50'}`}`}>
+              <span className={`inline-block max-w-full text-sm font-medium rounded-full ${showAiring.kind === 'unconfirmed' ? 'text-gray-300' : `px-2 py-1 ${showAiring.kind === 'aired' ? 'bg-positive/15 text-positive' : 'border border-control text-ink-muted'}`}`}>
                 {getAiringLabel(showAiring, t, i18n.language, airingNow)}
               </span>
             </p>
@@ -3259,7 +3225,7 @@ const TVDetails: React.FC = () => {
               transition={{ type: "spring", stiffness: 300, damping: 10 }}
               src={mainPosterUrl}
               alt={tvShow.name}
-              className="w-full rounded-lg shadow-lg"
+              className="w-full rounded-lg"
             />
             {/* Boutons d'action en-dessous du poster */}
             <div className="mt-6">
@@ -3270,9 +3236,9 @@ const TVDetails: React.FC = () => {
                   <button
                     onClick={handleAnimeModeToggle}
                     disabled={loadingAnimeData}
-                    className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-all flex items-center justify-center ${animeMode
-                      ? 'bg-purple-700 hover:bg-purple-600 text-white'
-                      : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                    className={`w-full px-3 py-2 text-sm font-medium rounded-full transition-colors flex items-center justify-center border ${animeMode
+                      ? 'border-control bg-raised text-white'
+                      : 'border border-control text-ink-muted hover:bg-raised hover:text-white'
                       } ${loadingAnimeData ? 'cursor-wait opacity-70' : ''}`}
                   >
                     {animeMode ? (
@@ -3288,7 +3254,7 @@ const TVDetails: React.FC = () => {
                     )}
                   </button>
                   {animeMode && ( // Afficher la note seulement quand on est en mode ANIME
-                    <p className="text-sm text-yellow-300 bg-yellow-900/40 p-3 rounded-md mt-3 text-center flex items-center justify-center gap-2 border border-yellow-700/50">
+                    <p className="text-sm text-ink-muted bg-surface p-3 rounded-md mt-3 text-center flex items-center justify-center gap-2 border border-rule">
                       <AlertTriangle className="w-4 h-4 inline-block flex-shrink-0" />
                       <span>{t('details.standardModeAvailable')}</span>
                     </p>
@@ -3309,7 +3275,7 @@ const TVDetails: React.FC = () => {
             <div className="relative">
               <div
                 ref={tabsContainerRef}
-                className="flex overflow-x-auto scrollbar-hide touch-pan-x border-b border-gray-700 mb-6"
+                className="flex overflow-x-auto scrollbar-hide touch-pan-x border-b border-rule mb-6"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
@@ -3319,14 +3285,14 @@ const TVDetails: React.FC = () => {
               >
                 <motion.button
                   onClick={() => setActiveTab('overview')}
-                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'overview' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'overview' ? 'text-white' : 'text-ink-muted hover:text-white'}`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
                   {t('details.overviewTab')}
                   {activeTab === 'overview' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -3334,14 +3300,14 @@ const TVDetails: React.FC = () => {
                 </motion.button>
                 <motion.button
                   onClick={() => setActiveTab('details')}
-                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'details' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'details' ? 'text-white' : 'text-ink-muted hover:text-white'}`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
                   {t('details.detailsTab')}
                   {activeTab === 'details' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -3349,14 +3315,14 @@ const TVDetails: React.FC = () => {
                 </motion.button>
                 <motion.button
                   onClick={() => setActiveTab('videos')}
-                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'videos' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'videos' ? 'text-white' : 'text-ink-muted hover:text-white'}`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
                   {t('details.videosTab')}
                   {activeTab === 'videos' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -3365,14 +3331,14 @@ const TVDetails: React.FC = () => {
 
                 <motion.button
                   onClick={() => setActiveTab('images')}
-                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'images' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'images' ? 'text-white' : 'text-ink-muted hover:text-white'}`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
                   {t('details.imagesTab')}
                   {activeTab === 'images' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -3381,14 +3347,14 @@ const TVDetails: React.FC = () => {
 
                 <motion.button
                   onClick={() => setActiveTab('cast')}
-                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'cast' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'cast' ? 'text-white' : 'text-ink-muted hover:text-white'}`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
                   {t('details.castTab')}
                   {activeTab === 'cast' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -3397,14 +3363,14 @@ const TVDetails: React.FC = () => {
 
                 <motion.button
                   onClick={() => setActiveTab('crew')}
-                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'crew' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+                  className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'crew' ? 'text-white' : 'text-ink-muted hover:text-white'}`}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
                   {t('details.crewTab')}
                   {activeTab === 'crew' && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                       layoutId="activeTab"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -3417,14 +3383,14 @@ const TVDetails: React.FC = () => {
                 {hasCharactersTab && (
                   <motion.button
                     onClick={() => setActiveTab('characters')}
-                    className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'characters' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`px-6 py-3 font-medium text-sm flex-shrink-0 relative ${activeTab === 'characters' ? 'text-white' : 'text-ink-muted hover:text-white'}`}
                     whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                     whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                   >
                     {t('details.charactersTab')}
                     {activeTab === 'characters' && (
                       <motion.div
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                         layoutId="activeTab"
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
@@ -3438,7 +3404,7 @@ const TVDetails: React.FC = () => {
                     // Scroll vers les commentaires
                     commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }}
-                  className="px-6 py-3 font-medium text-sm flex-shrink-0 text-gray-400 hover:text-white"
+                  className="px-6 py-3 font-medium text-sm flex-shrink-0 text-ink-muted hover:text-white"
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
@@ -3485,16 +3451,16 @@ const TVDetails: React.FC = () => {
                     </div>
 
                     {/* TMDB Info Box */}
-                    <div className="mb-6 p-4 border border-red-500/50 bg-red-500/10 rounded-lg flex gap-3 items-start">
-                      <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                      <div className="text-sm text-gray-300">
+                    <div className="mb-6 p-4 border border-rule bg-surface rounded-lg flex gap-3 items-start">
+                      <AlertTriangle className="w-5 h-5 text-ink-faint flex-shrink-0 mt-0.5" />
+                      <div className="text-sm text-ink-muted">
                         <p>
                           {t('details.tmdbInfoNote')}{' '}
                           <a
                             href={`https://www.themoviedb.org/tv/${id}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-red-400 hover:text-red-300 underline"
+                            className="text-ink-muted hover:text-white underline"
                           >
                             TMDB
                           </a>
@@ -3503,7 +3469,7 @@ const TVDetails: React.FC = () => {
                       </div>
                     </div>
 
-                    <h2 className="text-xl font-bold mb-2">{t('details.synopsisTitle')}</h2>
+                    <h2 className="text-xl font-semibold mb-2">{t('details.synopsisTitle')}</h2>
                     <p className="text-gray-300">
                       {shouldHide('episodeOverviews')
                         ? getMaskedContent(tvShow.overview || t('details.noSynopsis'), 'episodeOverviews')
@@ -3533,8 +3499,8 @@ const TVDetails: React.FC = () => {
                       <div>
                         <h3 className="text-lg font-semibold mb-2">{t('details.ratingLabel')}</h3>
                         <div className="flex items-center gap-2">
-                          <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                          <p className="text-gray-300 text-lg font-bold">{tvShow.vote_average?.toFixed(1) || 'N/A'}<span className="text-sm font-normal text-gray-400">/10</span></p>
+                          <Star className="w-5 h-5 text-accent fill-accent" />
+                          <p className="text-gray-300 text-lg font-semibold tabular-nums">{tvShow.vote_average?.toFixed(1) || 'N/A'}<span className="text-sm font-normal text-ink-faint">/10</span></p>
                         </div>
                       </div>
 
@@ -3547,14 +3513,14 @@ const TVDetails: React.FC = () => {
                               onClick={() => setShowMovixRatingInfo(true)}
                               aria-label={t('details.movixRatingInfoButtonLabel')}
                               title={t('details.movixRatingInfoButtonLabel')}
-                              className="rounded-full text-gray-400 transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500/70"
+                              className="rounded-full text-ink-faint transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-white/40"
                             >
                               <Info className="h-4 w-4" />
                             </button>
                           </h3>
                           <div className="flex items-center gap-2">
-                            <Star className="w-5 h-5 text-red-500 fill-red-500" />
-                            <p className="text-gray-300 text-lg font-bold">{movixRating.toFixed(1)}<span className="text-sm font-normal text-gray-400">/10</span></p>
+                            <Star className="w-5 h-5 text-accent fill-accent" />
+                            <p className="text-gray-300 text-lg font-semibold tabular-nums">{movixRating.toFixed(1)}<span className="text-sm font-normal text-ink-faint">/10</span></p>
                           </div>
                         </div>
                       )}
@@ -3572,9 +3538,8 @@ const TVDetails: React.FC = () => {
                           >
                             <Link
                               to={`/genre/tv/${genre.id}`}
-                              className="flex items-center gap-1 px-3 py-2 bg-gray-800 rounded-lg text-sm hover:bg-gray-700 transition-colors inline-block border border-gray-700 hover:border-gray-600"
+                              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors inline-block border border-control text-ink-muted hover:bg-raised hover:text-white"
                             >
-                              <span className="w-2 h-2 rounded-full bg-red-500"></span>
                               {genre.name}
                             </Link>
                           </motion.div>
@@ -3588,15 +3553,15 @@ const TVDetails: React.FC = () => {
                       <h3 className="text-lg font-semibold mb-2">{t('details.classificationLabel')}</h3>
                       <div className="flex items-center gap-2">
                         {certifications['FR'] ? (
-                          <span className="bg-red-600/70 text-white px-3 py-1 rounded-md font-bold">
+                          <span className="border border-control text-ink-muted px-3 py-1 rounded-full text-xs font-semibold">
                             {getClassificationLabel(certifications['FR'], t)}
                           </span>
                         ) : certifications['US'] ? (
-                          <span className="bg-red-600/70 text-white px-3 py-1 rounded-md font-bold">
+                          <span className="border border-control text-ink-muted px-3 py-1 rounded-full text-xs font-semibold">
                             {getClassificationLabel(certifications['US'], t)}
                           </span>
                         ) : (
-                          <span className="text-gray-400">{t('details.notClassified')}</span>
+                          <span className="text-ink-faint">{t('details.notClassified')}</span>
                         )}
                       </div>
                     </div>
@@ -3611,7 +3576,7 @@ const TVDetails: React.FC = () => {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                   >
-                    <h3 className="text-xl font-bold mb-4">{t('details.seasonsLabel')}</h3>
+                    <h3 className="text-xl font-semibold mb-4">{t('details.seasonsLabel')}</h3>
 
                     {/* Grid of seasons with animations */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
@@ -3627,23 +3592,22 @@ const TVDetails: React.FC = () => {
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                                className={`group cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 bg-gray-900 ${selectedSeason === seasonNumber ? 'border-red-600' : 'border-gray-800 hover:border-red-500'}`}
+                                className={`group cursor-pointer rounded-lg overflow-hidden border transition-colors bg-surface ${selectedSeason === seasonNumber ? 'border-white' : 'border-rule hover:border-control'}`}
                                 onClick={() => handleSeasonChange(seasonNumber)}
                                 whileHover={{ y: -5 }}
                               >
-                                <div className="relative pb-[150%] bg-gray-900">
+                                <div className="relative pb-[150%] bg-ground">
                                   {!shouldHide('seasonImages') ? (
-                                    <div className="absolute inset-0 w-full h-full bg-gradient-to-tr from-purple-900 to-indigo-800 flex items-center justify-center p-4">
-                                      <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                                    <div className="absolute inset-0 w-full h-full bg-raised flex items-center justify-center p-4">
                                       <div className="text-center z-10">
                                         <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-white/10 flex items-center justify-center">
-                                          <span className="text-2xl font-bold text-white">{seasonNumber}</span>
+                                          <span className="text-2xl font-semibold text-white">{seasonNumber}</span>
                                         </div>
                                         {/* Nom de la saison dans l'image retiré */}
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="absolute inset-0 w-full h-full bg-gray-800 flex items-center justify-center">
+                                    <div className="absolute inset-0 w-full h-full bg-[#1a1a1a] flex items-center justify-center">
                                       <div className="flex flex-col items-center gap-2 text-gray-400">
                                         <EyeOff className="w-12 h-12" />
                                         <span className="text-sm">{t('details.imageMasked')}</span>
@@ -3652,18 +3616,18 @@ const TVDetails: React.FC = () => {
                                   )}
                                   {/* Gradient retiré si nécessaire ou laissé pour l'esthétique */}
                                   {/* <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
-                          <h3 className="text-base font-bold text-white line-clamp-2">{season.name}</h3>
+                          <h3 className="text-base font-semibold text-white line-clamp-2">{season.name}</h3>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs text-gray-400 ml-auto">{season.episodes.length} épisodes</span>
                           </div>
                         </div> */}
                                   {selectedSeason === seasonNumber && (
-                                    <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full">{t('details.currentSeasonBadge')}</div>
+                                    <div className="absolute top-2 right-2 bg-raised border border-control text-white text-xs px-2 py-1 rounded-full">{t('details.currentSeasonBadge')}</div>
                                   )}
                                 </div>
                                 {/* Nom complet de la saison affiché en dessous pour les animes */}
-                                <div className="p-3 bg-gray-900">
-                                  <h3 className="text-base font-bold text-white">
+                                <div className="p-3 bg-ground">
+                                  <h3 className="text-base font-semibold text-white">
                                     {shouldHide('episodeNames') ? getMaskedContent(season.name, 'episodeNames') : season.name}
                                   </h3>
                                   <span className="text-xs text-gray-400 mt-1 block">{season.episodes.length} {t('details.episodes')}</span>
@@ -3699,11 +3663,11 @@ const TVDetails: React.FC = () => {
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ duration: 0.3 }}
-                                className={`group cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 ${selectedSeason === season ? 'border-red-600' : 'border-gray-800 hover:border-red-500'}`}
+                                className={`group cursor-pointer rounded-lg overflow-hidden border transition-colors ${selectedSeason === season ? 'border-white' : 'border-rule hover:border-control'}`}
                                 onClick={() => handleSeasonChange(season)}
                                 whileHover={{ y: -5 }}
                               >
-                                <div className="relative pb-[150%] bg-gray-900">
+                                <div className="relative pb-[150%] bg-ground">
                                   {!shouldHide('seasonImages') ? (
                                     <img
                                       src={hasFailed ? getSeasonFallbackSvg(t('details.season').toUpperCase()) : retryUrl}
@@ -3719,7 +3683,7 @@ const TVDetails: React.FC = () => {
                                       key={retryUrl}
                                     />
                                   ) : (
-                                    <div className="absolute inset-0 w-full h-full bg-gray-800 flex items-center justify-center">
+                                    <div className="absolute inset-0 w-full h-full bg-[#1a1a1a] flex items-center justify-center">
                                       <div className="flex flex-col items-center gap-2 text-gray-400">
                                         <EyeOff className="w-12 h-12" />
                                         <span className="text-sm">{t('details.imageMasked')}</span>
@@ -3727,7 +3691,7 @@ const TVDetails: React.FC = () => {
                                     </div>
                                   )}
                                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
-                                    <h3 className="text-base font-bold text-white line-clamp-2">
+                                    <h3 className="text-base font-semibold text-white line-clamp-2">
                           {shouldHide('episodeNames') ? getMaskedContent(getSeasonDisplayName(season, id, t, details?.name), 'episodeNames') : getSeasonDisplayName(season, id, t, details?.name)}
                                     </h3>
                                     <div className="flex items-center gap-2 mt-1">
@@ -3736,7 +3700,7 @@ const TVDetails: React.FC = () => {
                                     </div>
                                   </div>
                                   {selectedSeason === season && (
-                                    <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full">{t('details.currentSeasonBadge')}</div>
+                                    <div className="absolute top-2 right-2 bg-raised border border-control text-white text-xs px-2 py-1 rounded-full">{t('details.currentSeasonBadge')}</div>
                                   )}
                                 </div>
                               </motion.div>
@@ -3776,7 +3740,7 @@ const TVDetails: React.FC = () => {
                                     <div className="flex justify-start mb-4"> {/* Alignement à gauche */}
                                       <button
                                         ref={dropdownToggleButtonRef}
-                                        className="px-4 py-2 rounded-lg font-medium bg-gray-800 hover:bg-gray-700 text-white dropdown-toggle-button"
+                                        className="px-4 py-2 rounded-full font-medium border border-control bg-raised hover:bg-white hover:text-black text-white dropdown-toggle-button"
                                         onClick={() => {
                                           const currentSeason = animeData.seasons.find((s: any) => (s.number || (animeData.seasons.indexOf(s) + 1)) === selectedSeason);
                                           const currentDefault = getDefaultDropdownMode(currentSeason?.episodes?.length || 0);
@@ -3811,7 +3775,7 @@ const TVDetails: React.FC = () => {
                                   <div className="flex justify-start mb-4"> {/* Alignement à gauche */}
                                     <button
                                       ref={dropdownToggleButtonRef}
-                                      className="px-4 py-2 rounded-lg font-medium bg-gray-800 hover:bg-gray-700 text-white dropdown-toggle-button"
+                                      className="px-4 py-2 rounded-full font-medium border border-control bg-raised hover:bg-white hover:text-black text-white dropdown-toggle-button"
                                       onClick={() => {
                                         const currentDefault = getDefaultDropdownMode(seasonsDetails[selectedSeason]?.episodes?.length || 0);
                                         setDropdownMode((prev) => prev !== null ? !prev : !currentDefault);
@@ -3873,8 +3837,7 @@ const TVDetails: React.FC = () => {
                           />
                         ) : (
                           <motion.div
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg"
-                            style={{ backgroundColor: `hsl(${actor.name.charCodeAt(0) * 7 % 360}, 50%, 40%)` }}
+                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg bg-raised"
                             whileHover={{ scale: 1.1 }}
                           >
                             {actor.name.charAt(0).toUpperCase()}
@@ -3936,8 +3899,7 @@ const TVDetails: React.FC = () => {
                           />
                         ) : (
                           <motion.div
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg"
-                            style={{ backgroundColor: `hsl(${member.name.charCodeAt(0) * 7 % 360}, 50%, 40%)` }}
+                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg bg-raised"
                             whileHover={{ scale: 1.1 }}
                           >
                             {member.name.charAt(0).toUpperCase()}
@@ -3975,18 +3937,18 @@ const TVDetails: React.FC = () => {
                         ((tvShow as any).production_companies || []).map((company: any, index: number) => (
                           <motion.div
                             key={company.id}
-                            className="flex items-center gap-3 bg-gray-800 p-3 rounded-lg"
+                            className="flex items-center gap-3 bg-surface p-3 rounded-lg"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 + index * 0.1 }}
                             whileHover={{
-                              backgroundColor: "rgba(75,85,99, 0.8)",
+                              backgroundColor: "#2a2a2a",
                               y: -3,
                               transition: { duration: 0.2 }
                             }}
                           >
                             <motion.div
-                              className="w-12 h-12 flex items-center justify-center bg-gray-700 rounded overflow-hidden"
+                              className="w-12 h-12 flex items-center justify-center bg-surface rounded overflow-hidden"
                               whileHover={{ scale: 1.1 }}
                             >
                               {company.logo_path ? (
@@ -4029,14 +3991,14 @@ const TVDetails: React.FC = () => {
                         {((tvShow as any).origin_country || []).map((country: string, index: number) => (
                           <motion.div
                             key={country}
-                            className="bg-gray-800 px-3 py-2 rounded-lg border border-gray-700"
+                            className="bg-surface px-3 py-2 rounded-lg border border-rule"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.1 + index * 0.05 }}
                             whileHover={{
-                              backgroundColor: "rgba(75,85,99, 0.8)",
+                              backgroundColor: "#2a2a2a",
                               y: -2,
-                              borderColor: "rgba(107,114,128, 0.8)",
+                              borderColor: "#444444",
                               transition: { duration: 0.2 }
                             }}
                           >
@@ -4063,14 +4025,14 @@ const TVDetails: React.FC = () => {
                         {((tvShow as any).spoken_languages || []).map((lang: any, index: number) => (
                           <motion.div
                             key={lang.iso_639_1}
-                            className="bg-gray-800 px-3 py-2 rounded-lg border border-gray-700"
+                            className="bg-surface px-3 py-2 rounded-lg border border-rule"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.1 + index * 0.05 }}
                             whileHover={{
-                              backgroundColor: "rgba(75,85,99, 0.8)",
+                              backgroundColor: "#2a2a2a",
                               y: -2,
-                              borderColor: "rgba(107,114,128, 0.8)",
+                              borderColor: "#444444",
                               transition: { duration: 0.2 }
                             }}
                           >
@@ -4093,11 +4055,11 @@ const TVDetails: React.FC = () => {
                       {t('details.firstAirDateLabel')}
                     </h3>
                     <motion.div
-                      className="bg-gray-800 px-3 py-2 rounded-lg inline-block border border-gray-700"
+                      className="bg-surface px-3 py-2 rounded-lg inline-block border border-rule"
                       whileHover={{
-                        backgroundColor: "rgba(75,85,99, 0.8)",
+                        backgroundColor: "#2a2a2a",
                         y: -2,
-                        borderColor: "rgba(107,114,128, 0.8)",
+                        borderColor: "#444444",
                         transition: { duration: 0.2 }
                       }}
                     >
@@ -4123,11 +4085,11 @@ const TVDetails: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Nombre de saisons */}
                       <motion.div
-                        className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                        className="bg-surface p-3 rounded-lg border border-rule"
                         whileHover={{
-                          backgroundColor: "rgba(75,85,99, 0.8)",
+                          backgroundColor: "#2a2a2a",
                           y: -2,
-                          borderColor: "rgba(107,114,128, 0.8)",
+                          borderColor: "#444444",
                           transition: { duration: 0.2 }
                         }}
                       >
@@ -4139,11 +4101,11 @@ const TVDetails: React.FC = () => {
 
                       {/* Nombre d'épisodes */}
                       <motion.div
-                        className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                        className="bg-surface p-3 rounded-lg border border-rule"
                         whileHover={{
-                          backgroundColor: "rgba(75,85,99, 0.8)",
+                          backgroundColor: "#2a2a2a",
                           y: -2,
-                          borderColor: "rgba(107,114,128, 0.8)",
+                          borderColor: "#444444",
                           transition: { duration: 0.2 }
                         }}
                       >
@@ -4156,11 +4118,11 @@ const TVDetails: React.FC = () => {
                       {/* Popularité */}
                       {tvShow.popularity && (
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                          className="bg-surface p-3 rounded-lg border border-rule"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
@@ -4174,11 +4136,11 @@ const TVDetails: React.FC = () => {
                       {/* Durée moyenne des épisodes */}
                       {tvShow.episode_run_time && tvShow.episode_run_time.length > 0 && (
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                          className="bg-surface p-3 rounded-lg border border-rule"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
@@ -4192,11 +4154,11 @@ const TVDetails: React.FC = () => {
                       {/* Statut */}
                       {tvShow.status && (
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700 col-span-1 md:col-span-2"
+                          className="bg-surface p-3 rounded-lg border border-rule col-span-1 md:col-span-2"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
@@ -4216,11 +4178,11 @@ const TVDetails: React.FC = () => {
                       {/* Dernière diffusion */}
                       {lastBroadcastEpisode && lastBroadcastAiring && (
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700 col-span-1 md:col-span-2"
+                          className="bg-surface p-3 rounded-lg border border-rule col-span-1 md:col-span-2"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
@@ -4243,11 +4205,11 @@ const TVDetails: React.FC = () => {
                       {/* Prochain épisode */}
                       {nextBroadcastEpisode && nextBroadcastAiring && (
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700 col-span-1 md:col-span-2"
+                          className="bg-surface p-3 rounded-lg border border-rule col-span-1 md:col-span-2"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
@@ -4286,18 +4248,18 @@ const TVDetails: React.FC = () => {
                         {t('details.financialStatsTitle')}
                       </h3>
                       <motion.div
-                        className="flex bg-gray-900 rounded-lg overflow-hidden border border-gray-700"
+                        className="flex bg-ground rounded-lg overflow-hidden border border-rule"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
                         <button
-                          className={`px-3 py-1 text-sm ${financialStatsMode === 'simple' ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400 hover:text-white'}`}
+                          className={`px-3 py-1 text-sm rounded ${financialStatsMode === 'simple' ? 'bg-raised text-white' : 'bg-transparent text-ink-muted hover:text-white'}`}
                           onClick={() => setFinancialStatsMode('simple')}
                         >
                           {t('details.simpleMode')}
                         </button>
                         <button
-                          className={`px-3 py-1 text-sm ${financialStatsMode === 'advanced' ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400 hover:text-white'}`}
+                          className={`px-3 py-1 text-sm rounded ${financialStatsMode === 'advanced' ? 'bg-raised text-white' : 'bg-transparent text-ink-muted hover:text-white'}`}
                           onClick={() => setFinancialStatsMode('advanced')}
                         >
                           {t('details.advancedMode')}
@@ -4308,17 +4270,17 @@ const TVDetails: React.FC = () => {
                     {/* Informations globales - toujours visibles en mode simple */}
                     <div className="mb-4">
                       <h4 className="text-md font-medium mb-2 text-gray-300 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                        <span className="w-2 h-2 rounded-full bg-white/60"></span>
                         {t('details.globalLabel')}
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Coût estimé par épisode */}
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                          className="bg-surface p-3 rounded-lg border border-rule"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
@@ -4337,11 +4299,11 @@ const TVDetails: React.FC = () => {
 
                         {/* Budget total estimé */}
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                          className="bg-surface p-3 rounded-lg border border-rule"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
@@ -4360,18 +4322,18 @@ const TVDetails: React.FC = () => {
 
                         {/* Section des revenus - affichée différemment selon le mode */}
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700 col-span-1 md:col-span-2"
+                          className="bg-surface p-3 rounded-lg border border-rule col-span-1 md:col-span-2"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
                           <h4 className="text-gray-400 text-sm mb-1">{t('details.revenueAndProfits')}</h4>
 
                           {financialStatsMode === 'simple' ? (
-                            <div className="bg-gray-900 p-2 rounded-lg">
+                            <div className="bg-ground p-2 rounded-lg">
                               <div className="flex justify-between items-center">
                                 <span className="text-sm text-gray-300">{t('details.profitabilityStatus')}</span>
                                 <span className={`text-sm font-semibold ${tvShow.number_of_seasons && tvShow.vote_average &&
@@ -4379,7 +4341,7 @@ const TVDetails: React.FC = () => {
                                     (tvShow.vote_average >= 7.5 && tvShow.number_of_seasons >= 1) ||
                                     (tvShow.vote_average >= 6.5 && tvShow.number_of_seasons >= 2) ||
                                     (tvShow.number_of_seasons >= 3)
-                                  ) ? 'text-green-400' : 'text-yellow-400'
+                                  ) ? 'text-white' : 'text-ink-muted'
                                   }`}>
                                   {tvShow.number_of_seasons && tvShow.vote_average &&
                                     (
@@ -4424,7 +4386,7 @@ const TVDetails: React.FC = () => {
                                   <span className="font-semibold">{t('details.profitabilityEstimate')}</span> {t('details.tv.finance.forShow', { name: tvShow.name })}
                                 </p>
 
-                                <div className="bg-gray-900 p-2 rounded-lg mb-2">
+                                <div className="bg-ground p-2 rounded-lg mb-2">
                                   <div className="flex justify-between items-center mb-1">
                                     <span className="text-xs text-gray-400">{t('details.breakEvenEstimate')}</span>
                                     <span className="text-xs font-semibold text-gray-300">
@@ -4451,7 +4413,7 @@ const TVDetails: React.FC = () => {
                                         (tvShow.vote_average >= 7.5 && tvShow.number_of_seasons >= 1) ||
                                         (tvShow.vote_average >= 6.5 && tvShow.number_of_seasons >= 2) ||
                                         (tvShow.number_of_seasons >= 3)
-                                      ) ? 'text-green-400' : 'text-yellow-400'
+                                      ) ? 'text-white' : 'text-ink-muted'
                                       }`}>
                                       {tvShow.number_of_seasons && tvShow.vote_average &&
                                         (
@@ -4474,8 +4436,8 @@ const TVDetails: React.FC = () => {
                                   <span className="font-semibold">{t('details.factorsImpacting')}</span>
                                 </p>
                                 <div className="grid grid-cols-2 gap-2">
-                                  <div className="bg-gray-900 p-2 rounded-lg">
-                                    <h5 className="text-xs font-medium text-green-400 mb-1">{t('details.positiveFactors')}</h5>
+                                  <div className="bg-ground p-2 rounded-lg">
+                                    <h5 className="text-xs font-medium text-white mb-1">{t('details.positiveFactors')}</h5>
                                     <ul className="list-disc pl-4 text-xs text-gray-300 space-y-0.5">
                                       <li>{t('details.highRating')} ({tvShow.vote_average}/10)</li>
                                       <li>{t('details.popularityFactor')} ({tvShow.popularity?.toFixed(0)})</li>
@@ -4487,8 +4449,8 @@ const TVDetails: React.FC = () => {
                                       }
                                     </ul>
                                   </div>
-                                  <div className="bg-gray-900 p-2 rounded-lg">
-                                    <h5 className="text-xs font-medium text-red-400 mb-1">{t('details.negativeFactors')}</h5>
+                                  <div className="bg-ground p-2 rounded-lg">
+                                    <h5 className="text-xs font-medium text-white mb-1">{t('details.negativeFactors')}</h5>
                                     <ul className="list-disc pl-4 text-xs text-gray-300 space-y-0.5">
                                       {!tvShow.in_production &&
                                         <li>{t('details.productionEndedFactor')}</li>
@@ -4526,20 +4488,20 @@ const TVDetails: React.FC = () => {
                         className="mb-4"
                       >
                         <h4 className="text-md font-medium mb-2 text-gray-300 flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                          <span className="w-2 h-2 rounded-full bg-white/60"></span>
                           {t('details.perSeasonLabel')}
                         </h4>
 
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                          className="bg-surface p-3 rounded-lg border border-rule"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
-                          <div className="grid grid-cols-3 gap-2 text-xs text-gray-400 border-b border-gray-700 pb-2 mb-2">
+                          <div className="grid grid-cols-3 gap-2 text-xs text-gray-400 border-b border-rule pb-2 mb-2">
                             <div>{t('details.seasonsLabel')}</div>
                             <div>{t('details.episodesLabel')}</div>
                             <div>{t('details.estimatedBudgetLabel')}</div>
@@ -4583,16 +4545,16 @@ const TVDetails: React.FC = () => {
                         className="mb-4"
                       >
                         <h4 className="text-md font-medium mb-2 text-gray-300 flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                          <span className="w-2 h-2 rounded-full bg-white/60"></span>
                           {t('details.perEpisodeLabel')}
                         </h4>
 
                         <motion.div
-                          className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                          className="bg-surface p-3 rounded-lg border border-rule"
                           whileHover={{
-                            backgroundColor: "rgba(75,85,99, 0.8)",
+                            backgroundColor: "#2a2a2a",
                             y: -2,
-                            borderColor: "rgba(107,114,128, 0.8)",
+                            borderColor: "#444444",
                             transition: { duration: 0.2 }
                           }}
                         >
@@ -4611,8 +4573,8 @@ const TVDetails: React.FC = () => {
                                   </span>
                                 </div>
                               </div>
-                              <div className="overflow-hidden h-2 mt-1 text-xs flex rounded bg-gray-700">
-                                <div style={{ width: "55%" }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500"></div>
+                              <div className="overflow-hidden h-2 mt-1 text-xs flex rounded bg-raised">
+                                <div style={{ width: "55%" }} className="shadow-none flex flex-col text-center whitespace-nowrap justify-center bg-white/70"></div>
                               </div>
                             </div>
 
@@ -4629,8 +4591,8 @@ const TVDetails: React.FC = () => {
                                   </span>
                                 </div>
                               </div>
-                              <div className="overflow-hidden h-2 mt-1 text-xs flex rounded bg-gray-700">
-                                <div style={{ width: "25%" }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"></div>
+                              <div className="overflow-hidden h-2 mt-1 text-xs flex rounded bg-raised">
+                                <div style={{ width: "25%" }} className="shadow-none flex flex-col text-center whitespace-nowrap justify-center bg-white/45"></div>
                               </div>
                             </div>
 
@@ -4647,8 +4609,8 @@ const TVDetails: React.FC = () => {
                                   </span>
                                 </div>
                               </div>
-                              <div className="overflow-hidden h-2 mt-1 text-xs flex rounded bg-gray-700">
-                                <div style={{ width: "10%" }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"></div>
+                              <div className="overflow-hidden h-2 mt-1 text-xs flex rounded bg-raised">
+                                <div style={{ width: "10%" }} className="shadow-none flex flex-col text-center whitespace-nowrap justify-center bg-white/30"></div>
                               </div>
                             </div>
 
@@ -4665,8 +4627,8 @@ const TVDetails: React.FC = () => {
                                   </span>
                                 </div>
                               </div>
-                              <div className="overflow-hidden h-2 mt-1 text-xs flex rounded bg-gray-700">
-                                <div style={{ width: "12%" }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-yellow-500"></div>
+                              <div className="overflow-hidden h-2 mt-1 text-xs flex rounded bg-raised">
+                                <div style={{ width: "12%" }} className="shadow-none flex flex-col text-center whitespace-nowrap justify-center bg-white/15"></div>
                               </div>
                             </div>
                           </div>
@@ -4698,18 +4660,18 @@ const TVDetails: React.FC = () => {
                         {tvShow.networks.map((network, index) => (
                           <motion.div
                             key={network.id}
-                            className="flex items-center gap-3 bg-gray-800 p-3 rounded-lg"
+                            className="flex items-center gap-3 bg-surface p-3 rounded-lg"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 + index * 0.1 }}
                             whileHover={{
-                              backgroundColor: "rgba(75,85,99, 0.8)",
+                              backgroundColor: "#2a2a2a",
                               y: -3,
                               transition: { duration: 0.2 }
                             }}
                           >
                             <motion.div
-                              className="w-12 h-12 flex items-center justify-center bg-gray-700 rounded overflow-hidden"
+                              className="w-12 h-12 flex items-center justify-center bg-surface rounded overflow-hidden"
                               whileHover={{ scale: 1.1 }}
                             >
                               {network.logo_path ? (
@@ -4759,7 +4721,6 @@ const TVDetails: React.FC = () => {
                     <motion.button
                       whileHover={{
                         scale: 1.05,
-                        boxShadow: "0 10px 25px rgba(147, 51, 234, 0.3)"
                       }}
                       whileTap={{ scale: 0.95 }}
                       transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -4769,9 +4730,9 @@ const TVDetails: React.FC = () => {
                         }
                         setShowMultiLangView(!showMultiLangView);
                       }}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow-lg border transition-all duration-300 ${showMultiLangView
-                        ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 border-red-500/20'
-                        : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 border-purple-500/20'
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border border-control transition-colors ${showMultiLangView
+                        ? 'bg-raised text-white hover:bg-white hover:text-black'
+                        : 'bg-transparent text-white hover:bg-raised'
                         }`}
                     >
                       {showMultiLangView ? <ArrowLeft className="w-4 h-4" /> : <Languages className="w-4 h-4" />}
@@ -4782,7 +4743,7 @@ const TVDetails: React.FC = () => {
                   {/* Section Vidéos Générales */}
                   {(loadingVideos || loadingMultiLangVideos) ? (
                     <div className="flex items-center justify-center h-40 w-full">
-                      <Loader className="w-8 h-8 animate-spin text-red-600" />
+                      <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
                     </div>
                   ) : showMultiLangView ? (
                     // Vue multi-langues
@@ -4813,14 +4774,14 @@ const TVDetails: React.FC = () => {
 
                         return Object.entries(videosByLanguage).map(([langCode, videos]: [string, any]) => (
                           <div key={langCode} className="mb-8">
-                            <h4 className="text-lg font-medium mb-4 text-purple-400 border-b border-gray-700 pb-2">
+                            <h4 className="text-lg font-medium mb-4 text-white border-b border-rule pb-2">
                               {languageNames[langCode] || langCode.toUpperCase()}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                               {videos.map((video: any, videoIndex: number) => (
                                 <motion.div
                                   key={video.id}
-                                  className="group bg-gray-800/70 rounded-xl overflow-hidden border border-gray-700/50 hover:border-purple-500/30"
+                                  className="group bg-surface rounded-lg overflow-hidden border border-rule hover:border-control"
                                   initial={{ opacity: 0, y: 20, scale: 0.9 }}
                                   animate={{ opacity: 1, y: 0, scale: 1 }}
                                   transition={{
@@ -4832,7 +4793,6 @@ const TVDetails: React.FC = () => {
                                   whileHover={{
                                     y: -8,
                                     scale: 1.02,
-                                    boxShadow: "0 20px 40px rgba(147, 51, 234, 0.15)",
                                     transition: { duration: 0.3 }
                                   }}
                                   whileTap={{ scale: 0.98 }}
@@ -4857,11 +4817,10 @@ const TVDetails: React.FC = () => {
                                       whileHover={{ backgroundColor: "rgba(0,0,0,0.1)" }}
                                     >
                                       <motion.div
-                                        className="w-14 h-14 rounded-full bg-purple-600/90 flex items-center justify-center shadow-lg"
+                                        className="w-14 h-14 rounded-full bg-raised border border-control flex items-center justify-center"
                                         whileHover={{
                                           scale: 1.1,
-                                          backgroundColor: "rgba(147, 51, 234, 1)",
-                                          boxShadow: "0 0 20px rgba(147, 51, 234, 0.5)"
+                                          backgroundColor: "#2a2a2a",
                                         }}
                                         whileTap={{ scale: 0.9 }}
                                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -4876,11 +4835,10 @@ const TVDetails: React.FC = () => {
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: videoIndex * 0.05 + 0.2 }}
                                   >
-                                    <h4 className="font-semibold mb-2 line-clamp-1 text-white group-hover:text-purple-400 transition-colors">{video.name}</h4>
+                                    <h4 className="font-semibold mb-2 line-clamp-1 text-white transition-colors">{video.name}</h4>
                                     <div className="flex items-center text-sm text-gray-400">
                                       <motion.span
-                                        className="bg-gray-700/70 px-2 py-1 rounded-md mr-2 text-xs font-medium"
-                                        whileHover={{ backgroundColor: "rgba(55, 65, 81, 1)" }}
+                                        className="border border-control text-ink-muted px-2 py-1 rounded-full mr-2 text-xs font-medium"
                                       >
                                         {video.type}
                                       </motion.span>
@@ -4909,7 +4867,7 @@ const TVDetails: React.FC = () => {
                         return (
                           <div key={videoType} className="mb-6">
                             {/* ... Rendu existant pour les types de vidéos générales ... */}
-                            <h4 className="text-lg font-medium mb-4 border-b border-gray-700 pb-2">
+                            <h4 className="text-lg font-medium mb-4 border-b border-rule pb-2">
                               {videoType === 'Trailer' ? t('details.videoTrailers') :
                                 videoType === 'Teaser' ? 'Teasers' :
                                   videoType === 'Clip' ? t('details.videoClips') :
@@ -4920,7 +4878,7 @@ const TVDetails: React.FC = () => {
                               {filteredVideos.map((video: any, index: number) => (
                                 <motion.div
                                   key={video.id || video.key}
-                                  className="group bg-gray-800/70 rounded-xl overflow-hidden border border-gray-700/50 hover:border-red-500/30"
+                                  className="group bg-surface rounded-lg overflow-hidden border border-rule hover:border-control"
                                   initial={{ opacity: 0, y: 20, scale: 0.9 }}
                                   animate={{ opacity: 1, y: 0, scale: 1 }}
                                   transition={{
@@ -4932,7 +4890,6 @@ const TVDetails: React.FC = () => {
                                   whileHover={{
                                     y: -8,
                                     scale: 1.02,
-                                    boxShadow: "0 20px 40px rgba(239, 68, 68, 0.15)",
                                     transition: { duration: 0.3 }
                                   }}
                                   whileTap={{ scale: 0.98 }}
@@ -4957,11 +4914,10 @@ const TVDetails: React.FC = () => {
                                       whileHover={{ backgroundColor: "rgba(0,0,0,0.1)" }}
                                     >
                                       <motion.div
-                                        className="w-14 h-14 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg"
+                                        className="w-14 h-14 rounded-full bg-raised border border-control flex items-center justify-center"
                                         whileHover={{
                                           scale: 1.1,
-                                          backgroundColor: "rgba(239, 68, 68, 1)",
-                                          boxShadow: "0 0 20px rgba(239, 68, 68, 0.5)"
+                                          backgroundColor: "#2a2a2a",
                                         }}
                                         whileTap={{ scale: 0.9 }}
                                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -4976,18 +4932,10 @@ const TVDetails: React.FC = () => {
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: index * 0.1 + 0.2 }}
                                   >
-                                    <h4 className="font-semibold mb-2 line-clamp-1 text-white group-hover:text-red-400 transition-colors">{video.name}</h4>
+                                    <h4 className="font-semibold mb-2 line-clamp-1 text-white transition-colors">{video.name}</h4>
                                     <div className="flex items-center text-sm text-gray-400">
                                       <motion.span
-                                        className={`text-xs px-2 py-1 rounded-md mr-2 font-medium ${video.type === 'Trailer'
-                                          ? 'bg-red-600/70 text-white'
-                                          : video.type === 'Teaser'
-                                            ? 'bg-blue-600/70 text-white'
-                                            : video.type === 'Clip'
-                                              ? 'bg-green-600/70 text-white'
-                                              : 'bg-gray-700/70 text-gray-300'
-                                          }`}
-                                        whileHover={{ backgroundColor: video.type === 'Trailer' ? 'rgba(239, 68, 68, 0.9)' : undefined }}
+                                        className="text-xs px-2 py-1 rounded-full mr-2 font-medium border border-control text-ink-muted"
                                       >
                                         {video.type === 'Trailer' ? t('details.videoTrailer') :
                                           video.type === 'Teaser' ? 'Teaser' :
@@ -5013,7 +4961,7 @@ const TVDetails: React.FC = () => {
                         !['Trailer', 'Teaser', 'Clip', 'Behind the Scenes', 'Featurette'].includes(video.type)
                       ).length > 0 && (
                           <div className="mb-6">
-                            <h4 className="text-lg font-medium mb-4 border-b border-gray-700 pb-2">
+                            <h4 className="text-lg font-medium mb-4 border-b border-rule pb-2">
                               {t('details.otherVideos')}
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -5022,7 +4970,7 @@ const TVDetails: React.FC = () => {
                                 .map((video: any, index: number) => (
                                   <motion.div
                                     key={video.id || video.key}
-                                    className="bg-gray-800 rounded-lg overflow-hidden cursor-pointer"
+                                    className="bg-surface rounded-lg overflow-hidden cursor-pointer"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1 * index, duration: 0.3 }}
@@ -5043,7 +4991,7 @@ const TVDetails: React.FC = () => {
                                         className="w-full h-full object-cover"
                                       />
                                       <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="w-16 h-16 rounded-full bg-red-600/80 flex items-center justify-center">
+                                        <div className="w-16 h-16 rounded-full bg-raised border border-control flex items-center justify-center">
                                           <Play className="w-8 h-8 text-white ml-1" />
                                         </div>
                                       </div>
@@ -5051,7 +4999,7 @@ const TVDetails: React.FC = () => {
                                     <div className="p-4">
                                       <h4 className="font-medium mb-1">{video.name}</h4>
                                       <div className="flex items-center gap-2">
-                                        <span className="text-xs px-2 py-1 rounded bg-gray-700 text-gray-300">
+                                        <span className="text-xs px-2 py-1 rounded bg-raised text-ink-muted">
                                           {video.type}
                                         </span>
                                         {video.published_at && (
@@ -5069,7 +5017,7 @@ const TVDetails: React.FC = () => {
                     </div>
                   ) : loadingVideos ? (
                     <div className="flex items-center justify-center h-40 w-full">
-                      <Loader className="w-8 h-8 animate-spin text-red-600" />
+                      <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-40 text-gray-400">
@@ -5079,12 +5027,12 @@ const TVDetails: React.FC = () => {
                   )}
 
                   {/* Section Vidéos par Saison */}
-                  <h3 className="text-xl font-semibold mt-10 mb-6 border-t border-gray-700 pt-6">
+                  <h3 className="text-xl font-semibold mt-10 mb-6 border-t border-rule pt-6">
                     {t('details.videosBySeason')}
                   </h3>
                   {loadingVideos ? (
                     <div className="flex items-center justify-center h-40 w-full">
-                      <Loader className="w-8 h-8 animate-spin text-red-600" />
+                      <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
                     </div>
                   ) : availableSeasons.length > 0 ? (
                     availableSeasons.map(seasonNum => (
@@ -5095,7 +5043,6 @@ const TVDetails: React.FC = () => {
                           <motion.button
                             whileHover={{
                               scale: 1.05,
-                              boxShadow: "0 10px 25px rgba(147, 51, 234, 0.3)"
                             }}
                             whileTap={{ scale: 0.95 }}
                             transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -5108,9 +5055,9 @@ const TVDetails: React.FC = () => {
                                 [seasonNum]: !prev[seasonNum]
                               }));
                             }}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow-lg border transition-all duration-300 ${showSeasonMultiLangView[seasonNum]
-                              ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 border-red-500/20'
-                              : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 border-purple-500/20'
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border border-control transition-colors ${showSeasonMultiLangView[seasonNum]
+                              ? 'bg-raised text-white hover:bg-white hover:text-black'
+                              : 'bg-transparent text-white hover:bg-raised'
                               }`}
                           >
                             {showSeasonMultiLangView[seasonNum] ? <ArrowLeft className="w-4 h-4" /> : <Languages className="w-4 h-4" />}
@@ -5120,7 +5067,7 @@ const TVDetails: React.FC = () => {
 
                         {(loadingVideos || loadingSeasonMultiLangVideos[seasonNum]) ? (
                           <div className="flex items-center justify-center h-40">
-                            <Loader className="w-8 h-8 animate-spin text-red-600" />
+                            <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
                           </div>
                         ) : showSeasonMultiLangView[seasonNum] ? (
                           // Vue multi-langues pour cette saison
@@ -5151,14 +5098,14 @@ const TVDetails: React.FC = () => {
 
                               return Object.entries(videosByLanguage).map(([langCode, videos]: [string, any]) => (
                                 <div key={`${seasonNum}-${langCode}`} className="mb-8">
-                                  <h5 className="text-md font-medium mb-4 text-purple-400 border-b border-gray-700 pb-2">
+                                  <h5 className="text-md font-medium mb-4 text-white border-b border-rule pb-2">
                                     {languageNames[langCode] || langCode.toUpperCase()}
                                   </h5>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {videos.map((video: any, videoIndex: number) => (
                                       <motion.div
                                         key={video.id}
-                                        className="group bg-gray-800/70 rounded-xl overflow-hidden border border-gray-700/50 hover:border-purple-500/30"
+                                        className="group bg-surface rounded-lg overflow-hidden border border-rule hover:border-control"
                                         initial={{ opacity: 0, y: 20, scale: 0.9 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         transition={{
@@ -5170,7 +5117,6 @@ const TVDetails: React.FC = () => {
                                         whileHover={{
                                           y: -8,
                                           scale: 1.02,
-                                          boxShadow: "0 20px 40px rgba(147, 51, 234, 0.15)",
                                           transition: { duration: 0.3 }
                                         }}
                                         whileTap={{ scale: 0.98 }}
@@ -5195,11 +5141,10 @@ const TVDetails: React.FC = () => {
                                             whileHover={{ backgroundColor: "rgba(0,0,0,0.1)" }}
                                           >
                                             <motion.div
-                                              className="w-14 h-14 rounded-full bg-purple-600/90 flex items-center justify-center shadow-lg"
+                                              className="w-14 h-14 rounded-full bg-raised border border-control flex items-center justify-center"
                                               whileHover={{
                                                 scale: 1.1,
-                                                backgroundColor: "rgba(147, 51, 234, 1)",
-                                                boxShadow: "0 0 20px rgba(147, 51, 234, 0.5)"
+                                                backgroundColor: "#2a2a2a",
                                               }}
                                               whileTap={{ scale: 0.9 }}
                                               transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -5214,11 +5159,10 @@ const TVDetails: React.FC = () => {
                                           animate={{ opacity: 1 }}
                                           transition={{ delay: videoIndex * 0.05 + 0.2 }}
                                         >
-                                          <h4 className="font-semibold mb-2 line-clamp-1 text-white group-hover:text-purple-400 transition-colors">{video.name}</h4>
+                                          <h4 className="font-semibold mb-2 line-clamp-1 text-white transition-colors">{video.name}</h4>
                                           <div className="flex items-center text-sm text-gray-400">
                                             <motion.span
-                                              className="bg-gray-700/70 px-2 py-1 rounded-md mr-2 text-xs font-medium"
-                                              whileHover={{ backgroundColor: "rgba(55, 65, 81, 1)" }}
+                                              className="border border-control text-ink-muted px-2 py-1 rounded-full mr-2 text-xs font-medium"
                                             >
                                               {video.type}
                                             </motion.span>
@@ -5244,7 +5188,7 @@ const TVDetails: React.FC = () => {
                               {seasonVideos[seasonNum].map((video: any, index: number) => (
                                 <motion.div
                                   key={video.id || video.key}
-                                  className="group bg-gray-800/70 rounded-xl overflow-hidden border border-gray-700/50 hover:border-red-500/30"
+                                  className="group bg-surface rounded-lg overflow-hidden border border-rule hover:border-control"
                                   initial={{ opacity: 0, y: 20, scale: 0.9 }}
                                   animate={{ opacity: 1, y: 0, scale: 1 }}
                                   transition={{
@@ -5256,7 +5200,6 @@ const TVDetails: React.FC = () => {
                                   whileHover={{
                                     y: -8,
                                     scale: 1.02,
-                                    boxShadow: "0 20px 40px rgba(239, 68, 68, 0.15)",
                                     transition: { duration: 0.3 }
                                   }}
                                   whileTap={{ scale: 0.98 }}
@@ -5281,11 +5224,10 @@ const TVDetails: React.FC = () => {
                                       whileHover={{ backgroundColor: "rgba(0,0,0,0.1)" }}
                                     >
                                       <motion.div
-                                        className="w-14 h-14 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg"
+                                        className="w-14 h-14 rounded-full bg-raised border border-control flex items-center justify-center"
                                         whileHover={{
                                           scale: 1.1,
-                                          backgroundColor: "rgba(239, 68, 68, 1)",
-                                          boxShadow: "0 0 20px rgba(239, 68, 68, 0.5)"
+                                          backgroundColor: "#2a2a2a",
                                         }}
                                         whileTap={{ scale: 0.9 }}
                                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -5300,15 +5242,10 @@ const TVDetails: React.FC = () => {
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: index * 0.1 + 0.2 }}
                                   >
-                                    <h4 className="font-semibold mb-2 line-clamp-1 text-white group-hover:text-red-400 transition-colors">{video.name}</h4>
+                                    <h4 className="font-semibold mb-2 line-clamp-1 text-white transition-colors">{video.name}</h4>
                                     <div className="flex items-center text-sm text-gray-400">
                                       <motion.span
-                                        className={`text-xs px-2 py-1 rounded-md mr-2 font-medium ${video.type === 'Trailer' ? 'bg-red-600/70 text-white' :
-                                          video.type === 'Teaser' ? 'bg-blue-600/70 text-white' :
-                                            video.type === 'Clip' ? 'bg-green-600/70 text-white' :
-                                              'bg-gray-700/70 text-gray-300'
-                                          }`}
-                                        whileHover={{ backgroundColor: video.type === 'Trailer' ? 'rgba(239, 68, 68, 0.9)' : undefined }}
+                                        className="text-xs px-2 py-1 rounded-full mr-2 font-medium border border-control text-ink-muted"
                                       >
                                         {video.type === 'Trailer' ? t('details.videoTrailer') :
                                           video.type === 'Teaser' ? 'Teaser' :
@@ -5372,14 +5309,14 @@ const TVDetails: React.FC = () => {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="w-full max-w-6xl bg-gray-900 rounded-2xl overflow-hidden relative"
+                className="w-full max-w-6xl bg-surface rounded-2xl overflow-hidden relative"
                 onClick={e => e.stopPropagation()}
               >
-                <div className="p-4 flex justify-between items-center border-b border-gray-800">
+                <div className="p-4 flex justify-between items-center border-b border-rule">
                   <h3 className="text-xl font-semibold text-white">{selectedVideo.name}</h3>
                   <motion.button
                     onClick={handleCloseVideo}
-                    className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                    className="text-ink-faint hover:text-white p-2 rounded-full hover:bg-raised transition-colors"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
@@ -5421,18 +5358,11 @@ const TVDetails: React.FC = () => {
               }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <motion.div
-                animate={{
-                  rotate: 360,
-                  transition: { duration: 1, repeat: Infinity, ease: "linear" }
-                }}
-              >
-                <Loader className="h-8 w-8" />
-              </motion.div>
+              <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
             </motion.div>
           ) : recommendations.length > 0 ? (
             <EmblaCarousel
-              title={<span><span className="text-red-600 mr-2">🔥</span>{t('details.similarSeries')}</span>}
+              title={t('details.similarSeries')}
               items={recommendations.map(show => ({
                 id: Number(show.id),
                 title: show.name,
@@ -5484,17 +5414,17 @@ const TVDetails: React.FC = () => {
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-black rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">{t('details.similarSeries')}</h2>
+              <h2 className="text-2xl font-semibold">{t('details.similarSeries')}</h2>
               <button
                 onClick={() => setShowSimilarModal(false)}
-                className="p-2 hover:bg-black/80 rounded-lg transition-colors"
+                className="p-2 text-ink-muted hover:text-white hover:bg-raised rounded-full transition-colors"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
             {loadingSimilar ? (
               <div className="flex flex-col items-center justify-center h-64 space-y-4 bg-black/50">
-                <Loader className="animate-spin h-8 w-8" />
+                <Ring className="h-8 w-8 text-ink-faint" aria-hidden="true" />
                 <p className="text-gray-400">{t('details.searchingSimilarSeries')}</p>
               </div>
             ) : recommendations.length > 0 ? (
@@ -5519,13 +5449,13 @@ const TVDetails: React.FC = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity duration-300">
                       <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <h3 className="text-sm font-bold text-white line-clamp-2">
+                        <h3 className="text-sm font-semibold text-white line-clamp-2">
                           {item.name}
                         </h3>
                         <div className="flex items-center gap-2 mt-2">
                           <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 text-yellow-400" />
-                            <span className="text-xs text-gray-300">
+                            <Star className="w-3 h-3 text-accent fill-accent" />
+                            <span className="text-xs text-gray-300 tabular-nums">
                               {item.vote_average.toFixed(1)}
                             </span>
                           </div>
@@ -5560,12 +5490,12 @@ const TVDetails: React.FC = () => {
 
       <Dialog open={isEpisodeWarningOpen && pendingAiring?.needsWarning === true} onOpenChange={setEpisodeWarningOpen}>
           <DialogContent className="max-w-md w-[calc(100%-2rem)] max-h-[90dvh] overflow-y-auto flex flex-col items-center gap-0">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-tv h-12 w-12 text-yellow-500 mb-4"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-tv h-12 w-12 text-ink-muted mb-4"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
             <DialogTitle className="text-2xl text-center mb-2">
               {t(pendingAiring?.kind === 'aired' ? 'details.airing.aired' : 'details.airing.warningTitle')}
             </DialogTitle>
             {pendingAiring && (
-              <p className="text-yellow-200 text-center mb-3">
+              <p className="text-ink-muted text-center mb-3">
                 {getAiringLabel(pendingAiring, t, i18n.language, airingNow)}
               </p>
             )}
@@ -5574,7 +5504,7 @@ const TVDetails: React.FC = () => {
             </DialogDescription>
             <div className="flex flex-wrap justify-center gap-4 mt-2">
               <button
-                className="px-6 py-3 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
+                className="px-6 py-3 border border-control text-white rounded-full font-medium hover:bg-raised transition-colors"
                 onClick={() => {
                   setEpisodeWarningOpen(false);
                 }}
@@ -5582,7 +5512,7 @@ const TVDetails: React.FC = () => {
                 {t('details.cancel')}
               </button>
               <button
-                className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                className="px-6 py-3 bg-white text-black rounded-full font-medium hover:bg-neutral-200 transition-colors"
                 onClick={() => {
                   setEpisodeWarningOpen(false);
                   if (pendingEpisode && id) {
@@ -5613,14 +5543,14 @@ const TVDetails: React.FC = () => {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="w-full max-w-6xl bg-gray-900 rounded-2xl overflow-hidden relative"
+                className="w-full max-w-6xl bg-surface rounded-2xl overflow-hidden relative"
                 onClick={e => e.stopPropagation()}
               >
-                <div className="p-4 flex justify-between items-center border-b border-gray-800">
+                <div className="p-4 flex justify-between items-center border-b border-rule">
                   <h3 className="text-xl font-semibold text-white">{t('details.bandeAnnonce')} - {tvShow?.name}</h3>
                   <motion.button
                     onClick={handleCloseTrailer}
-                    className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                    className="text-ink-faint hover:text-white p-2 rounded-full hover:bg-raised transition-colors"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >

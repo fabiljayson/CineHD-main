@@ -10,9 +10,10 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LegalDocumentPage, { LegalSection } from '../components/legal/LegalDocumentPage';
+import * as whatsappSupport from '../config/support';
 
 const CONTACT_EMAIL = 'movixstreaming@gmail.com';
-const TELEGRAM_URL = 'https://t.me/ix_annonces';
+const SUPPORT_WHATSAPP_URL = whatsappSupport.SUPPORT_WHATSAPP_URL;
 
 const Privacy = () => {
   const { t } = useTranslation();
@@ -110,7 +111,7 @@ const Privacy = () => {
           { label: t('privacyPolicyPage.supportCard.actions.settings'), to: '/settings', variant: 'primary' },
           { label: t('privacyPolicyPage.supportCard.actions.terms'), to: '/terms-of-service', variant: 'secondary' },
           { label: t('privacyPolicyPage.supportCard.actions.email'), href: `mailto:${CONTACT_EMAIL}`, variant: 'ghost' },
-          { label: t('privacyPolicyPage.supportCard.actions.telegram'), href: TELEGRAM_URL, external: true, variant: 'ghost' },
+          { label: t('privacyPolicyPage.supportCard.actions.whatsapp'), href: SUPPORT_WHATSAPP_URL, external: true, variant: 'ghost' },
         ],
       }}
       footerNote={t('privacyPolicyPage.footerNote')}

@@ -41,7 +41,7 @@ const DetailsSkeleton = ({ mediaType = 'movie' }: DetailsSkeletonProps) => {
       <div className="mb-8">
         {/* Même line-height et même baseline que h1.section-title, y compris
             sa pastille inline : une rangée flex changeait la hauteur. */}
-        <h1 className="inline-block text-4xl md:text-5xl font-bold pb-2" style={{ fontSize: '1.5rem' }}>
+        <h1 className="inline-block text-4xl md:text-5xl font-semibold pb-2" style={{ fontSize: '1.5rem' }}>
           <span className="relative inline-block w-40 sm:w-80">
             <span className="invisible">M</span>
             <span className="absolute inset-x-0 inset-y-1"><Skeleton height="100%" /></span>
@@ -59,7 +59,7 @@ const DetailsSkeleton = ({ mediaType = 'movie' }: DetailsSkeletonProps) => {
             {!isTV && <Skeleton width={160} height={28} />}
           </div>
         )}
-        {!isTV && releaseWarnings && <p className="mt-2 text-xs text-gray-400">{textPlaceholder('details.movieRelease.availabilityNote')}</p>}
+        {!isTV && releaseWarnings && <p className="mt-2 text-xs text-ink-faint">{textPlaceholder('details.movieRelease.availabilityNote')}</p>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -86,7 +86,7 @@ const DetailsSkeleton = ({ mediaType = 'movie' }: DetailsSkeletonProps) => {
         </div>
 
         <div className="md:col-span-2 min-w-0">
-          <div className="flex overflow-hidden border-b border-gray-700 mb-6">
+          <div className="flex overflow-hidden border-b border-rule mb-6">
             {tabs.map(tab => (
               <div key={tab} className="px-6 py-3 font-medium text-sm flex-shrink-0 relative">
                 <span className="invisible">{t(`details.${tab}`)}</span>
@@ -106,7 +106,7 @@ const DetailsSkeleton = ({ mediaType = 'movie' }: DetailsSkeletonProps) => {
               </p>
               <div className="absolute inset-0"><Skeleton height="100%" className="!rounded-lg" /></div>
             </div>
-            <h2 className="text-xl font-bold mb-2">{textPlaceholder('details.synopsisTitle')}</h2>
+            <h2 className="text-xl font-semibold mb-2">{textPlaceholder('details.synopsisTitle')}</h2>
             {[100, 100, 70].map((width, index) => (
               <div key={index} className="h-6 flex items-center">
                 <Skeleton variant="text" height={16} width={`${width}%`} containerClassName="w-full" />
@@ -129,15 +129,15 @@ const DetailsSkeleton = ({ mediaType = 'movie' }: DetailsSkeletonProps) => {
           </div>
           {!isTV ? <div className="mb-6">{genres}</div> : (
             <div className="mb-6">
-              <h3 className="text-xl font-bold mb-4">{textPlaceholder('details.seasonsLabel')}</h3>
+              <h3 className="text-xl font-semibold mb-4">{textPlaceholder('details.seasonsLabel')}</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
                 {[0, 1, 2].map(index => (
-                  <div key={index} className="rounded-lg overflow-hidden border-2 border-gray-800">
-                    <div className="relative pb-[150%] bg-gray-900">
+                  <div key={index} className="rounded-lg overflow-hidden border border-rule">
+                    <div className="relative pb-[150%] bg-surface">
                       <div className="absolute inset-0"><Skeleton height="100%" className="!rounded-none" /></div>
                       <div className="absolute bottom-0 inset-x-0 p-3">
-                        <Skeleton height={24} width="75%" baseColor="#2a2a2a" />
-                        <div className="mt-1"><Skeleton height={16} width="60%" baseColor="#2a2a2a" /></div>
+                        <Skeleton height={24} width="75%" baseColor="#2a2a2a" highlightColor="#2a2a2a" />
+                        <div className="mt-1"><Skeleton height={16} width="60%" baseColor="#2a2a2a" highlightColor="#2a2a2a" /></div>
                       </div>
                     </div>
                   </div>

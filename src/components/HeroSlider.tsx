@@ -6,7 +6,6 @@ import { Play, Info, Star, Calendar, Pause } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { encodeId } from '../utils/idEncoder';
-import ShinyText from './ui/shiny-text';
 import { useAgeRestrictedContent } from '../hooks/useAgeRestrictedContent';
 import { useTmdbImages, withTmdbImageSize } from '../hooks/useTmdbImages';
 import { useLightMode } from '@/context/LightModeContext';
@@ -358,17 +357,17 @@ const HeroSliderInner: React.FC<HeroSliderProps> = ({ items }) => {
                         filter pass on each); slightly more opaque
                         solid bg keeps legibility against any backdrop. */}
                     <div className="flex flex-wrap gap-1.5 sm:gap-2 items-center">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-white/15 border border-white/20 text-white/90 text-[10px] sm:text-xs font-medium uppercase tracking-wider">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-black/55 border border-white/10 text-white/90 text-[10px] sm:text-xs font-medium">
                         {item.media_type === 'movie' ? t('search.movieLabel') : t('search.serieLabel')}
                       </span>
                       {year && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-white/10 border border-white/10 text-white/80 text-[10px] sm:text-xs font-medium">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-black/55 border border-white/10 text-white/80 text-[10px] sm:text-xs font-medium">
                           <Calendar className="w-3 h-3 text-white opacity-80" />
                           {year}
                         </span>
                       )}
                       {rating && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-yellow-500/25 border border-yellow-500/30 text-yellow-300 text-[10px] sm:text-xs font-semibold">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-black/55 border border-accent/40 text-accent text-[10px] sm:text-xs font-semibold tabular-nums">
                           <Star className="w-3 h-3 fill-current" />
                           {rating}
                         </span>
@@ -387,14 +386,8 @@ const HeroSliderInner: React.FC<HeroSliderProps> = ({ items }) => {
                           decoding="async"
                         />
                       ) : (
-                        <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold leading-tight line-clamp-2">
-                          <ShinyText
-                            text={item.title || item.name || ''}
-                            speed={4}
-                            color="#ffffff"
-                            shineColor="#ef4444"
-                            disabled={!isActive || frozen}
-                          />
+                        <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-semibold leading-tight line-clamp-2">
+                          {item.title || item.name || ''}
                         </h1>
                       )}
                     </div>
@@ -409,9 +402,9 @@ const HeroSliderInner: React.FC<HeroSliderProps> = ({ items }) => {
                       <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                         <Link
                           to={`/${item.media_type}/${encodeId(item.id)}`}
-                          className="inline-flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 text-white px-5 sm:px-6 md:px-7 py-3 sm:py-3 min-h-[48px] rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium border border-white/20 transition-colors touch-manipulation"
+                          className="inline-flex items-center justify-center gap-2 bg-white hover:bg-neutral-200 text-black px-5 sm:px-6 py-2.5 sm:py-3 min-h-[44px] rounded-full text-sm font-medium transition-colors touch-manipulation"
                         >
-                          <Info className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <Info className="w-4 h-4" />
                           {t('home.hero.moreInfo')}
                         </Link>
                       </motion.div>
@@ -454,7 +447,7 @@ const HeroSliderInner: React.FC<HeroSliderProps> = ({ items }) => {
           min-height seul ne dimensionne pas les slides internes à h-full. */}
       <div
         ref={imageContainerRef}
-        className="relative w-full h-[55vh] supports-[height:100svh]:h-[55svh] max-h-[620px] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl min-h-[340px] sm:min-h-[400px] md:min-h-[480px]"
+        className="relative w-full h-[55vh] supports-[height:100svh]:h-[55svh] max-h-[620px] rounded-lg overflow-hidden min-h-[340px] sm:min-h-[400px] md:min-h-[480px]"
       >
         {isMorph && (
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -573,7 +566,7 @@ const HeroSliderInner: React.FC<HeroSliderProps> = ({ items }) => {
             {effectivePrefs.carouselAutoplay && items.length > 1 && <div className="w-12 sm:w-20 h-1 bg-white/15 rounded-full overflow-hidden">
               <div
                 key={progressKey}
-                className={`h-full w-full bg-red-500 rounded-full hero-progress-fill ${frozen ? 'is-paused' : ''}`}
+                className={`h-full w-full bg-white rounded-full hero-progress-fill ${frozen ? 'is-paused' : ''}`}
                 style={{ ['--hero-duration' as string]: `${AUTO_SLIDE_MS}ms` } as React.CSSProperties}
               />
             </div>}

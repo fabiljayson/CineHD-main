@@ -13,7 +13,7 @@ const HeroSkeleton: React.FC = () => {
   return (
     <div className="embla relative w-full select-none px-3 sm:px-6 md:px-12 lg:px-20 mx-auto max-w-[1920px] animate-skeleton-fade" aria-hidden="true">
       <div
-        className="relative w-full h-[55vh] supports-[height:100svh]:h-[55svh] max-h-[620px] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl min-h-[340px] sm:min-h-[400px] md:min-h-[480px]"
+        className="relative w-full h-[55vh] supports-[height:100svh]:h-[55svh] max-h-[620px] rounded-lg overflow-hidden min-h-[340px] sm:min-h-[400px] md:min-h-[480px]"
       >
         {/* Backdrop skeleton */}
         <div className="absolute inset-0 z-0">
@@ -56,10 +56,10 @@ const HeroSkeleton: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <div className="relative inline-flex items-center justify-center gap-2 px-5 sm:px-6 md:px-7 py-3 min-h-[48px] rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium border border-transparent">
+                <div className="relative inline-flex items-center justify-center gap-2 px-5 sm:px-6 md:px-7 py-3 min-h-[48px] rounded-lg text-sm sm:text-base font-medium border border-transparent">
                   <span className="invisible w-4 h-4 sm:w-5 sm:h-5" />
                   <span className="invisible">{t('home.hero.moreInfo')}</span>
-                  <div className="absolute inset-0"><Skeleton variant="button" height="100%" className="sm:!rounded-2xl" /></div>
+                  <div className="absolute inset-0"><Skeleton variant="button" height="100%" className="sm:!rounded-lg" /></div>
                 </div>
               </div>
             </div>
@@ -68,13 +68,13 @@ const HeroSkeleton: React.FC = () => {
 
         {/* Bottom controls (dots + progress bar pill) */}
         <div className="absolute bottom-3 sm:bottom-4 md:bottom-6 left-0 right-0 z-30 flex items-center justify-center gap-4 px-3 sm:px-6 pointer-events-none">
-          <div className="flex items-center gap-2 sm:gap-3 bg-black/60 border border-white/10 rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
+          <div className="flex items-center gap-2 sm:gap-3 bg-black/60 border border-rule rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
             <div className="flex items-center gap-1.5">
-              {Array.from({ length: 5 }, (_, index) => <div key={index} className={`${index === 0 ? 'w-8' : 'w-1.5'} h-1.5 rounded-full bg-white/15`} />)}
+              {Array.from({ length: 5 }, (_, index) => <div key={index} className={`${index === 0 ? 'w-8' : 'w-1.5'} h-1.5 rounded-full bg-[#2a2a2a]`} />)}
             </div>
             {effectivePrefs.carouselAutoplay && <>
-              <div className="w-px h-4 bg-white/20" />
-              <div className="w-12 sm:w-20 h-1 bg-white/15 rounded-full" />
+              <div className="w-px h-4 bg-[#2a2a2a]" />
+              <div className="w-12 sm:w-20 h-1 bg-[#2a2a2a] rounded-full" />
               <Skeleton width={14} height={14} />
             </>}
           </div>

@@ -1,18 +1,18 @@
 /* Styles partagés des EmblaCarousel — extraits du <style> inline pour éviter
    la ré-évaluation du template literal à chaque render du composant. */
 
+/* Stable geometry even when distant poster/overlay contents are released.
+   Height follows the borderless poster: width × 3/2. */
 .embla-slide {
   position: relative;
   flex-shrink: 0;
   contain: layout;
-  height: 215px;
+  height: 216px;
 }
 
-/* Stable geometry even when distant poster/overlay contents are released.
-   Height follows the bordered poster: (width - 2px) × 3/2 + 2px. */
 @media (min-width: 768px) {
   .embla-slide {
-    height: 287px;
+    height: 288px;
   }
 }
 
@@ -20,11 +20,7 @@
    track; touch devices and TVs do not need desktop hover promotion. */
 @media (hover: hover) and (pointer: fine) {
   html:not([data-light-mode="true"]) .carousel-card:hover {
-    transform: scale(1.05);
-  }
-
-  .carousel-card:hover + .ranking-number {
-    opacity: 0;
+    filter: brightness(1.1);
   }
 }
 
@@ -37,15 +33,9 @@ body.embla-scrolling .embla-slide {
   pointer-events: none;
 }
 
-/* Top 10 ranking number — Peephole : digit filled with poster, slow zoom.
-   L'animation `peephole-zoom` fait varier `background-size` 180% → 240% sur 8s
-   en alternance, donnant un effet de zoom-in/out subtil sur le mask. Le coût
-   est minime (1 carousel Top 10 × 30 cards) et la frame rate reste stable
-   parce que background-size ne déclenche que du paint (pas du layout) sur le
-   .ranking-number lui-même, pas sur ses ancêtres.
-
-   `text-shadow` au lieu de `filter: drop-shadow()` : ~10× moins coûteux côté
-   GPU, visuel quasi identique à cette taille. */
+/* Top 10 ranking number — the second gold data mark: an outlined numeral in
+   the accent hue (rank = data), poster art filling the interior via the
+   peephole-zoom clip. Flat: no stroke tint, no drop shadow. */
 .ranking-number {
   position: absolute;
   left: -1rem;
@@ -76,11 +66,10 @@ body.embla-scrolling .embla-slide {
   background-size: auto 200%;
   background-position: center;
   background-repeat: no-repeat;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-stroke: 1.5px rgba(239, 68, 68, 0.6);
-  text-stroke: 1.5px rgba(239, 68, 68, 0.6);
-  text-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  -webkit-background-clip: text; /* taste-skill-ignore : peephole = fill with poster art, no gradient */
+  background-clip: text; /* taste-skill-ignore : peephole = fill with poster art, no gradient */
+  -webkit-text-stroke: 1.5px #c89028;
+  text-stroke: 1.5px #c89028;
 }
 
 @media (min-width: 768px) {
@@ -88,7 +77,7 @@ body.embla-scrolling .embla-slide {
     left: -1.5rem;
     bottom: -0.75rem;
     font-size: 9rem;
-    -webkit-text-stroke: 2px rgba(239, 68, 68, 0.6);
-    text-stroke: 2px rgba(239, 68, 68, 0.6);
+    -webkit-text-stroke: 2px #c89028;
+    text-stroke: 2px #c89028;
   }
 }

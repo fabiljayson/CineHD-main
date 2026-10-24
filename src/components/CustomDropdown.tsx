@@ -200,7 +200,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
             placeholder={t('common.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 bg-surface border border-control rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-white"
             onKeyDown={handleKeyDown}
           />
         </div>
@@ -218,14 +218,14 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
               key={option.value}
               type="button"
               onClick={() => handleSelect(option.value)}
-              className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-700 transition-colors ${value === option.value ? 'bg-blue-600/20 text-blue-300' : 'text-white'}`}
+              className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-raised transition-colors ${value === option.value ? 'bg-raised text-white font-medium' : 'text-white'}`}
             >
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 {option.icon}
                 <span className="truncate">{option.label}</span>
               </div>
               {value === option.value && (
-                <Check className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                <Check className="w-4 h-4 text-white flex-shrink-0" />
               )}
             </button>
           ))
@@ -262,7 +262,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 placeholder={t('common.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-surface border border-control rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-white"
                 onKeyDown={handleKeyDown}
               />
             </div>
@@ -280,14 +280,14 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                   key={option.value}
                   type="button"
                   onClick={() => handleSelect(option.value)}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-700 transition-colors ${value === option.value ? 'bg-blue-600/20 text-blue-300' : 'text-white'}`}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-raised transition-colors ${value === option.value ? 'bg-raised text-white font-medium' : 'text-white'}`}
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     {option.icon}
                     <span className="truncate">{option.label}</span>
                   </div>
                   {value === option.value && (
-                    <Check className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-white flex-shrink-0" />
                   )}
                 </button>
               ))
@@ -309,7 +309,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
         type="button"
         onClick={handleToggle}
         disabled={disabled}
-        className={`w-full flex items-center justify-between px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}
+        className={`w-full flex items-center justify-between px-3 py-2 bg-surface border border-control rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-white transition-colors ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-raised'}`}
         onKeyDown={handleKeyDown}
       >
         <div className="flex items-center gap-2 min-w-0">

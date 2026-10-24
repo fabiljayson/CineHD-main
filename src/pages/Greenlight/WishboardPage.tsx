@@ -10,7 +10,6 @@ import { Button } from '../../components/ui/button';
 import AnimatedBorderCard from '../../components/ui/animated-border-card';
 import ReusableModal from '../../components/ui/reusable-modal';
 import { googleAuth } from '../../services/googleAuth';
-import { discordAuth } from '../../services/discordAuth';
 
 import { WishboardStats } from '../../components/Greenlight/WishboardStats';
 import ShinyText from '../../components/ui/shiny-text';
@@ -95,10 +94,6 @@ const WishboardPage: React.FC = () => {
         pageData: { pageName: 'wishboard' },
         isActive: true,
     });
-
-    const handleLogin = () => {
-        discordAuth.login();
-    };
 
     const handleGoogleLogin = () => {
         googleAuth.login();
@@ -620,19 +615,6 @@ const WishboardPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-3">
-                        <button
-                            onClick={handleLogin}
-                            className="relative flex items-center justify-center gap-3 w-full px-4 py-3.5 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-xl transition-all shadow-lg hover:shadow-xl font-medium overflow-hidden group"
-                        >
-                            <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform" />
-                            <img
-                                src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png"
-                                alt="Discord"
-                                className="w-5 h-5 object-contain bg-white rounded-full p-0.5 relative z-10"
-                            />
-                            <span className="relative z-10">{t('greenlight.continueDiscord')}</span>
-                        </button>
-
                         <button
                             onClick={handleGoogleLogin}
                             className="relative flex items-center justify-center gap-3 w-full px-4 py-3.5 bg-white hover:bg-gray-100 text-gray-900 rounded-xl transition-all shadow-lg hover:shadow-xl font-medium overflow-hidden"

@@ -4,6 +4,7 @@ import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { ExternalLink, Clock, Star } from 'lucide-react';
+import { Ring } from '@/components/ui/loading/ring';
 import { TMDB_API_KEY } from '../config/config';
 import { useTranslation } from 'react-i18next';
 import { getTmdbLanguage } from '../i18n';
@@ -139,7 +140,7 @@ const PersonDetails: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500"></div>
+        <Ring className="h-16 w-16 text-ink-faint" aria-hidden="true" />
       </div>
     );
   }
@@ -148,7 +149,7 @@ const PersonDetails: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">{t('common.error')}</h2>
+          <h2 className="text-2xl font-semibold mb-4">{t('common.error')}</h2>
           <p>{error || t('details.personNotFound')}</p>
         </div>
       </div>
@@ -167,7 +168,7 @@ const PersonDetails: React.FC = () => {
             transition={{ duration: 0.6 }}
             className="w-full md:w-1/3 lg:w-1/4"
           >
-            <div className="rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-purple-900/50 to-blue-900/50 p-1">
+            <div className="rounded-xl overflow-hidden bg-surface p-1">
               <img
                 src={person.profile_path
                   ? `https://image.tmdb.org/t/p/w500${person.profile_path}`
@@ -182,26 +183,26 @@ const PersonDetails: React.FC = () => {
                 }}
               />
             </div>
-            <div className="mt-6 bg-gray-900/50 p-4 rounded-lg space-y-3">
+            <div className="mt-6 bg-surface p-4 rounded-lg space-y-3">
               <div>
-                <h3 className="text-gray-400 text-sm">{t('details.profession')}</h3>
+                <h3 className="text-ink-faint text-sm">{t('details.profession')}</h3>
                 <p className="font-medium">{person.known_for_department}</p>
               </div>
               {person.birthday && (
                 <div>
-                  <h3 className="text-gray-400 text-sm">{t('details.birthday')}</h3>
+                  <h3 className="text-ink-faint text-sm">{t('details.birthday')}</h3>
                   <p className="font-medium">{formatDate(person.birthday)}</p>
                 </div>
               )}
               {person.deathday && (
                 <div>
-                  <h3 className="text-gray-400 text-sm">{t('details.deathday')}</h3>
+                  <h3 className="text-ink-faint text-sm">{t('details.deathday')}</h3>
                   <p className="font-medium">{formatDate(person.deathday)}</p>
                 </div>
               )}
               {person.place_of_birth && (
                 <div>
-                  <h3 className="text-gray-400 text-sm">{t('details.placeOfBirth')}</h3>
+                  <h3 className="text-ink-faint text-sm">{t('details.placeOfBirth')}</h3>
                   <p className="font-medium">{person.place_of_birth}</p>
                 </div>
               )}
@@ -209,7 +210,7 @@ const PersonDetails: React.FC = () => {
                 href={`https://www.themoviedb.org/person/${id}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors mt-4"
+                className="flex items-center gap-2 text-ink-muted hover:text-white transition-colors mt-4"
               >
                 <span>{t('details.viewOnTMDB')}</span>
                 <ExternalLink size={16} />
@@ -224,14 +225,14 @@ const PersonDetails: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="w-full md:w-2/3 lg:w-3/4"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">{person.name}</h1>
+            <h1 className="text-4xl md:text-5xl font-semibold mb-6">{person.name}</h1>
             
             <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">{t('details.biography')}</h2>
+              <h2 className="text-2xl font-semibold mb-4">{t('details.biography')}</h2>
               {person.biography ? (
                 <p className="text-gray-300 leading-relaxed">{person.biography}</p>
               ) : (
-                <p className="text-gray-400 italic">{t('details.noBiography')}</p>
+                <p className="text-ink-faint italic">{t('details.noBiography')}</p>
               )}
             </div>
           </motion.div>
@@ -244,12 +245,12 @@ const PersonDetails: React.FC = () => {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="mt-12"
         >
-          <h2 className="text-3xl font-bold mb-6">{t('details.filmography')}</h2>
+          <h2 className="text-3xl font-semibold mb-6">{t('details.filmography')}</h2>
           
           {/* Magic Scroll Timeline */}
           <div className="relative">
             {/* Fixed timeline line - now confined to filmography section */}
-            <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-600 to-blue-600 z-0 transform -translate-x-1/2 opacity-75"></div>
+            <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-control z-0 transform -translate-x-1/2"></div>
             
             {/* Years and credits */}
             <div className="space-y-32 pb-32">
@@ -261,9 +262,9 @@ const PersonDetails: React.FC = () => {
                     whileInView={{ scale: 1, opacity: 1 }}
                     viewport={{ once: false, margin: "-100px 0px -100px 0px" }}
                     transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                    className="sticky top-32 left-1/2 w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center z-10 transform -translate-x-1/2 mb-16 shadow-lg shadow-purple-900/30"
+                    className="sticky top-32 left-1/2 w-16 h-16 rounded-full bg-raised border border-control flex items-center justify-center z-10 transform -translate-x-1/2 mb-16"
                   >
-                    <span className="text-white font-bold text-xl">{year}</span>
+                    <span className="text-white font-semibold text-xl tabular-nums">{year}</span>
                   </motion.div>
                   
                   {/* Credits for this year */}
@@ -283,10 +284,9 @@ const PersonDetails: React.FC = () => {
                         >
                           <motion.div 
                             whileHover={{ 
-                              scale: 1.03, 
-                              boxShadow: "0px 10px 25px rgba(0, 0, 0, 0.3)"
+                              scale: 1.03
                             }}
-                            className="bg-gray-900/80 backdrop-blur-sm rounded-lg overflow-hidden flex h-32 transition-all border border-gray-800"
+                            className="bg-surface rounded-lg overflow-hidden flex h-32 transition-all border border-rule"
                           >
                             <div className="w-24 h-full flex-none">
                               <img
@@ -305,17 +305,17 @@ const PersonDetails: React.FC = () => {
                             </div>
                             <div className="p-3 flex flex-col justify-between flex-1">
                               <div>
-                                <h3 className="font-bold text-sm md:text-base">
+                                <h3 className="font-semibold text-sm md:text-base">
                                   {credit.title || credit.name}
                                 </h3>
-                                <p className="text-gray-400 text-xs md:text-sm mt-1">
+                                <p className="text-ink-faint text-xs md:text-sm mt-1">
                                   {credit.character 
                                     ? t('details.actorRole', { character: credit.character })
                                     : t('details.crewRole', { job: credit.job })}
                                 </p>
                               </div>
                               <div className="flex items-center gap-3 mt-2">
-                                <div className="flex items-center text-xs text-gray-400">
+                                <div className="flex items-center text-xs text-ink-faint">
                                   <Clock size={12} className="mr-1" />
                                   <span>
                                     {credit.release_date
@@ -325,9 +325,9 @@ const PersonDetails: React.FC = () => {
                                         : t('details.unknownDate')}
                                   </span>
                                 </div>
-                                <div className="flex items-center text-xs text-yellow-400">
-                                  <Star size={12} className="mr-1" />
-                                  <span>{credit.vote_average.toFixed(1)}</span>
+                                <div className="flex items-center text-xs text-accent">
+                                  <Star size={12} className="mr-1 fill-accent" />
+                                  <span className="tabular-nums">{credit.vote_average.toFixed(1)}</span>
                                 </div>
                               </div>
                             </div>

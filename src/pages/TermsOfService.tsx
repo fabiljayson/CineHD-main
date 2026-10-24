@@ -11,9 +11,10 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LegalDocumentPage, { LegalSection } from '../components/legal/LegalDocumentPage';
+import * as whatsappSupport from '../config/support';
 
 const CONTACT_EMAIL = 'movixstreaming@gmail.com';
-const TELEGRAM_URL = 'https://t.me/ix_annonces';
+const SUPPORT_WHATSAPP_URL = whatsappSupport.SUPPORT_WHATSAPP_URL;
 
 const TermsOfService = () => {
   const { t } = useTranslation();
@@ -118,7 +119,7 @@ const TermsOfService = () => {
         actions: [
           { label: t('termsOfServicePage.supportCard.actions.privacy'), to: '/privacy', variant: 'primary' },
           { label: t('termsOfServicePage.supportCard.actions.contact'), href: `mailto:${CONTACT_EMAIL}`, variant: 'ghost' },
-          { label: t('termsOfServicePage.supportCard.actions.telegram'), href: TELEGRAM_URL, external: true, variant: 'ghost' },
+          { label: t('termsOfServicePage.supportCard.actions.whatsapp'), href: SUPPORT_WHATSAPP_URL, external: true, variant: 'ghost' },
         ],
       }}
       footerNote={t('termsOfServicePage.footerNote')}

@@ -101,7 +101,7 @@ const GenreFilter: React.FC<GenreFilterProps> = ({
   if (visualMode) {
     return (
       <div className={`mb-12 ${className}`}>
-        <h2 className="text-2xl font-bold mb-6 px-4 md:px-8">
+        <h2 className="text-base font-semibold mb-6 px-4 md:px-8 text-ink">
           {t('genres.findContentByGenre')}
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 gap-4 px-4 md:px-8">
@@ -109,16 +109,16 @@ const GenreFilter: React.FC<GenreFilterProps> = ({
             <Link
               key={id}
               to={`/genre/${mediaType}/${id}`}
-              className="relative h-24 rounded-lg overflow-hidden group"
+              className="relative h-24 rounded-lg overflow-hidden bg-surface border border-rule group hover:bg-raised transition-colors"
             >
-              <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all z-10"></div>
+              <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-all z-10"></div>
               <img 
                 src={getTMDBImageUrl(Number(id), mediaType)} 
                 alt={name}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                className="w-full h-full object-cover transition-[filter] duration-300 group-hover:brightness-[1.08]"
               />
               <div className="absolute inset-0 flex items-center justify-center z-20">
-                <h3 className="text-white font-semibold text-center text-sm">{name}</h3>
+                <h3 className="text-white font-medium text-center text-sm">{name}</h3>
               </div>
             </Link>
           ))}
@@ -130,8 +130,8 @@ const GenreFilter: React.FC<GenreFilterProps> = ({
   return (
     <div className={`mb-8 ${className}`}>
       <div className="flex items-center mb-3 px-4 md:px-8">
-        <Filter className="w-5 h-5 mr-2 text-primary" />
-        <h2 className="text-lg font-semibold text-white">{t('genres.filterByGenre')}</h2>
+        <Filter className="w-4 h-4 mr-2 text-ink-faint" aria-hidden="true" />
+        <h2 className="text-base font-semibold text-ink">{t('genres.filterByGenre')}</h2>
       </div>
       
       <div className="flex flex-wrap gap-2 px-4 md:px-8">
@@ -139,7 +139,7 @@ const GenreFilter: React.FC<GenreFilterProps> = ({
           <Link
             key={id}
             to={`/genre/${mediaType}/${id}`}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-full text-sm transition-colors"
+            className="px-3 py-1.5 bg-surface border border-rule text-ink-muted rounded-full text-sm transition-colors hover:bg-raised hover:border-control hover:text-white"
           >
             {name}
           </Link>
@@ -148,7 +148,7 @@ const GenreFilter: React.FC<GenreFilterProps> = ({
         {onlyPopular && (
           <Link
             to={`/${mediaType === 'movie' ? 'movies' : 'tv-shows'}#all-genres`}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-full text-sm transition-colors text-primary"
+            className="px-3 py-1.5 bg-surface border border-rule text-ink rounded-full text-sm transition-colors hover:bg-raised hover:border-control"
           >
             {t('genres.seeAllGenres')}
           </Link>

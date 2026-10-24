@@ -19,7 +19,7 @@ const ContentRowSkeleton = ({ title, variant = 'carousel', style, showRanking = 
   if (variant === 'posters') {
     return (
       <div className={`mb-8 ${reserveSpaceOnly ? '' : 'animate-skeleton-fade'}`} aria-hidden="true">
-        <h2 className="text-2xl font-bold mb-4">{title ?? (reserveSpaceOnly ? <span className="block h-8" /> : <Skeleton width={192} height={32} />)}</h2>
+        <h2 className="text-2xl font-semibold mb-4">{title ?? (reserveSpaceOnly ? <span className="block h-8" /> : <Skeleton width={192} height={32} />)}</h2>
         <div className="relative">
           <div className="flex overflow-hidden space-x-4">
             {reserveSpaceOnly ? <div className="h-[225px]" /> : Array.from({ length: 12 }, (_, index) => (

@@ -1,12 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search as SearchIcon, Loader, Filter, Star, Calendar, User, Film, Award, X, LayoutGrid, List, ExternalLink, Globe, Tag, Sparkles, Tv, ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search as SearchIcon, Filter, Star, Calendar, User, Film, Award, X, LayoutGrid, List, ExternalLink, Globe, Tag, Sparkles, Tv, ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSearch, SortByOption, MIN_VOTE_COUNT_WHEN_RATING_MATTERS } from '../context/SearchContext';
 import { hasUsefulContent, isReleased } from '../utils/searchResultFilters';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SquareBackground } from '../components/ui/square-background';
-import ShinyText from '../components/ui/shiny-text';
+import { Ring } from '@/components/ui/loading/ring';
 import CustomDropdown from '../components/CustomDropdown';
 import CustomCheckbox from '../components/CustomCheckbox';
 import SearchResultsSkeleton from '../components/skeletons/SearchResultsSkeleton';
@@ -34,23 +33,23 @@ const PaginationBar = ({ currentPage, maxPages, onSelect }: { currentPage: numbe
     return (
         <div className="flex justify-center items-center gap-1.5 flex-wrap my-6">
             <motion.button whileTap={{ scale: 0.92 }} onClick={() => onSelect(1)} disabled={activePage <= 1}
-                className={`min-w-[40px] h-10 rounded-full text-sm font-medium transition-all ${activePage === 1 ? 'bg-red-600 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10'} disabled:opacity-30`}>
+                className={`min-w-[40px] h-10 rounded-full text-sm font-medium tabular-nums transition-colors ${activePage === 1 ? 'bg-raised text-white border border-ink-faint' : 'text-ink-muted hover:text-white hover:bg-surface border border-rule'} disabled:opacity-30`}>
                 1
             </motion.button>
-            {activePage > 3 && <span className="text-white/20 px-1">...</span>}
+            {activePage > 3 && <span className="text-ink-faint px-1">...</span>}
             {Array.from({ length: 5 }, (_, i) => {
                 const p = Math.max(2, activePage - 2) + i;
                 return p > 1 && p < maxPages ? (
                     <motion.button key={p} whileTap={{ scale: 0.92 }} onClick={() => onSelect(p)}
-                        className={`min-w-[40px] h-10 rounded-full text-sm font-medium transition-all ${p === activePage ? 'bg-red-600 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10'}`}>
+                        className={`min-w-[40px] h-10 rounded-full text-sm font-medium tabular-nums transition-colors ${p === activePage ? 'bg-raised text-white border border-ink-faint' : 'text-ink-muted hover:text-white hover:bg-surface border border-rule'}`}>
                         {p}
                     </motion.button>
                 ) : null;
             })}
-            {activePage < maxPages - 3 && <span className="text-white/20 px-1">...</span>}
+            {activePage < maxPages - 3 && <span className="text-ink-faint px-1">...</span>}
             {maxPages > 1 && (
                 <motion.button whileTap={{ scale: 0.92 }} onClick={() => onSelect(maxPages)} disabled={activePage >= maxPages}
-                    className={`min-w-[40px] h-10 rounded-full text-sm font-medium transition-all ${activePage === maxPages ? 'bg-red-600 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10'} disabled:opacity-30`}>
+                    className={`min-w-[40px] h-10 rounded-full text-sm font-medium tabular-nums transition-colors ${activePage === maxPages ? 'bg-raised text-white border border-ink-faint' : 'text-ink-muted hover:text-white hover:bg-surface border border-rule'} disabled:opacity-30`}>
                     {maxPages}
                 </motion.button>
             )}
@@ -517,8 +516,8 @@ const Search: React.FC = () => {
         { id: 'jdrama', label: 'J-Drama', flagCode: 'JP', type: 'tv' as const, country: 'JP', language: 'ja', genres: [18] },
         { id: 'thaï', label: 'Thaï-Drama', flagCode: 'TH', type: 'tv' as const, country: 'TH', language: 'th', genres: [18] },
         { id: 'tdrama', label: 'T-Drama', flagCode: 'TR', type: 'tv' as const, country: 'TR', language: 'tr', genres: [18] },
-        { id: 'anime', label: 'Anime', emoji: '🎌', type: 'tv' as const, country: 'JP', language: 'ja', genres: [16] },
-        { id: 'anime_film', label: 'Film Anime', emoji: '🎬', type: 'movie' as const, country: 'JP', language: 'ja', genres: [16] },
+        { id: 'anime', label: 'Anime', type: 'tv' as const, country: 'JP', language: 'ja', genres: [16] },
+        { id: 'anime_film', label: 'Film Anime', type: 'movie' as const, country: 'JP', language: 'ja', genres: [16] },
         { id: 'bollywood', label: 'Bollywood', flagCode: 'IN', type: 'movie' as const, country: 'IN', language: 'hi', genres: [] },
         { id: 'telenovela', label: 'Telenovela', flagCode: 'MX', type: 'tv' as const, country: '', language: 'es', genres: [18] },
         { id: 'british', label: 'Séries UK', flagCode: 'GB', type: 'tv' as const, country: 'GB', language: 'en', genres: [] },
@@ -596,7 +595,7 @@ const Search: React.FC = () => {
     const filtersActive = showFilters || selectedGenres.length > 0 || director || actor || year || selectedKeywords.length > 0 || selectedLanguage || selectedCountry || selectedProviders.length > 0;
 
     return (
-        <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" className="w-full min-h-screen bg-black text-white">
+        <div className="w-full min-h-screen bg-black text-white">
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -620,12 +619,12 @@ const Search: React.FC = () => {
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.5 }}
-                            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-center transition-all px-4"
+                            className="text-3xl md:text-4xl lg:text-5xl font-semibold mb-4 text-center transition-all px-4"
                         >
-                            <ShinyText text={t('search.searchMoviesAndShows')} speed={3} color="#ffffff" shineColor="#ef4444" className="inline" />
+                            {t('search.searchMoviesAndShows')}
                         </motion.h1>
 
-                        <p className="text-white/40 text-sm mb-8">{t('search.searchHint')}</p>
+                        <p className="text-ink-muted text-sm mb-8">{t('search.searchHint')}</p>
 
                         <motion.div
                             initial={{ y: 20, opacity: 0 }}
@@ -635,8 +634,8 @@ const Search: React.FC = () => {
                         >
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="relative">
-                                    <div className="flex bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden">
-                        <SearchIcon size={20} className="self-center ml-4 text-white opacity-40 shrink-0" />
+                                    <div className="flex bg-surface border border-control rounded-lg overflow-hidden transition-colors focus-within:border-ink-faint">
+                        <SearchIcon size={20} className="self-center ml-4 text-ink-faint shrink-0" />
                                         <input
                                             ref={searchInputRef}
                                             type="text"
@@ -644,7 +643,7 @@ const Search: React.FC = () => {
                                             onChange={handleQueryChange}
                                             onFocus={() => query.length >= 2 && setShowAutocomplete(true)}
                                             placeholder={t('search.searchPlaceholder')}
-                                            className="flex-grow min-w-0 bg-transparent text-white placeholder:text-white/30 focus:outline-none text-lg pl-3 pr-5 py-4"
+                                            className="flex-grow min-w-0 bg-transparent text-white placeholder:text-ink-faint focus:outline-none text-lg pl-3 pr-5 py-4"
                                             autoComplete="off"
                                         />
                                         <button
@@ -653,21 +652,21 @@ const Search: React.FC = () => {
                                                 clearAutocompleteSuggestions();
                                                 setShowAutocomplete(false);
                                             }}
-                                            className="px-4 text-white/60 hover:text-white transition-colors md:hidden border-l border-white/10 shrink-0 group/icon"
+                                            className="px-4 text-ink-muted hover:text-white transition-colors md:hidden border-l border-rule shrink-0"
                                             aria-label={t('search.searchPlaceholder')}
                                         >
-                                            <SearchIcon className="text-white opacity-60 group-hover/icon:opacity-100 transition-[color,opacity]" size={22} />
+                                            <SearchIcon className="text-ink-faint" size={22} />
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setShowFilters(!showFilters)}
                                             aria-label="Filters"
-                                            className={`group/icon px-4 transition-all border-l shrink-0 ${filtersActive
-                                                ? 'bg-red-600 border-red-500 text-white hover:bg-red-500'
-                                                : 'border-white/10 text-white/70 hover:text-white hover:bg-white/5'
+                                            className={`group/icon px-4 transition-colors border-l border-rule shrink-0 ${filtersActive
+                                                ? 'bg-raised text-white'
+                                                : 'text-ink-muted hover:text-white hover:bg-white/5'
                                                 }`}
                                         >
-                                            <Filter className={(filtersActive ? "text-white opacity-100" : "text-white opacity-70 group-hover/icon:opacity-100")} size={22} />
+                                            <Filter className={(filtersActive ? "text-white" : "text-ink-faint group-hover/icon:text-white")} size={22} />
                                         </button>
                                     </div>
 
@@ -679,13 +678,13 @@ const Search: React.FC = () => {
                                                 initial={{ opacity: 0, y: -10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: -10 }}
-                                                className="absolute z-50 left-0 right-0 top-full bg-black/90 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden mt-2 overflow-y-auto min-h-[200px] max-h-[400px] custom-scrollbar"
+                                                className="absolute z-50 left-0 right-0 top-full bg-raised border border-rule rounded-lg overflow-hidden mt-2 overflow-y-auto min-h-[200px] max-h-[400px] custom-scrollbar"
                                                 style={{ width: searchInputRef.current?.offsetWidth }}
                                             >
                                                 {loadingAutocomplete ? (
                                                     <div className="flex items-center justify-center p-4">
-                                    <Loader className="w-5 h-5 text-white opacity-40 animate-spin" />
-                                                        <span className="ml-2 text-sm text-white/40">{t('search.searching')}</span>
+                                    <Ring className="w-4 h-4 text-ink-faint" aria-hidden="true" />
+                                                        <span className="ml-2 text-sm text-ink-faint">{t('search.searching')}</span>
                                                     </div>
                                                 ) : (
                                                     <div>
@@ -703,7 +702,7 @@ const Search: React.FC = () => {
                                                                 />
                                                                 <div>
                                                                     <div className="text-sm font-medium line-clamp-1">{item.title || item.name}</div>
-                                                                    <div className="text-xs text-white/40">
+                                                                        <div className="text-xs text-ink-faint">
                                                                         {item.media_type === 'movie' ? t('search.movieLabel') : t('search.serieLabel')} - {new Date(item.release_date || item.first_air_date || '').getFullYear()}
                                                                     </div>
                                                                 </div>
@@ -722,14 +721,14 @@ const Search: React.FC = () => {
                                         initial={{ opacity: 0, y: -10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
-                                        className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 space-y-6"
+                                        className="bg-surface border border-rule rounded-lg p-6 space-y-6"
                                     >
                                         <div className="flex justify-between items-center">
-                                            <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider">{t('search.searchFilters')}</h2>
+                                            <h2 className="text-sm font-semibold text-ink-muted">{t('search.searchFilters')}</h2>
                                             <button
                                                 type="button"
                                                 onClick={clearAllFilters}
-                                                className="text-sm text-white/40 hover:text-white transition-colors"
+                                                className="text-sm text-ink-faint hover:text-white transition-colors"
                                             >
                                                 {t('search.clearAll')}
                                             </button>
@@ -738,8 +737,8 @@ const Search: React.FC = () => {
                                         {/* Type / Rating / Language / Country / Sort */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-                                                <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                                    <Film className="w-4 h-4 text-white opacity-70" />
+                                                <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2 mb-3">
+                                                    <Film className="w-4 h-4 text-ink-faint" />
                                                     {t('search.type')}
                                                 </h3>
                                                 <CustomDropdown
@@ -752,8 +751,8 @@ const Search: React.FC = () => {
                                             </motion.div>
 
                                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                                                <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                                    <Star className="w-4 h-4 text-white opacity-70" />
+                                                <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2 mb-3">
+                                                    <Star className="w-4 h-4 text-ink-faint" />
                                                     {t('search.minRating')}
                                                 </h3>
                                                 <div className="flex items-center gap-4">
@@ -769,15 +768,15 @@ const Search: React.FC = () => {
                                                         }}
                                                         className="flex-grow"
                                                     />
-                                                    <div className="min-w-[3rem] px-2 py-1 bg-white/5 border border-white/10 rounded-xl text-center font-mono text-sm">
+                                                    <div className="min-w-[3rem] px-2 py-1 bg-raised border border-rule rounded-lg text-center text-sm tabular-nums text-white">
                                                         {localMinRating.toFixed(1)}
                                                     </div>
                                                 </div>
                                             </motion.div>
 
                                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                                                <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                                    <Globe className="w-4 h-4 text-white opacity-70" />
+                                                <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2 mb-3">
+                                                    <Globe className="w-4 h-4 text-ink-faint" />
                                                     {t('search.language')}
                                                 </h3>
                                                 <CustomDropdown
@@ -789,8 +788,8 @@ const Search: React.FC = () => {
                                             </motion.div>
 
                                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                                                <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                                    <Globe className="w-4 h-4 text-white opacity-70" />
+                                                <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2 mb-3">
+                                                    <Globe className="w-4 h-4 text-ink-faint" />
                                                     {t('search.country')}
                                                 </h3>
                                                 <CustomDropdown
@@ -802,8 +801,8 @@ const Search: React.FC = () => {
                                             </motion.div>
 
                                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
-                                                <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                                    <ArrowUpDown className="w-4 h-4 text-white opacity-70" />
+                                                <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2 mb-3">
+                                                    <ArrowUpDown className="w-4 h-4 text-ink-faint" />
                                                     {t('search.sortBy')}
                                                 </h3>
                                                 <CustomDropdown
@@ -821,14 +820,14 @@ const Search: React.FC = () => {
                                             <CustomCheckbox
                                                 checked={filterUnreleased}
                                                 onChange={setFilterUnreleased}
-                                                icon={<Calendar className="w-4 h-4 text-red-400" />}
+                                                icon={<Calendar className="w-4 h-4 text-ink-faint" />}
                                                 label={t('search.hideUnreleased')}
                                                 className="w-full md:w-auto"
                                             />
                                             <CustomCheckbox
                                                 checked={filterNoContent}
                                                 onChange={setFilterNoContent}
-                                                icon={<Star className="w-4 h-4 text-yellow-400" />}
+                                                icon={<Star className="w-4 h-4 text-ink-faint" />}
                                                 label={t('search.hideNoContent')}
                                                 className="w-full md:w-auto"
                                             />
@@ -837,7 +836,7 @@ const Search: React.FC = () => {
                                                 <CustomCheckbox
                                                     checked={filterLowVotes}
                                                     onChange={setFilterLowVotes}
-                                                    icon={<Award className="w-4 h-4 text-blue-400" />}
+                                                    icon={<Award className="w-4 h-4 text-ink-faint" />}
                                                     label={t('search.hideLowVotes', { min: MIN_VOTE_COUNT_WHEN_RATING_MATTERS })}
                                                     className="w-full md:w-auto"
                                                 />
@@ -846,8 +845,8 @@ const Search: React.FC = () => {
 
                                         {/* Category Presets */}
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }}>
-                                            <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                                <Sparkles className="w-4 h-4 text-white opacity-70" />
+                                            <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2 mb-3">
+                                                <Sparkles className="w-4 h-4 text-ink-faint" />
                                                 {t('search.categories')}
                                             </h3>
                                             <div className="flex flex-wrap gap-2">
@@ -859,12 +858,14 @@ const Search: React.FC = () => {
                                                         transition={{ delay: 0.28 + index * 0.03 }}
                                                         type="button"
                                                         onClick={() => applyPreset(preset)}
-                                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${activePreset === preset.id
-                                                            ? 'bg-red-600 text-white'
-                                                            : 'bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-white/30'
+                                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 border ${activePreset === preset.id
+                                                            ? 'bg-raised border-ink-faint text-white'
+                                                            : 'border-control text-ink-muted hover:text-white hover:border-ink-faint'
                                                             }`}
                                                     >
-                                                        <span>{'flagCode' in preset ? <ReactCountryFlag countryCode={preset.flagCode as string} svg style={{ width: '1.2em', height: '1.2em', borderRadius: '2px' }} /> : preset.emoji}</span>
+                                                        {'flagCode' in preset && (
+                                                            <ReactCountryFlag countryCode={preset.flagCode as string} svg style={{ width: '1.2em', height: '1.2em', borderRadius: '2px' }} />
+                                                        )}
                                                         <span>{preset.label}</span>
                                                     </motion.button>
                                                 ))}
@@ -874,15 +875,15 @@ const Search: React.FC = () => {
                                         {/* Streaming Platforms */}
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.275 }}>
                                             <div className="flex justify-between items-center mb-3">
-                                                <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2">
-                                                    <Tv className="w-4 h-4 text-white opacity-70" />
+                                                <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2">
+                                                    <Tv className="w-4 h-4 text-ink-faint" />
                                                     {t('search.streamingPlatforms')}
                                                 </h3>
                                                 {selectedProviders.length > 0 && (
                                                     <button
                                                         type="button"
                                                         onClick={clearProviders}
-                                                        className="text-xs text-white/40 hover:text-white transition-colors"
+                                                        className="text-xs text-ink-faint hover:text-white transition-colors"
                                                     >
                                                         {t('search.clearAll')}
                                                     </button>
@@ -890,8 +891,8 @@ const Search: React.FC = () => {
                                             </div>
                                             {loadingProviders ? (
                                                 <div className="flex items-center gap-2 py-4">
-                                            <Loader className="w-4 h-4 text-white opacity-40 animate-spin" />
-                                                    <span className="text-sm text-white/40">{t('search.searching')}</span>
+                                            <Ring className="w-4 h-4 text-ink-faint" aria-hidden="true" />
+                                                    <span className="text-sm text-ink-faint">{t('search.searching')}</span>
                                                 </div>
                                             ) : (
                                                 <>
@@ -907,9 +908,9 @@ const Search: React.FC = () => {
                                                                     transition={{ duration: 0.2 }}
                                                                     type="button"
                                                                     onClick={() => toggleProvider(provider.provider_id)}
-                                                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedProviders.includes(provider.provider_id)
-                                                                        ? 'bg-red-600 text-white ring-1 ring-red-500'
-                                                                        : 'bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-white/30'
+                                                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${selectedProviders.includes(provider.provider_id)
+                                                                        ? 'bg-raised border-ink-faint text-white'
+                                                                        : 'border-control text-ink-muted hover:text-white hover:border-ink-faint'
                                                                         }`}
                                                                 >
                                                                     <img
@@ -927,9 +928,9 @@ const Search: React.FC = () => {
                                                         <button
                                                             type="button"
                                                             onClick={() => setShowAllProviders(!showAllProviders)}
-                                                            className="flex items-center gap-1 mt-3 text-sm text-white/50 hover:text-white transition-colors group/icon"
+                                                            className="flex items-center gap-1 mt-3 text-sm text-ink-muted hover:text-white transition-colors group/icon"
                                                         >
-                                                            {showAllProviders ? <ChevronUp className="text-white opacity-50 group-hover/icon:opacity-100 transition-[color,opacity]" size={16} /> : <ChevronDown className="text-white opacity-50 group-hover/icon:opacity-100 transition-[color,opacity]" size={16} />}
+                                                            {showAllProviders ? <ChevronUp className="text-ink-faint group-hover/icon:text-white transition-colors" size={16} /> : <ChevronDown className="text-ink-faint group-hover/icon:text-white transition-colors" size={16} />}
                                                             {showAllProviders
                                                                 ? t('search.showLess')
                                                                 : t('search.showMore', { count: watchProvidersList.length - PROVIDERS_INITIAL_COUNT })}
@@ -941,8 +942,8 @@ const Search: React.FC = () => {
 
                                         {/* Keywords */}
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }} className="relative">
-                                            <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                                <Tag className="w-4 h-4 text-white opacity-70" />
+                                            <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2 mb-3">
+                                                <Tag className="w-4 h-4 text-ink-faint" />
                                                 {t('search.keywords')}
                                             </h3>
                                             <div className="relative">
@@ -953,7 +954,7 @@ const Search: React.FC = () => {
                                                     onChange={handleKeywordChange}
                                                     onFocus={() => keywordQuery.length >= 2 && setShowKeywordSuggestions(true)}
                                                     placeholder={t('search.keywordPlaceholder')}
-                                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-red-500/50 transition-colors pr-10"
+                                                    className="w-full px-4 py-3 rounded-lg bg-surface border border-control text-white placeholder:text-ink-faint focus:outline-none focus:border-ink-faint transition-colors pr-10"
                                                 />
                                                 {keywordQuery && (
                                                     <button
@@ -963,9 +964,9 @@ const Search: React.FC = () => {
                                                             clearKeywordSuggestions();
                                                             setShowKeywordSuggestions(false);
                                                         }}
-                                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white group/icon"
+                                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-ink-faint hover:text-white group/icon"
                                                     >
-                                                        <X className="text-white opacity-40 group-hover/icon:opacity-100" size={16} />
+                                                        <X className="text-ink-faint group-hover/icon:text-white" size={16} />
                                                     </button>
                                                 )}
 
@@ -976,12 +977,12 @@ const Search: React.FC = () => {
                                                             initial={{ opacity: 0, y: -10 }}
                                                             animate={{ opacity: 1, y: 0 }}
                                                             exit={{ opacity: 0, y: -10 }}
-                                                            className="absolute z-50 left-0 right-0 mt-1 bg-black/90 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl overflow-y-auto max-h-80 custom-scrollbar"
+                                                            className="absolute z-50 left-0 right-0 mt-1 bg-raised border border-rule rounded-lg overflow-y-auto max-h-80 custom-scrollbar"
                                                         >
                                                             {loadingKeywordSuggestions ? (
                                                                 <div className="flex items-center justify-center p-4">
-                                <Loader className="w-5 h-5 text-white opacity-40 animate-spin" />
-                                                                    <span className="ml-2 text-sm text-white/40">{t('search.searching')}</span>
+                                <Ring className="w-4 h-4 text-ink-faint" aria-hidden="true" />
+                                                                    <span className="ml-2 text-sm text-ink-faint">{t('search.searching')}</span>
                                                                 </div>
                                                             ) : keywordSuggestions.length > 0 ? (
                                                                 <div>
@@ -992,13 +993,13 @@ const Search: React.FC = () => {
                                                                             onClick={() => handleSelectKeyword(keyword)}
                                                                             className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
                                                                         >
-                                    <Tag size={16} className="text-white opacity-40" />
+                                    <Tag size={16} className="text-ink-faint" />
                                                                             <span className="text-sm font-medium">{keyword.name}</span>
                                                                         </button>
                                                                     ))}
                                                                 </div>
                                                             ) : (
-                                                                <div className="px-4 py-3 text-sm text-white/40">
+                                                                <div className="px-4 py-3 text-sm text-ink-faint">
                                                                     {t('search.noKeywordResults')}
                                                                 </div>
                                                             )}
@@ -1014,7 +1015,7 @@ const Search: React.FC = () => {
                                                             key={keyword.id}
                                                             type="button"
                                                             onClick={() => removeKeyword(keyword.id)}
-                                                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-600/15 border border-red-500/30 text-sm text-white hover:bg-red-600/25 transition-colors"
+                                                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-control text-sm text-white hover:bg-raised transition-colors"
                                                         >
                                                             <span>{keyword.name}</span>
                                                             <X size={14} />
@@ -1023,7 +1024,7 @@ const Search: React.FC = () => {
                                                 </div>
                                             )}
 
-                                            <p className="text-xs text-white/40 mt-3">
+                                            <p className="text-xs text-ink-faint mt-3">
                                                 {t('search.keywordHint')}
                                             </p>
                                         </motion.div>
@@ -1031,8 +1032,8 @@ const Search: React.FC = () => {
                                         {/* Director / Actor / Year */}
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div className="relative">
-                                                <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                                    <User className="w-4 h-4 text-white opacity-70" />
+                                                <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2 mb-3">
+                                                    <User className="w-4 h-4 text-ink-faint" />
                                                     {t('search.director')}
                                                 </h3>
                                                 <div className="relative">
@@ -1043,7 +1044,7 @@ const Search: React.FC = () => {
                                                         onChange={handleDirectorChange}
                                                         onFocus={() => director.length >= 2 && setShowDirectorSuggestions(true)}
                                                         placeholder={t('search.directorPlaceholder')}
-                                                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-red-500/50 transition-colors pr-10"
+                                                        className="w-full px-4 py-3 rounded-lg bg-surface border border-control text-white placeholder:text-ink-faint focus:outline-none focus:border-ink-faint transition-colors pr-10"
                                                     />
                                                     {director && (
                                                         <button
@@ -1051,9 +1052,9 @@ const Search: React.FC = () => {
                                                                 setDirector('');
                                                                 setShowDirectorSuggestions(false);
                                                             }}
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white group/icon"
+                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-ink-faint hover:text-white group/icon"
                                                         >
-                                                            <X className="text-white opacity-40 group-hover/icon:opacity-100" size={16} />
+                                                            <X className="text-ink-faint group-hover/icon:text-white" size={16} />
                                                         </button>
                                                     )}
 
@@ -1064,12 +1065,12 @@ const Search: React.FC = () => {
                                                                 initial={{ opacity: 0, y: -10 }}
                                                                 animate={{ opacity: 1, y: 0 }}
                                                                 exit={{ opacity: 0, y: -10 }}
-                                                                className="absolute z-50 left-0 right-0 mt-1 bg-black/90 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl overflow-y-auto max-h-80 custom-scrollbar"
+                                                                className="absolute z-50 left-0 right-0 mt-1 bg-raised border border-rule rounded-lg overflow-y-auto max-h-80 custom-scrollbar"
                                                             >
                                                                 {loadingSuggestions ? (
                                                                     <div className="flex items-center justify-center p-4">
-                                    <Loader className="w-5 h-5 text-white opacity-40 animate-spin" />
-                                                                        <span className="ml-2 text-sm text-white/40">{t('search.searching')}</span>
+                                    <Ring className="w-4 h-4 text-ink-faint" aria-hidden="true" />
+                                                                        <span className="ml-2 text-sm text-ink-faint">{t('search.searching')}</span>
                                                                     </div>
                                                                 ) : (
                                                                     <div>
@@ -1088,15 +1089,15 @@ const Search: React.FC = () => {
                                                                                     />
                                                                                 ) : (
                                                                                     <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                                                <User size={16} className="text-white opacity-40" />
+                                                <User size={16} className="text-ink-faint" />
                                                                                     </div>
                                                                                 )}
                                                                                 <div className="flex-1">
                                                                                     <div className="text-sm font-medium">{person.name}</div>
-                                                                                    <div className="text-xs text-white/40">{person.known_for_department}</div>
+                                                                                    <div className="text-xs text-ink-faint">{person.known_for_department}</div>
                                                                                 </div>
                                                                                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <ExternalLink size={14} className="text-white opacity-40" />
+                                                <ExternalLink size={14} className="text-ink-faint" />
                                                                                 </div>
                                                                             </div>
                                                                         ))}
@@ -1109,8 +1110,8 @@ const Search: React.FC = () => {
                                             </div>
 
                                             <div className="relative">
-                                                <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                                    <User className="w-4 h-4 text-white opacity-70" />
+                                                <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2 mb-3">
+                                                    <User className="w-4 h-4 text-ink-faint" />
                                                     {t('search.actor')}
                                                 </h3>
                                                 <div className="relative">
@@ -1121,7 +1122,7 @@ const Search: React.FC = () => {
                                                         onChange={handleActorChange}
                                                         onFocus={() => actor.length >= 2 && setShowActorSuggestions(true)}
                                                         placeholder={t('search.actorPlaceholder')}
-                                                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-red-500/50 transition-colors pr-10"
+                                                        className="w-full px-4 py-3 rounded-lg bg-surface border border-control text-white placeholder:text-ink-faint focus:outline-none focus:border-ink-faint transition-colors pr-10"
                                                     />
                                                     {actor && (
                                                         <button
@@ -1129,9 +1130,9 @@ const Search: React.FC = () => {
                                                                 setActor('');
                                                                 setShowActorSuggestions(false);
                                                             }}
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white group/icon"
+                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-ink-faint hover:text-white group/icon"
                                                         >
-                                                            <X className="text-white opacity-40 group-hover/icon:opacity-100" size={16} />
+                                                            <X className="text-ink-faint group-hover/icon:text-white" size={16} />
                                                         </button>
                                                     )}
 
@@ -1142,12 +1143,12 @@ const Search: React.FC = () => {
                                                                 initial={{ opacity: 0, y: -10 }}
                                                                 animate={{ opacity: 1, y: 0 }}
                                                                 exit={{ opacity: 0, y: -10 }}
-                                                                className="absolute z-50 left-0 right-0 mt-1 bg-black/90 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl overflow-y-auto max-h-80 custom-scrollbar"
+                                                                className="absolute z-50 left-0 right-0 mt-1 bg-raised border border-rule rounded-lg overflow-y-auto max-h-80 custom-scrollbar"
                                                             >
                                                                 {loadingSuggestions ? (
                                                                     <div className="flex items-center justify-center p-4">
-                                    <Loader className="w-5 h-5 text-white opacity-40 animate-spin" />
-                                                                        <span className="ml-2 text-sm text-white/40">{t('search.searching')}</span>
+                                    <Ring className="w-4 h-4 text-ink-faint" aria-hidden="true" />
+                                                                        <span className="ml-2 text-sm text-ink-faint">{t('search.searching')}</span>
                                                                     </div>
                                                                 ) : (
                                                                     <div>
@@ -1166,15 +1167,15 @@ const Search: React.FC = () => {
                                                                                     />
                                                                                 ) : (
                                                                                     <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                                                <User size={16} className="text-white opacity-40" />
+                                                <User size={16} className="text-ink-faint" />
                                                                                     </div>
                                                                                 )}
                                                                                 <div className="flex-1">
                                                                                     <div className="text-sm font-medium">{person.name}</div>
-                                                                                    <div className="text-xs text-white/40">{person.known_for_department}</div>
+                                                                                    <div className="text-xs text-ink-faint">{person.known_for_department}</div>
                                                                                 </div>
                                                                                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <ExternalLink size={14} className="text-white opacity-40" />
+                                                <ExternalLink size={14} className="text-ink-faint" />
                                                                                 </div>
                                                                             </div>
                                                                         ))}
@@ -1187,8 +1188,8 @@ const Search: React.FC = () => {
                                             </div>
 
                                             <div>
-                                                <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                                    <Calendar className="w-4 h-4 text-white opacity-70" />
+                                                <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2 mb-3">
+                                                    <Calendar className="w-4 h-4 text-ink-faint" />
                                                     {t('search.year')}
                                                 </h3>
                                                 <div className="relative">
@@ -1198,14 +1199,14 @@ const Search: React.FC = () => {
                                                         onChange={(e) => setYear(e.target.value.replace(/[^0-9]/g, ''))}
                                                         placeholder={t('search.yearPlaceholder')}
                                                         maxLength={4}
-                                                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-red-500/50 transition-colors pr-10"
+                                                        className="w-full px-4 py-3 rounded-lg bg-surface border border-control text-white placeholder:text-ink-faint focus:outline-none focus:border-ink-faint transition-colors pr-10"
                                                     />
                                                     {year && (
                                                         <button
                                                             onClick={() => setYear('')}
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white group/icon"
+                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-ink-faint hover:text-white group/icon"
                                                         >
-                                                            <X className="text-white opacity-40 group-hover/icon:opacity-100" size={16} />
+                                                            <X className="text-ink-faint group-hover/icon:text-white" size={16} />
                                                         </button>
                                                     )}
                                                 </div>
@@ -1214,8 +1215,8 @@ const Search: React.FC = () => {
 
                                         {/* Genres */}
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-                                            <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2 mb-3">
-                                                <Award className="w-4 h-4 text-white opacity-70" />
+                                            <h3 className="text-sm font-semibold text-ink-muted flex items-center gap-2 mb-3">
+                                                <Award className="w-4 h-4 text-ink-faint" />
                                                 {t('search.genres')}
                                             </h3>
                                             {loadingGenres ? (
@@ -1237,9 +1238,9 @@ const Search: React.FC = () => {
                                                             transition={{ delay: 0.4 + index * 0.05 }}
                                                             type="button"
                                                             onClick={() => toggleGenre(genre.id)}
-                                                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedGenres.includes(genre.id)
-                                                                ? 'bg-red-600 text-white'
-                                                                : 'bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-white/30'
+                                                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${selectedGenres.includes(genre.id)
+                                                                ? 'bg-raised border-ink-faint text-white'
+                                                                : 'border-control text-ink-muted hover:text-white hover:border-ink-faint'
                                                                 }`}
                                                         >
                                                             {t(`genres.id_${genre.id}`, { defaultValue: genre.name })}
@@ -1255,7 +1256,7 @@ const Search: React.FC = () => {
                                                 type="submit"
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
-                                                className="w-full max-w-sm mx-auto py-3 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-semibold flex items-center justify-center gap-2 transition-colors"
+                                                className="w-full max-w-sm mx-auto py-3 rounded-full bg-white text-black hover:bg-neutral-200 font-semibold flex items-center justify-center gap-2 transition-colors"
                                             >
                                                 <SearchIcon size={20} />
                                                 <span>{t('search.applyCriteria')}</span>
@@ -1288,8 +1289,8 @@ const Search: React.FC = () => {
                     ) : ageFilteredResults.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20">
                             <Film className="w-16 h-16 text-white opacity-10 mb-4" />
-                            <p className="text-white/40">{t('search.noResults')}</p>
-                            <p className="text-white/40 text-sm mt-2">
+                            <p className="text-ink-muted">{t('search.noResults')}</p>
+                            <p className="text-ink-muted text-sm mt-2">
                                 {maxPages > 1 ? t('search.emptyPageHint') : t('search.modifyCriteria')}
                             </p>
                             {/* Une page peut être vide après filtrage client (sans affiche,
@@ -1297,7 +1298,7 @@ const Search: React.FC = () => {
                                 pas forcer l'utilisateur à recommencer sa recherche. */}
                             {maxPages > 1 && (
                                 <div className="w-full mt-6">
-                                    <p className="text-sm text-white/40 text-center mb-2">
+                                    <p className="text-sm text-ink-faint text-center mb-2">
                                         {t('search.pageXOfY', { current: Math.max(page > 1 ? page - 1 : 1, 1), total: maxPages })}
                                     </p>
                                     <PaginationBar currentPage={page} maxPages={maxPages} onSelect={handlePageSelect} />
@@ -1315,7 +1316,7 @@ const Search: React.FC = () => {
                                 <>
                                     {/* Results controls bar */}
                                     <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
-                                        <p className="text-sm text-white/40">
+                                        <p className="text-sm text-ink-faint">
                                             {t('search.pageXOfY', { current: Math.max(page > 1 ? page - 1 : 1, 1), total: maxPages })} ({ageFilteredResults.length} {t('search.results')})
                                             {totalPages > 500 && <span className="text-xs ml-2">({t('search.limitedToPages')})</span>}
                                         </p>
@@ -1325,15 +1326,15 @@ const Search: React.FC = () => {
                                             <div className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => setViewType('grid')}
-                                                    className={`group/icon p-2 rounded-xl transition-all ${viewType === 'grid' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                                                    className={`group/icon p-2 rounded-lg transition-colors ${viewType === 'grid' ? 'bg-raised text-white' : 'text-ink-faint hover:text-white hover:bg-white/5'}`}
                                                 >
-                                                    <LayoutGrid className={(viewType === 'grid' ? "text-white opacity-100" : "text-white opacity-40 group-hover/icon:opacity-100")} size={18} />
+                                                    <LayoutGrid className={(viewType === 'grid' ? "text-white" : "text-ink-faint group-hover/icon:text-white")} size={18} />
                                                 </button>
                                                 <button
                                                     onClick={() => setViewType('list')}
-                                                    className={`group/icon p-2 rounded-xl transition-all ${viewType === 'list' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                                                    className={`group/icon p-2 rounded-lg transition-colors ${viewType === 'list' ? 'bg-raised text-white' : 'text-ink-faint hover:text-white hover:bg-white/5'}`}
                                                 >
-                                                    <List className={(viewType === 'list' ? "text-white opacity-100" : "text-white opacity-40 group-hover/icon:opacity-100")} size={18} />
+                                                    <List className={(viewType === 'list' ? "text-white" : "text-ink-faint group-hover/icon:text-white")} size={18} />
                                                 </button>
                                             </div>
 
@@ -1392,7 +1393,7 @@ const Search: React.FC = () => {
                             {/* Bottom pagination */}
                             {ageFilteredResults.length > 0 && (
                                 <div className="mt-8 text-center">
-                                    <p className="text-sm text-white/40 mb-2">
+                                    <p className="text-sm text-ink-faint mb-2">
                                         {t('search.pageXOfY', { current: Math.max(page > 1 ? page - 1 : 1, 1), total: maxPages })}
                                     </p>
                                     <PaginationBar currentPage={page} maxPages={maxPages} onSelect={handlePageSelect} />
@@ -1402,7 +1403,7 @@ const Search: React.FC = () => {
                     )}
                 </motion.div>
             </motion.div>
-        </SquareBackground>
+        </div>
     );
 };
 

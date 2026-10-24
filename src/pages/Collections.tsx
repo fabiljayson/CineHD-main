@@ -4,9 +4,7 @@ import { Film, Search, Grid, List, Heart, Bookmark, Plus } from 'lucide-react';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import { motion } from 'framer-motion';
 import AddToListMenu from '../components/AddToListMenu';
-import { SquareBackground } from '../components/ui/square-background';
-import ShinyText from '../components/ui/shiny-text';
-import AnimatedBorderCard from '../components/ui/animated-border-card';
+import { Ring } from '@/components/ui/loading/ring';
 import { getTmdbLanguage } from '../i18n';
 import { useAgeRestrictedContent } from '../hooks/useAgeRestrictedContent';
 
@@ -125,7 +123,7 @@ const CollectionCard: React.FC<CollectionCardProps> = React.memo(({
   return (
     <Link to={`/collection/${collection.id}`}>
       <div
-        className="bg-white/[0.03] rounded-xl overflow-hidden border border-white/10 hover:border-red-500/30 transition-all duration-300 group cursor-pointer hover:bg-white/[0.06]"
+        className="bg-surface rounded-lg overflow-hidden transition-[filter] group cursor-pointer hover:brightness-110"
       >
       <div className="relative">
         {collection.backdrop_path ? (
@@ -137,16 +135,16 @@ const CollectionCard: React.FC<CollectionCardProps> = React.memo(({
             decoding="async"
           />
         ) : (
-          <div className="w-full h-48 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-            <Film size={48} className="text-gray-500" />
+          <div className="w-full h-48 bg-rule flex items-center justify-center">
+            <Film size={48} className="text-ink-faint" />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
-          <h3 className="text-xl font-bold text-white mb-2">{collection.name}</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-300">
+          <h3 className="text-xl font-semibold text-white mb-2">{collection.name}</h3>
+          <div className="flex items-center gap-2 text-sm text-ink-muted">
             <Film size={16} />
-            <span>{ageAllowedParts.filter(movie => movie.poster_path).length || 0} {t('collections.films')}</span>
+            <span className="tabular-nums">{ageAllowedParts.filter(movie => movie.poster_path).length || 0} {t('collections.films')}</span>
           </div>
         </div>
       </div>
@@ -191,10 +189,10 @@ const CollectionCard: React.FC<CollectionCardProps> = React.memo(({
                 }
               }));
             }}
-            className={`flex items-center gap-1 px-3 py-1.5 text-white text-xs rounded-lg transition-colors ${
+            className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded-full border transition-colors ${
               collectionsStatus[collection.id]?.watchlist
-                ? 'bg-blue-700 hover:bg-blue-800'
-                : 'bg-blue-600 hover:bg-blue-700'
+                ? 'bg-raised border-ink-faint text-white'
+                : 'border-control text-ink-muted hover:text-white hover:bg-surface'
             }`}
           >
             <Bookmark size={14} className={collectionsStatus[collection.id]?.watchlist ? 'fill-current' : ''} />
@@ -238,10 +236,10 @@ const CollectionCard: React.FC<CollectionCardProps> = React.memo(({
                 }
               }));
             }}
-            className={`flex items-center gap-1 px-3 py-1.5 text-white text-xs rounded-lg transition-colors ${
+            className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded-full border transition-colors ${
               collectionsStatus[collection.id]?.favorites
-                ? 'bg-red-700 hover:bg-red-800'
-                : 'bg-red-600 hover:bg-red-700'
+                ? 'bg-raised border-ink-faint text-white'
+                : 'border-control text-ink-muted hover:text-white hover:bg-surface'
             }`}
           >
             <Heart size={14} className={collectionsStatus[collection.id]?.favorites ? 'fill-current' : ''} />
@@ -255,14 +253,14 @@ const CollectionCard: React.FC<CollectionCardProps> = React.memo(({
               e.stopPropagation();
               openAddToListMenu(collection);
             }}
-            className="flex items-center gap-1 px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-lg transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-full border border-control text-ink-muted hover:text-white hover:bg-surface transition-colors"
           >
             <Plus size={14} />
             {t('collections.list')}
           </button>
         </div>
 
-        <p className="text-gray-300 text-sm mb-4 line-clamp-3">
+        <p className="text-ink-muted text-sm mb-4 line-clamp-3">
           {collection.overview || t('collections.discoverCollection')}
         </p>
 
@@ -278,7 +276,7 @@ const CollectionCard: React.FC<CollectionCardProps> = React.memo(({
                 return ageAllowedParts.slice(0, moviesToShow).map((movie) => (
                   <div
                     key={movie.id}
-                    className="w-14 h-20 sm:w-12 sm:h-16 rounded overflow-hidden hover:scale-110 transition-transform border border-gray-600"
+                    className="w-14 h-20 sm:w-12 sm:h-16 rounded overflow-hidden transition-[filter] hover:brightness-110 border border-rule"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {movie.poster_path ? (
@@ -290,8 +288,8 @@ const CollectionCard: React.FC<CollectionCardProps> = React.memo(({
                         decoding="async"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                        <Film size={16} className="text-gray-500" />
+                      <div className="w-full h-full bg-rule flex items-center justify-center">
+                        <Film size={16} className="text-ink-faint" />
                       </div>
                     )}
                   </div>
@@ -303,7 +301,7 @@ const CollectionCard: React.FC<CollectionCardProps> = React.memo(({
                    {ageAllowedParts.slice(0, 4).map((movie) => (
                      <div
                        key={movie.id}
-                       className="w-14 h-20 sm:w-12 sm:h-16 rounded overflow-hidden hover:scale-110 transition-transform border border-gray-600"
+                       className="w-14 h-20 sm:w-12 sm:h-16 rounded overflow-hidden transition-[filter] hover:brightness-110 border border-rule"
                        onClick={(e) => e.stopPropagation()}
                      >
                        {movie.poster_path ? (
@@ -315,13 +313,13 @@ const CollectionCard: React.FC<CollectionCardProps> = React.memo(({
                            decoding="async"
                          />
                        ) : (
-                         <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                           <Film size={16} className="text-gray-500" />
+                         <div className="w-full h-full bg-rule flex items-center justify-center">
+                           <Film size={16} className="text-ink-faint" />
                          </div>
                        )}
                      </div>
                    ))}
-                   <div className="w-14 h-20 sm:w-12 sm:h-16 bg-gray-700/50 rounded flex items-center justify-center text-xs text-gray-400 border border-gray-600">
+                   <div className="w-14 h-20 sm:w-12 sm:h-16 bg-rule rounded flex items-center justify-center text-xs text-ink-muted border border-rule tabular-nums">
                      +{totalMovies - 4}
                    </div>
                  </>
@@ -377,7 +375,7 @@ const CollectionListItem: React.FC<CollectionListItemProps> = React.memo(({
   return (
     <Link to={`/collection/${collection.id}`}>
       <div
-        className="bg-white/[0.03] rounded-xl p-6 border border-white/10 hover:border-red-500/30 transition-all duration-300 cursor-pointer group hover:bg-white/[0.06]"
+        className="bg-surface rounded-lg p-6 transition-[filter] cursor-pointer group hover:brightness-110"
       >
         <div className="flex items-center gap-6">
           {/* Poster */}
@@ -391,8 +389,8 @@ const CollectionListItem: React.FC<CollectionListItemProps> = React.memo(({
                 decoding="async"
               />
             ) : (
-              <div className="w-20 h-28 bg-gray-700 rounded-lg flex items-center justify-center">
-                <Film size={32} className="text-gray-500" />
+              <div className="w-20 h-28 bg-rule rounded-lg flex items-center justify-center">
+                <Film size={32} className="text-ink-faint" />
               </div>
             )}
           </div>
@@ -400,10 +398,10 @@ const CollectionListItem: React.FC<CollectionListItemProps> = React.memo(({
           {/* Contenu */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-4 mb-2">
-              <h3 className="text-xl font-bold text-white truncate">{collection.name}</h3>
-              <div className="flex items-center gap-1 bg-red-500/20 px-2 py-1 rounded-full">
-                <Film size={14} className="text-red-400" />
-                <span className="text-sm text-red-400 font-medium">
+              <h3 className="text-xl font-semibold text-white truncate">{collection.name}</h3>
+              <div className="flex items-center gap-1 border border-control px-2 py-1 rounded-full">
+                <Film size={14} className="text-ink-faint" />
+                <span className="text-sm text-ink-muted font-medium tabular-nums">
                   {totalMovies}
                 </span>
               </div>
@@ -448,10 +446,10 @@ const CollectionListItem: React.FC<CollectionListItemProps> = React.memo(({
                     }
                   }));
                 }}
-                className={`flex items-center gap-1 px-2 py-1 text-white text-xs rounded transition-colors ${
+                className={`flex items-center gap-1 px-2 py-1 text-xs rounded border transition-colors ${
                   collectionsStatus[collection.id]?.watchlist
-                    ? 'bg-blue-700 hover:bg-blue-800'
-                    : 'bg-blue-600 hover:bg-blue-700'
+                    ? 'bg-raised border-ink-faint text-white'
+                    : 'border-control text-ink-muted hover:text-white hover:bg-surface'
                 }`}
               >
                 <Bookmark size={12} className={collectionsStatus[collection.id]?.watchlist ? 'fill-current' : ''} />
@@ -495,10 +493,10 @@ const CollectionListItem: React.FC<CollectionListItemProps> = React.memo(({
                     }
                   }));
                 }}
-                className={`flex items-center gap-1 px-2 py-1 text-white text-xs rounded transition-colors ${
+                className={`flex items-center gap-1 px-2 py-1 text-xs rounded border transition-colors ${
                   collectionsStatus[collection.id]?.favorites
-                    ? 'bg-red-700 hover:bg-red-800'
-                    : 'bg-red-600 hover:bg-red-700'
+                    ? 'bg-raised border-ink-faint text-white'
+                    : 'border-control text-ink-muted hover:text-white hover:bg-surface'
                 }`}
               >
                 <Heart size={12} className={collectionsStatus[collection.id]?.favorites ? 'fill-current' : ''} />
@@ -512,14 +510,14 @@ const CollectionListItem: React.FC<CollectionListItemProps> = React.memo(({
                   e.stopPropagation();
                   openAddToListMenu(collection);
                 }}
-                className="flex items-center gap-1 px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded transition-colors"
+                className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-control text-ink-muted hover:text-white hover:bg-surface transition-colors"
               >
                 <Plus size={12} />
                 {t('collections.list')}
               </button>
             </div>
 
-            <p className="text-gray-300 text-sm mb-4 line-clamp-2">
+            <p className="text-ink-muted text-sm mb-4 line-clamp-2">
               {collection.overview || t('collections.discoverCollection')}
             </p>
 
@@ -528,7 +526,7 @@ const CollectionListItem: React.FC<CollectionListItemProps> = React.memo(({
               {collection.parts?.slice(0, moviesToShow).map((movie) => (
                 <div
                   key={movie.id}
-                  className="w-12 h-16 rounded overflow-hidden hover:scale-110 transition-transform border border-gray-600"
+                  className="w-12 h-16 rounded overflow-hidden hover:brightness-110 transition border border-rule"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {movie.poster_path ? (
@@ -540,14 +538,14 @@ const CollectionListItem: React.FC<CollectionListItemProps> = React.memo(({
                       decoding="async"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                      <Film size={12} className="text-gray-500" />
+                    <div className="w-full h-full bg-rule flex items-center justify-center">
+                      <Film size={12} className="text-ink-faint" />
                     </div>
                   )}
                 </div>
               ))}
               {remainingMovies > 0 && (
-                <div className="w-12 h-16 bg-gray-700/50 rounded flex items-center justify-center text-xs text-gray-400 border border-gray-600">
+                <div className="w-12 h-16 bg-rule rounded flex items-center justify-center text-xs text-ink-muted border border-rule tabular-nums">
                   +{remainingMovies}
                 </div>
               )}
@@ -1118,21 +1116,21 @@ const Collections: React.FC = () => {
 
   if (loading) {
     return (
-      <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" className="min-h-screen bg-black text-white pt-32 pb-20">
+      <div className="min-h-screen bg-black text-white pt-32 pb-20">
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col items-center justify-center h-64">
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-red-500 mb-4 mx-auto"></div>
-              <p className="text-gray-400 text-center">
+              <Ring className="h-8 w-8 text-ink-faint mb-4 mx-auto" aria-hidden="true" />
+              <p className="text-ink-muted text-center">
                 {loadingProgress || t('collections.loadingCollections')}
               </p>
-              <p className="text-sm text-gray-500 mt-2 text-center max-w-md">
+              <p className="text-sm text-ink-faint mt-2 text-center max-w-md">
                 {t('collections.firstVisitMessage')}
               </p>
             </motion.div>
           </div>
         </div>
-      </SquareBackground>
+      </div>
     );
   }
 
@@ -1142,7 +1140,7 @@ const Collections: React.FC = () => {
   };
 
   return (
-    <SquareBackground squareSize={48} borderColor="rgba(239, 68, 68, 0.10)" className="min-h-screen bg-black text-white pt-32 pb-24">
+    <div className="min-h-screen bg-black text-white pt-32 pb-24">
       <div className="container mx-auto px-4 md:px-6 lg:px-10 relative z-10">
         {/* Hero Section - Texte principal */}
         <motion.div
@@ -1152,17 +1150,13 @@ const Collections: React.FC = () => {
           className="w-full flex flex-col items-center justify-center text-center mb-16"
         >
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mb-6">
-            <div className="inline-flex items-center justify-center p-3 bg-red-500/10 rounded-full mb-4 ring-1 ring-red-500/50">
-              <Film className="w-8 h-8 text-red-500" />
+            <div className="inline-flex items-center justify-center p-3 bg-surface rounded-full mb-4">
+              <Film className="w-8 h-8 text-ink-faint" />
             </div>
-            <h1 className="text-2xl lg:text-4xl font-bold leading-relaxed w-full xl:max-w-4xl text-center">
-              {splitTextIntoWords(randomText).map((seg, i) =>
-                seg.highlight ? (
-                  <ShinyText key={i} text={seg.text} speed={3} color="#ef4444" shineColor="#ffffff" />
-                ) : (
-                  <span key={i} className="text-white">{seg.text}</span>
-                )
-              )}
+            <h1 className="text-2xl lg:text-4xl font-semibold leading-relaxed w-full xl:max-w-4xl text-center">
+              {splitTextIntoWords(randomText).map((seg, i) => (
+                <span key={i} className="text-white">{seg.text}</span>
+              ))}
             </h1>
           </motion.div>
         </motion.div>
@@ -1174,28 +1168,28 @@ const Collections: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.15 }}
           className="max-w-4xl mx-auto mb-16"
         >
-          <AnimatedBorderCard highlightColor="239 68 68" backgroundColor="10 10 10" className="p-4 backdrop-blur-sm">
+          <div className="p-4 bg-surface border border-rule rounded-lg">
             <div className="flex flex-col lg:flex-row gap-4 items-center">
             {/* Barre de recherche */}
             <div className="relative flex-1 max-w-2xl">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-ink-faint" size={20} />
               <input
                 type="text"
                 placeholder={t('collections.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl text-white placeholder:text-white/30 focus:outline-none focus:border-red-500/50 transition-all"
+                className="w-full pl-12 pr-4 py-4 bg-black border border-control rounded-lg text-white placeholder:text-ink-faint focus:outline-none focus:border-ink-faint transition-all"
               />
             </div>
 
             {/* Sélecteur de mode d'affichage */}
-            <div className="flex items-center gap-2 bg-white/5 border border-gray-700/50 rounded-xl p-1">
+            <div className="flex items-center gap-2 bg-surface border border-rule rounded-lg p-1">
               <button
                 onClick={() => setDisplayMode('cards')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                   displayMode === 'cards'
-                    ? 'bg-red-500 text-white shadow-lg'
-                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                    ? 'bg-raised text-white'
+                    : 'text-ink-muted hover:text-white hover:bg-raised'
                 }`}
                 title={t('search.gridView')}
               >
@@ -1206,8 +1200,8 @@ const Collections: React.FC = () => {
                 onClick={() => setDisplayMode('list')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                   displayMode === 'list'
-                    ? 'bg-red-500 text-white shadow-lg'
-                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                    ? 'bg-raised text-white'
+                    : 'text-ink-muted hover:text-white hover:bg-raised'
                 }`}
                 title={t('collections.modeList')}
               >
@@ -1216,17 +1210,17 @@ const Collections: React.FC = () => {
               </button>
             </div>
           </div>
-          </AnimatedBorderCard>
+          </div>
         </motion.div>
 
         {/* Résultats de recherche */}
         {searchQuery && (
           <div className="mb-12">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
               <Search size={24} />
               {t('collections.searchResultsTitle')}
               {searchLoading && (
-                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-red-500 ml-2"></div>
+                <Ring className="h-4 w-4 text-ink-faint ml-2" aria-hidden="true" />
               )}
             </h2>
                           {searchResults.length > 0 ? (
@@ -1267,7 +1261,7 @@ const Collections: React.FC = () => {
               </>
             ) : !searchLoading && searchQuery.length >= 2 ? (
               <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
+                <div className="text-ink-muted mb-4">
                   <Search size={48} className="mx-auto mb-4 opacity-50" />
                   <p>{t('collections.noSearchResults', { query: searchQuery })}</p>
                 </div>
@@ -1284,8 +1278,8 @@ const Collections: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-center text-white">
-              <ShinyText text={t('collections.popularCollections')} speed={2} color="#ffffff" shineColor="#ef4444" />
+            <h2 className="text-2xl sm:text-3xl font-semibold mb-8 text-center text-white">
+              {t('collections.popularCollections')}
             </h2>
             {filteredCollections.length > 0 ? (
               <>
@@ -1343,10 +1337,10 @@ const Collections: React.FC = () => {
                   <div className="mt-8">
                     {/* Compteur de collections - toujours visible */}
                     <div className="text-center py-4">
-                      <p className="text-gray-400 text-sm">
+                      <p className="text-ink-muted text-sm">
                         {t('collections.collectionsDiscovered', { count: filteredCollections.length })}
                         {hasMoreCollections && !loadingMore && (
-                          <span className="text-red-400 ml-2">{t('collections.moreToCome')}</span>
+                          <span className="text-ink-faint ml-2">{t('collections.moreToCome')}</span>
                         )}
                       </p>
                     </div>
@@ -1354,12 +1348,9 @@ const Collections: React.FC = () => {
                     {/* Indicateur de chargement compact */}
                     {loadingMore && hasMoreCollections && (
                       <div className="text-center py-4">
-                        <div className="inline-flex items-center gap-3 bg-gray-800/50 rounded-full px-6 py-3 border border-gray-700/50">
-                          <div className="relative">
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-600"></div>
-                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-red-500 absolute top-0 left-0"></div>
-                          </div>
-                          <span className="text-sm text-gray-300">{t('collections.discovering')}</span>
+                        <div className="inline-flex items-center gap-3 bg-surface rounded-full px-6 py-3 border border-rule">
+                          <Ring className="h-4 w-4 text-ink-faint" aria-hidden="true" />
+                          <span className="text-sm text-ink-muted">{t('collections.discovering')}</span>
                         </div>
                       </div>
                     )}
@@ -1373,14 +1364,14 @@ const Collections: React.FC = () => {
                </>
             ) : collections.length > 0 ? (
               <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
+                <div className="text-ink-muted mb-4">
                   <Film size={48} className="mx-auto mb-4 opacity-50" />
                   <p>{t('collections.noCollectionsAvailable')}</p>
                 </div>
               </div>
             ) : (
               <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
+                <div className="text-ink-muted mb-4">
                   <Film size={48} className="mx-auto mb-4 opacity-50" />
                   <p>{t('collections.noCollectionsAvailable')}</p>
                 </div>
@@ -1401,7 +1392,7 @@ const Collections: React.FC = () => {
           onClose={closeAddToListMenu}
         />
       )}
-    </SquareBackground>
+    </div>
   );
 };
 

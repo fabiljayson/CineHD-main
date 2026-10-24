@@ -26,10 +26,10 @@ const WatchButton: React.FC<WatchButtonProps> = ({ type, isActive, onClick, labe
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+      className={`flex items-center gap-2 px-4 py-2 rounded-full border border-control text-sm transition-colors ${
         isActive 
-          ? 'bg-red-600 text-white' 
-          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+          ? 'bg-raised text-white' 
+          : 'text-ink-muted hover:bg-raised hover:text-white'
       }`}
     >
       {getIcon()}

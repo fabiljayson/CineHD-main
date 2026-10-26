@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  CalendarClock,
   Clapperboard,
   Flag,
   HelpCircle,
@@ -28,6 +29,7 @@ import AdminTeam from './AdminTeam';
 import StreamingLinksManager from './StreamingLinksManager';
 import VipInvoicesManager from './VipInvoicesManager';
 import AccountRequestsManager from './AccountRequestsManager';
+import SubscriptionsConsole from './SubscriptionsConsole';
 import VipKeysManager from './VipKeysManager';
 import AnimatedBorderCard from './ui/animated-border-card';
 import ShinyText from './ui/shiny-text';
@@ -37,6 +39,7 @@ type AdminSection =
   | 'vip-keys'
   | 'vip-invoices'
   | 'account-requests'
+  | 'subscriptions'
   | 'oauth-apps'
   | 'wishboard'
   | 'link-submissions'
@@ -104,6 +107,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ role }) => {
         icon: Wallet,
         accent: 'text-brand-gold',
         highlight: '200 144 40'
+      },
+      {
+        id: 'subscriptions',
+        title: t('subscriptions.sectionTitle'),
+        description: t('subscriptions.sectionDesc'),
+        icon: CalendarClock,
+        accent: 'text-amber-200',
+        highlight: '245 158 11'
       },
       {
         id: 'oauth-apps',
@@ -260,6 +271,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ role }) => {
             {t('accountRequests.sectionTitle')}
           </h2>
           <AccountRequestsManager />
+        </div>
+      ) : activeSection === 'subscriptions' && role === 'admin' ? (
+        <div>
+          <h2 className="mb-6 flex items-center gap-3 text-2xl font-bold text-white">
+            <CalendarClock className="h-6 w-6 text-amber-200" />
+            {t('subscriptions.sectionTitle')}
+          </h2>
+          <SubscriptionsConsole />
         </div>
       ) : (
         <AnimatedBorderCard

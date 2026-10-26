@@ -506,6 +506,7 @@ app.use('/api', require('./routes/admin'));
 app.use('/api', vipDonationsRouter);
 app.use('/api', vipPayblisRouter);
 app.use('/api', require('./routes/accountRequests'));
+app.use('/api', require('./routes/adminSubscriptions'));
 app.use('/api/darkiworld', darkiworldRouter);
 app.use('/api/drama', voirdramaRouter);
 app.use('/api/ftv', francetvRouter);
@@ -675,6 +676,19 @@ const appReady = (async () => {
       await ensureColumn('series', 'download_links', 'download_links JSON NULL');
       // Retro-migration: ensure link_type column exists on download_links_history (for installations that created the table before this column was added)
       await ensureColumn('download_links_history', 'link_type', "link_type ENUM('streaming','download') NOT NULL DEFAULT 'download'");
+      // Console d'abonnements : mot de passe des comptes admin/staff + minuteur
+      // d'abonnement (aucun système de durée n'existait avant).
+      await ensureColumn('account_credentials', 'password_hash', 'password_hash VARCHAR(128) DEFAULT NULL');
+      await ensureColumn('account_credentials', 'subscription_expires_at', 'subscription_expires_at DATETIME DEFAULT NULL');
+      // Reçus d'abonnement + offres de renouvellement (rendues depuis le
+      // schéma déclaratif pour garder une seule source de vérité).
+      const { getTablesByGroup, renderCreateTable } = require('./db/schema');
+      const subscriptionTables = new Set(['subscription_receipts', 'subscription_bargains']);
+      for (const table of getTablesByGroup('core')) {
+        if (subscriptionTables.has(table.name)) {
+          await pool.execute(renderCreateTable(table));
+        }
+      }
       console.log("Download links schema initialized successfully");
 
       // Initialize Top 10 routes (public ranking)

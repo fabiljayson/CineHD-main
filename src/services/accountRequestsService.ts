@@ -56,6 +56,8 @@ export interface CreateAccountRequestInput {
 export interface AccountLoginResponse extends ResolvedAuthResponse {
   userId: string;
   userProfile?: { id?: string; username?: string; avatar?: string; provider?: string } | null;
+  /** Minuteur d'abonnement (renvoyé par la connexion par mot de passe). */
+  subscriptionExpiresAt?: string | null;
   message?: string;
 }
 
@@ -262,4 +264,198 @@ export async function adminRegenerateAccountCode(id: number): Promise<{ request:
     { method: 'POST' },
     true
   );
+}
+
+/**
+ * Connexion par pseudo + mot de passe. Réservée aux comptes qui en possèdent
+ * un (staff / admin — voir API/Mainapi/scripts/seedAdminAccounts.js) ; les
+ * abonnés restent sur loginWithAccountCode.
+ */
+export async function loginWithAccountPassword(input: {
+  username: string;
+  password: string;
+  turnstileToken?: string;
+}): Promise<AccountLoginResponse> {
+  return requestJson<AccountLoginResponse>('/api/auth/account/password-login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getSessionCreationHeaders(),
+    },
+    body: JSON.stringify({
+      username: input.username,
+      password: input.password,
+      turnstileToken: input.turnstileToken,
+    }),
+  });
+}
+
+// === Abonnements (console d'abonnements) ===
+
+export interface SubscriptionUser {
+  id: number;
+  userId: string;
+  username: string;
+  active: boolean;
+  hasPassword: boolean;
+  subscriptionExpiresAt: string | null;
+  lastLoginAt: string | null;
+  createdAt: string | null;
+  requestId: number | null;
+}
+
+export interface SubscriptionReceipt {
+  id: number;
+  publicId: string;
+  requestId: number | null;
+  userId: string;
+  username: string;
+  planId: AccountPlanId;
+  planDays: number;
+  amountFcfa: number;
+  paymentMethod: AccountPaymentMethodId;
+  payerMsisdn: string;
+  paymentReference: string;
+  validFrom: string | null;
+  validUntil: string | null;
+  issuedBy: string;
+  createdAt: string | null;
+}
+
+export interface SubscriptionBargain {
+  id: number;
+  title: string;
+  description: string | null;
+  planId: AccountPlanId;
+  priceFcfa: number;
+  active: boolean;
+  startsAt: string | null;
+  endsAt: string | null;
+  createdBy: string;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface SubscriptionListPage<T> {
+  items: T[];
+  total: number;
+  page: number;
+  hasMore: boolean;
+}
+
+export interface BargainInput {
+  title: string;
+  description?: string | null;
+  planId: AccountPlanId;
+  priceFcfa: number;
+  active?: boolean;
+  startsAt?: string | null;
+  endsAt?: string | null;
+}
+
+/** Offres de renouvellement publiées (public — page de connexion / création). */
+export async function getSubscriptionBargains(): Promise<SubscriptionBargain[]> {
+  const data = await requestJson<{ bargains: SubscriptionBargain[] }>('/api/account/bargains');
+  return Array.isArray(data.bargains) ? data.bargains : [];
+}
+
+export async function listSubscriptionUsers(params: {
+  search?: string;
+  page?: number;
+  limit?: number;
+} = {}): Promise<SubscriptionListPage<SubscriptionUser>> {
+  const query = new URLSearchParams();
+  if (params.search) query.set('search', params.search);
+  if (params.page) query.set('page', String(params.page));
+  if (params.limit) query.set('limit', String(params.limit));
+  const suffix = query.toString() ? `?${query.toString()}` : '';
+
+  const data = await requestJson<{
+    users: SubscriptionUser[];
+    total: number;
+    page: number;
+    hasMore: boolean;
+  }>(`/api/admin/subscriptions/users${suffix}`, {}, true);
+
+  return { items: data.users, total: data.total, page: data.page, hasMore: data.hasMore };
+}
+
+/** Minuteur : soit une date absolue (null = réinitialise), soit un prolongement en jours. */
+export async function adminUpdateSubscriptionUser(
+  id: number,
+  update: { expiresAt?: string | null; addDays?: number; active?: boolean }
+): Promise<{ user: SubscriptionUser }> {
+  return requestJson<{ user: SubscriptionUser }>(`/api/admin/subscriptions/users/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(update),
+  }, true);
+}
+
+export async function listSubscriptionReceipts(params: {
+  search?: string;
+  page?: number;
+  limit?: number;
+} = {}): Promise<SubscriptionListPage<SubscriptionReceipt>> {
+  const query = new URLSearchParams();
+  if (params.search) query.set('search', params.search);
+  if (params.page) query.set('page', String(params.page));
+  if (params.limit) query.set('limit', String(params.limit));
+  const suffix = query.toString() ? `?${query.toString()}` : '';
+
+  const data = await requestJson<{
+    receipts: SubscriptionReceipt[];
+    total: number;
+    page: number;
+    hasMore: boolean;
+  }>(`/api/admin/subscriptions/receipts${suffix}`, {}, true);
+
+  return { items: data.receipts, total: data.total, page: data.page, hasMore: data.hasMore };
+}
+
+/**
+ * Valide une transaction mobile money et génère le reçu. Si la demande est
+ * encore en attente, le compte est créé au passage : le code de connexion
+ * (affiché une fois) est alors renvoyé dans `code`.
+ */
+export async function adminCreateTransactionReceipt(requestId: number): Promise<{
+  receipt: SubscriptionReceipt;
+  code?: string | null;
+  userId?: string | null;
+  request: AccountRequestSummary;
+}> {
+  return requestJson(`/api/admin/subscriptions/transactions/${requestId}/receipt`, { method: 'POST' }, true);
+}
+
+export async function listSubscriptionBargains(includeInactive = true): Promise<SubscriptionBargain[]> {
+  const suffix = includeInactive ? '?includeInactive=1' : '';
+  const data = await requestJson<{ bargains: SubscriptionBargain[] }>(
+    `/api/admin/subscriptions/bargains${suffix}`,
+    {},
+    true
+  );
+  return Array.isArray(data.bargains) ? data.bargains : [];
+}
+
+export async function adminCreateSubscriptionBargain(input: BargainInput): Promise<{ bargain: SubscriptionBargain }> {
+  return requestJson<{ bargain: SubscriptionBargain }>('/api/admin/subscriptions/bargains', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  }, true);
+}
+
+export async function adminUpdateSubscriptionBargain(
+  id: number,
+  input: Partial<BargainInput>
+): Promise<{ bargain: SubscriptionBargain }> {
+  return requestJson<{ bargain: SubscriptionBargain }>(`/api/admin/subscriptions/bargains/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  }, true);
+}
+
+export async function adminDeleteSubscriptionBargain(id: number): Promise<void> {
+  await requestJson(`/api/admin/subscriptions/bargains/${id}`, { method: 'DELETE' }, true);
 }

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import cinehdLockup from '../../brand/cinehd-lockup.svg';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -9,8 +9,10 @@ import {
   Copy,
   KeyRound,
   Loader2,
+  Lock,
   MessageCircle,
   Smartphone,
+  Tag,
   UserPlus,
   XCircle,
 } from 'lucide-react';
@@ -29,17 +31,26 @@ import {
   createAccountRequest,
   getAccountPlans,
   getAccountRequestStatus,
+  getSubscriptionBargains,
   loginWithAccountCode,
+  loginWithAccountPassword,
   type AccountPaymentMethod,
   type AccountPlan,
   type AccountPlanId,
   type AccountRequestStatus,
   type AccountRequestSummary,
+  type SubscriptionBargain,
 } from '../services/accountRequestsService';
 
 import './Login.css';
 
-type TabKey = 'code' | 'create';
+type TabKey = 'code' | 'password' | 'create';
+
+const TAB_META: { key: TabKey; labelKey: string }[] = [
+  { key: 'code', labelKey: 'login.tabCode' },
+  { key: 'password', labelKey: 'login.tabPassword' },
+  { key: 'create', labelKey: 'login.tabCreate' },
+];
 
 /** Groupe les milliers sans dépendre de la locale du navigateur : 16 000 FCFA. */
 const formatFcfa = (value: number) => `${Math.round(value)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -69,7 +80,6 @@ const isNetworkError = (error: unknown) => error instanceof TypeError;
 const Login: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const reducedMotion = useReducedMotion();
 
   const turnstileBypass = useTurnstileBypass();
   const isTurnstileEnabled = typeof TURNSTILE_SITE_KEY === 'string'
@@ -84,13 +94,16 @@ const Login: React.FC = () => {
   // `?tab=create` permet d'ouvrir directement le volet de création depuis les
   // boutons « Créer un compte » (profil, Wrapped, autorisation OAuth).
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tab, setTab] = useState<TabKey>(searchParams.get('tab') === 'create' ? 'create' : 'code');
+  const [tab, setTab] = useState<TabKey>(() => {
+    const requested = searchParams.get('tab');
+    return requested === 'create' || requested === 'password' ? requested : 'code';
+  });
 
   const handleTabChange = (nextTab: TabKey) => {
     setTab(nextTab);
     const nextParams = new URLSearchParams(searchParams);
-    if (nextTab === 'create') {
-      nextParams.set('tab', 'create');
+    if (nextTab !== 'code') {
+      nextParams.set('tab', nextTab);
     } else {
       nextParams.delete('tab');
     }
@@ -103,6 +116,33 @@ const Login: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [loginToken, setLoginToken] = useState('');
   const [loginResetSignal, setLoginResetSignal] = useState(0);
+
+  // === Connexion par pseudo + mot de passe (staff / admin uniquement) ===
+  const [staffUsername, setStaffUsername] = useState('');
+  const [staffPassword, setStaffPassword] = useState('');
+  const [isPasswordLoggingIn, setIsPasswordLoggingIn] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordToken, setPasswordToken] = useState('');
+  const [passwordResetSignal, setPasswordResetSignal] = useState(0);
+
+  // === Offres de renouvellement publiques ===
+  const [bargains, setBargains] = useState<SubscriptionBargain[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    getSubscriptionBargains()
+      .then((result) => {
+        if (mounted) setBargains(result);
+      })
+      .catch(() => {
+        // Les offres sont un complément public : leur absence ne bloque jamais
+        // la connexion ni la création de compte.
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // === Création de compte ===
   const [plans, setPlans] = useState<AccountPlan[]>([]);
@@ -169,7 +209,7 @@ const Login: React.FC = () => {
     const blockedEnd = isBelowFloor ? Math.min(valuePct, floorPct) : floorPct;
     const goldEnd = Math.max(blockedEnd, valuePct);
     return [
-      'linear-gradient(to right,',
+      'linear-gradient(to right,', // taste-skill-ignore: encodes the selected amount and the plan floor on the range control.
       `rgba(239, 68, 68, 0.35) 0%, rgba(239, 68, 68, 0.35) ${blockedEnd}%`,
       `#c89028 ${blockedEnd}%, #c89028 ${goldEnd}%`,
       `rgba(255, 255, 255, 0.15) ${goldEnd}%, rgba(255, 255, 255, 0.15) 100%)`,
@@ -230,6 +270,45 @@ const Login: React.FC = () => {
       setLoginResetSignal((value) => value + 1);
     }
   }, [authorizeReturnPath, code, isTurnstileEnabled, loginToken, t]);
+
+  const handlePasswordLogin = useCallback(async () => {
+    const trimmedUsername = staffUsername.trim();
+    if (!trimmedUsername || !staffPassword) {
+      setPasswordError(t('login.passwordRequired'));
+      return;
+    }
+    if (isTurnstileEnabled && !passwordToken) {
+      setPasswordError(t('auth.captchaRequired'));
+      return;
+    }
+
+    setIsPasswordLoggingIn(true);
+    setPasswordError('');
+
+    try {
+      const payload = await loginWithAccountPassword({
+        username: trimmedUsername,
+        password: staffPassword,
+        turnstileToken: passwordToken,
+      });
+      const userId = payload.account?.userId || payload.userId;
+      if (!payload.token || !userId) {
+        throw new Error(t('login.passwordInvalid'));
+      }
+
+      persistResolvedSession('bip39', payload);
+      broadcastAuthChange();
+      window.setTimeout(() => {
+        window.location.href = authorizeReturnPath || '/';
+      }, 100);
+    } catch (error) {
+      setPasswordError(isNetworkError(error) ? t('login.errorNetwork') : t('login.passwordInvalid'));
+    } finally {
+      setIsPasswordLoggingIn(false);
+      setPasswordToken('');
+      setPasswordResetSignal((value) => value + 1);
+    }
+  }, [authorizeReturnPath, isTurnstileEnabled, passwordToken, staffPassword, staffUsername, t]);
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit || !selectedPlan || !selectedMethod) return;
@@ -307,471 +386,577 @@ const Login: React.FC = () => {
       ? <XCircle className="h-5 w-5 text-red-300" aria-hidden="true" />
       : <CircleDashed className="h-5 w-5 text-amber-200" aria-hidden="true" />;
 
-  const entrance = reducedMotion
-    ? {}
-    : { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 } };
-
   return (
-    <div className="relative min-h-screen bg-black text-white pb-16">
-      {/* Halo doré discret, sans déplacement : neutre en prefers-reduced-motion. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(60%_60%_at_50%_0%,rgba(200,144,40,0.16),transparent_70%)]"
-      />
+    <div className="min-h-svh bg-ground text-ink">
+      <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-6 sm:py-10 lg:grid-cols-[minmax(13rem,0.72fr)_minmax(0,1.28fr)] lg:gap-16">
+        <section className="lg:sticky lg:top-10 lg:self-start">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="mb-8 inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm text-ink-muted transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            {t('common.back')}
+          </button>
 
-      <div className="relative mx-auto w-full max-w-3xl px-4 pt-6 sm:pt-10">
-        <button
-          type="button"
-          onClick={() => navigate('/')}
-          className="mb-6 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/60 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          {t('common.back')}
-        </button>
+          <img src={cinehdLockup} alt="CineHD" className="mb-8 h-auto w-40" />
+          <header className="max-w-md">
+            <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+              {t('login.title')}
+            </h1>
+            <p className="mt-4 text-base leading-relaxed text-ink-muted">
+              {t('login.subtitle')}
+            </p>
+          </header>
+        </section>
 
-        <header className="mb-8 text-center">
-          <p className="text-xs uppercase tracking-[0.35em] text-brand-gold">CineHD</p>
-          <h1 className="mt-3 font-display text-3xl sm:text-4xl">
-            {t('login.title')}
-          </h1>
-          <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/55">
-            {t('login.subtitle')}
-          </p>
-        </header>
+        <div className="w-full min-w-0">
 
-        {/* Sélecteur de volet */}
-        <div
-          role="tablist"
-          aria-label={t('login.title')}
-          className="mx-auto mb-8 grid max-w-md grid-cols-2 gap-1 rounded-xl border border-white/10 bg-white/5 p-1"
-        >
-          {(['code', 'create'] as TabKey[]).map((key) => {
-            const isActive = tab === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => handleTabChange(key)}
-                className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold ${
-                  isActive ? 'bg-brand-gold text-black' : 'text-white/70 hover:text-white'
-                }`}
+          {/* Sélecteur de volet */}
+          <div
+            role="tablist"
+            aria-label={t('login.title')}
+            className="mb-6 grid grid-cols-3 gap-1 rounded-lg border border-rule bg-surface p-1"
+          >
+            {TAB_META.map(({ key, labelKey }) => {
+              const isActive = tab === key;
+              const Icon = key === 'code' ? KeyRound : key === 'password' ? Lock : UserPlus;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  id={`login-tab-${key}`}
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => handleTabChange(key)}
+                  className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-md px-1.5 text-xs font-medium leading-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:gap-2 sm:px-3 sm:text-sm ${
+                    isActive ? 'bg-white text-black' : 'text-ink-muted hover:text-white'
+                  }`}
+                >
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>{t(labelKey)}</span>
+                </button>
+              );
+            })}
+          </div>
+
+            {tab === 'code' ? (
+              <section
+                role="tabpanel"
+                id="login-panel-code"
+                aria-labelledby="login-tab-code"
+                className="rounded-lg bg-surface p-6 sm:p-8"
               >
-                {key === 'code' ? <KeyRound className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                {key === 'code' ? t('login.tabCode') : t('login.tabCreate')}
-              </button>
-            );
-          })}
-        </div>
+                <label htmlFor="account-code" className="mb-2 block text-sm font-medium text-white/80">
+                  {t('login.codeLabel')}
+                </label>
+                <input
+                  id="account-code"
+                  value={code}
+                  onChange={(event) => setCode(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      void handleLogin();
+                    }
+                  }}
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder={t('login.codePlaceholder')}
+                  aria-describedby="account-code-hint"
+                  className="w-full rounded-md border border-control bg-ground px-4 py-3 font-mono text-base uppercase tracking-widest text-white outline-none transition-colors placeholder:text-ink-faint focus:border-white focus-visible:ring-2 focus-visible:ring-white"
+                />
+                <p id="account-code-hint" className="mt-2 text-sm leading-relaxed text-ink-muted">{t('login.codeHint')}</p>
 
-        <AnimatePresence mode="wait" initial={false}>
-          {tab === 'code' ? (
-            <motion.section
-              key="code"
-              {...entrance}
-              transition={{ duration: 0.2 }}
-              role="tabpanel"
-              aria-label={t('login.tabCode')}
-              className="rounded-2xl border border-white/10 bg-neutral-950/60 p-6 backdrop-blur-sm sm:p-8"
-            >
-              <label htmlFor="account-code" className="mb-2 block text-sm font-medium text-white/80">
-                {t('login.codeLabel')}
-              </label>
-              <input
-                id="account-code"
-                value={code}
-                onChange={(event) => setCode(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    void handleLogin();
-                  }
-                }}
-                autoComplete="off"
-                spellCheck={false}
-                placeholder={t('login.codePlaceholder')}
-                className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 font-mono text-base uppercase tracking-widest text-white outline-none transition-colors placeholder:text-white/25 focus:border-brand-gold/60 focus-visible:ring-2 focus-visible:ring-brand-gold"
-              />
-              <p className="mt-2 text-xs leading-relaxed text-white/45">{t('login.codeHint')}</p>
-
-              {loginError && (
-                <p className="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-                  {loginError}
-                </p>
-              )}
-
-              {isTurnstileEnabled && (
-                <div className="mt-5 flex justify-center overflow-hidden">
-                  <TurnstileWidget onTokenChange={setLoginToken} resetSignal={loginResetSignal} />
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => void handleLogin()}
-                disabled={!code.trim() || isLoggingIn || (isTurnstileEnabled && !loginToken)}
-                className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-gold px-6 font-semibold text-black transition-colors hover:bg-brand-gold-bright disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-              >
-                {isLoggingIn ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                    {t('login.codeConnecting')}
-                  </>
-                ) : (
-                  <>
-                    <KeyRound className="h-4 w-4" aria-hidden="true" />
-                    {t('login.codeSubmit')}
-                  </>
-                )}
-              </button>
-
-              <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
-                <p className="text-sm font-medium text-white/80">{t('login.alreadyTitle')}</p>
-                <p className="mt-1 text-xs leading-relaxed text-white/50">{t('login.alreadyBody')}</p>
-              </div>
-            </motion.section>
-          ) : (
-            <motion.section
-              key="create"
-              {...entrance}
-              transition={{ duration: 0.2 }}
-              role="tabpanel"
-              aria-label={t('login.tabCreate')}
-              className="space-y-6 rounded-2xl border border-white/10 bg-neutral-950/60 p-6 backdrop-blur-sm sm:p-8"
-            >
-              <div>
-                <h2 className="text-xl font-semibold">{t('login.createTitle')}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-white/55">{t('login.createIntro')}</p>
-              </div>
-
-              {plansError && (
-                <p className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-                  {plansError}
-                </p>
-              )}
-
-              {/* 1. Offre */}
-              <fieldset>
-                <legend className="mb-3 text-sm font-medium text-white/80">{t('login.choosePlan')}</legend>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  {plans.map((plan) => {
-                    const isActive = plan.id === selectedPlan?.id;
-                    return (
-                      <button
-                        key={plan.id}
-                        type="button"
-                        onClick={() => setSelectedPlanId(plan.id)}
-                        aria-pressed={isActive}
-                        className={`relative rounded-2xl border p-5 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
-                          isActive
-                            ? 'border-brand-gold bg-brand-gold/10 shadow-[0_0_28px_-8px_rgba(200,144,40,0.7)]'
-                            : 'border-white/10 bg-white/5 hover:border-white/25'
-                        }`}
-                      >
-                        {isActive && (
-                          <span
-                            aria-hidden="true"
-                            className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-brand-gold text-black"
-                          >
-                            <CheckCircle2 className="h-4 w-4" />
-                          </span>
-                        )}
-                        <span className="block pr-7 text-sm font-medium text-white/70">
-                          {t(planLabelKey(plan.id))}
-                        </span>
-                        <span className="mt-2 flex items-baseline gap-1.5">
-                          <span className="font-display text-3xl font-bold leading-none text-brand-gold">
-                            {formatFcfa(plan.maxFcfa)}
-                          </span>
-                          <span className="text-[11px] font-semibold uppercase tracking-widest text-brand-gold/70">
-                            FCFA
-                          </span>
-                        </span>
-                        <span className="mt-3 inline-block max-w-full rounded-full border border-brand-gold/40 bg-brand-gold/10 px-3 py-1.5 text-[11px] font-medium leading-snug text-brand-gold">
-                          {t('login.planDays', { days: plan.days })}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </fieldset>
-
-              {/* 2. Curseur de prix */}
-              {selectedPlan && (
-                <fieldset>
-                  <legend className="mb-3 text-sm font-medium text-white/80">{t('login.amountLabel')}</legend>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                    <p className="flex items-baseline gap-2">
-                      <span className="font-display text-4xl font-bold leading-none text-brand-gold">
-                        {formatFcfa(selectedAmount)}
-                      </span>
-                      <span className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold/70">
-                        FCFA
-                      </span>
-                    </p>
-
-                    <input
-                      type="range"
-                      min={selectedPlan.sliderMinFcfa}
-                      max={selectedPlan.maxFcfa}
-                      step={50}
-                      value={selectedAmount}
-                      onChange={(event) => handleAmountChange(selectedPlan.id, Number(event.target.value))}
-                      aria-label={t('login.amountLabel')}
-                      aria-valuetext={t('login.amountValue', { amount: formatFcfa(selectedAmount) })}
-                      className="login-amount-range mt-4"
-                      style={{ '--login-range-track': rangeTrack } as React.CSSProperties}
-                    />
-
-                    <div className="mt-1 flex justify-between text-xs text-white/40">
-                      <span>{formatFcfa(selectedPlan.floorFcfa)} FCFA</span>
-                      <span>{formatFcfa(selectedPlan.maxFcfa)} FCFA</span>
-                    </div>
-
-                    <p className="mt-2 text-xs leading-relaxed text-white/40">{t('login.amountHint')}</p>
-
-                    {isBelowFloor && (
-                      <div
-                        role="alert"
-                        className="mt-3 rounded-xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100"
-                      >
-                        <p className="font-medium">{t('login.amountBelowFloorJoke')}</p>
-                        <p className="mt-1 text-xs text-amber-100/70">
-                          {t('login.amountBelowFloor', { floor: formatFcfa(selectedPlan.floorFcfa) })}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </fieldset>
-              )}
-
-              {/* 3. Moyen de paiement */}
-              <fieldset>
-                <legend className="mb-3 text-sm font-medium text-white/80">{t('login.methodLabel')}</legend>
-                {methods.length === 0 ? (
-                  <p className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/60">
-                    {t('login.methodMissing')}
+                {loginError && (
+                  <p role="alert" className="mt-4 rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                    {loginError}
                   </p>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {methods.map((method) => {
-                        const isActive = method.id === selectedMethod?.id;
-                        const brand = methodBrand[method.id];
-                        return (
-                          <button
-                            key={method.id}
-                            type="button"
-                            onClick={() => setSelectedMethodId(method.id)}
-                            aria-pressed={isActive}
-                            className={`relative flex min-h-14 items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
-                              isActive
-                                ? 'border-brand-gold bg-brand-gold/10 shadow-[0_0_24px_-10px_rgba(200,144,40,0.7)]'
-                                : 'border-white/10 bg-white/5 hover:border-white/25'
-                            }`}
-                          >
+                )}
+
+                {isTurnstileEnabled && (
+                  <div className="mt-5 flex justify-center overflow-hidden">
+                    <TurnstileWidget onTokenChange={setLoginToken} resetSignal={loginResetSignal} />
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => void handleLogin()}
+                  disabled={!code.trim() || isLoggingIn || (isTurnstileEnabled && !loginToken)}
+                  className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                >
+                  {isLoggingIn ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                      {t('login.codeConnecting')}
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound className="h-4 w-4" aria-hidden="true" />
+                      {t('login.codeSubmit')}
+                    </>
+                  )}
+                </button>
+
+                <div className="mt-6 pt-5">
+                  <p className="text-sm font-medium text-white/80">{t('login.alreadyTitle')}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-ink-muted">{t('login.alreadyBody')}</p>
+                </div>
+              </section>
+            ) : tab === 'password' ? (
+              <section
+                role="tabpanel"
+                id="login-panel-password"
+                aria-labelledby="login-tab-password"
+                className="space-y-4 rounded-lg bg-surface p-6 sm:p-8"
+              >
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs leading-relaxed text-white/55">{t('login.passwordHint')}</p>
+                </div>
+
+                <div>
+                  <label htmlFor="staff-username" className="mb-2 block text-sm font-medium text-white/80">
+                    {t('login.passwordUsername')}
+                  </label>
+                  <input
+                    id="staff-username"
+                    value={staffUsername}
+                    onChange={(event) => setStaffUsername(event.target.value)}
+                    autoComplete="username"
+                    maxLength={64}
+                    placeholder={t('login.passwordUsernamePlaceholder')}
+                    className="w-full rounded-md border border-control bg-ground px-4 py-3 text-white outline-none transition-colors placeholder:text-ink-faint focus:border-white focus-visible:ring-2 focus-visible:ring-white"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="staff-password" className="mb-2 block text-sm font-medium text-white/80">
+                    {t('login.passwordLabel')}
+                  </label>
+                  <input
+                    id="staff-password"
+                    type="password"
+                    value={staffPassword}
+                    onChange={(event) => setStaffPassword(event.target.value)}
+                    autoComplete="current-password"
+                    maxLength={256}
+                    placeholder={t('login.passwordPlaceholder')}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        void handlePasswordLogin();
+                      }
+                    }}
+                    className="w-full rounded-md border border-control bg-ground px-4 py-3 text-white outline-none transition-colors placeholder:text-ink-faint focus:border-white focus-visible:ring-2 focus-visible:ring-white"
+                  />
+                </div>
+
+                {passwordError && (
+                  <p role="alert" className="rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                    {passwordError}
+                  </p>
+                )}
+
+                {isTurnstileEnabled && (
+                  <div className="flex justify-center overflow-hidden">
+                    <TurnstileWidget onTokenChange={setPasswordToken} resetSignal={passwordResetSignal} />
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => void handlePasswordLogin()}
+                  disabled={
+                    !staffUsername.trim()
+                    || !staffPassword
+                    || isPasswordLoggingIn
+                    || (isTurnstileEnabled && !passwordToken)
+                  }
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                >
+                  {isPasswordLoggingIn ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                      {t('login.codeConnecting')}
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4" aria-hidden="true" />
+                      {t('login.passwordSubmit')}
+                    </>
+                  )}
+                </button>
+              </section>
+            ) : (
+              <section
+                role="tabpanel"
+                id="login-panel-create"
+                aria-labelledby="login-tab-create"
+                className="space-y-6 rounded-lg bg-surface p-6 sm:p-8"
+              >
+                <div>
+                  <h2 className="text-xl font-semibold">{t('login.createTitle')}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-white/55">{t('login.createIntro')}</p>
+                </div>
+
+                {plansError && (
+                  <p className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                    {plansError}
+                  </p>
+                )}
+
+                {/* 1. Offre */}
+                <fieldset>
+                  <legend className="mb-3 text-sm font-medium text-white/80">{t('login.choosePlan')}</legend>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    {plans.map((plan) => {
+                      const isActive = plan.id === selectedPlan?.id;
+                      return (
+                        <button
+                          key={plan.id}
+                          type="button"
+                          onClick={() => setSelectedPlanId(plan.id)}
+                          aria-pressed={isActive}
+                          className={`relative rounded-lg border p-5 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+                            isActive
+                              ? 'border-white bg-white/5'
+                              : 'border-rule bg-ground hover:border-control'
+                          }`}
+                        >
+                          {isActive && (
                             <span
                               aria-hidden="true"
-                              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[11px] font-black uppercase tracking-tight text-white/70"
-                              style={brand ? { backgroundColor: brand.bg, color: brand.fg } : undefined}
+                              className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-white text-black"
                             >
-                              {brand ? brand.mark : <Smartphone className="h-5 w-5" />}
+                              <CheckCircle2 className="h-4 w-4" />
                             </span>
-                            <span className="min-w-0 pr-6 text-sm font-semibold text-white">
-                              {method.label}
+                          )}
+                          <span className="block pr-7 text-sm font-medium text-white/70">
+                            {t(planLabelKey(plan.id))}
+                          </span>
+                          <span className="mt-2 flex items-baseline gap-1.5">
+                            <span className="font-display text-3xl font-bold leading-none text-brand-gold">
+                              {formatFcfa(plan.maxFcfa)}
                             </span>
-                            {isActive && (
-                              <CheckCircle2
-                                aria-hidden="true"
-                                className="absolute right-3 top-3 h-4 w-4 text-brand-gold"
-                              />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
+                            <span className="text-xs font-medium text-brand-gold/80">
+                              FCFA
+                            </span>
+                          </span>
+                          <span className="mt-3 inline-block max-w-full rounded-full border border-rule bg-raised px-3 py-1.5 text-xs font-medium leading-snug text-ink-muted">
+                            {t('login.planDays', { days: plan.days })}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
 
-                    {selectedMethod && (
-                      <div className="rounded-2xl border border-brand-gold/40 bg-brand-gold/[0.07] p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/50">
-                          {t('login.methodNumber')}
-                        </p>
-                        <div className="mt-1.5 flex flex-wrap items-center justify-between gap-3">
-                          <a
-                            href={`tel:${selectedMethod.number}`}
-                            className="break-all font-mono text-2xl font-bold tracking-wide text-brand-gold"
-                          >
-                            {selectedMethod.number}
-                          </a>
-                          <button
-                            type="button"
-                            onClick={() => void copyText(selectedMethod.number)}
-                            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-brand-gold/40 bg-brand-gold/15 px-3.5 text-xs font-semibold text-white transition-colors hover:bg-brand-gold/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                          >
-                            <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-                            {t('common.copy')}
-                          </button>
-                        </div>
-                        <p className="mt-3 text-xs leading-relaxed text-white/60">
-                          {t('login.methodSendTo', { amount: formatFcfa(selectedAmount) })}
-                        </p>
+                {/* 2. Curseur de prix */}
+                {selectedPlan && (
+                  <fieldset>
+                    <legend className="mb-3 text-sm font-medium text-white/80">{t('login.amountLabel')}</legend>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                      <p className="flex items-baseline gap-2">
+                        <span className="font-display text-4xl font-bold leading-none text-brand-gold">
+                          {formatFcfa(selectedAmount)}
+                        </span>
+                        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold/70">
+                          FCFA
+                        </span>
+                      </p>
+
+                      <input
+                        type="range"
+                        min={selectedPlan.sliderMinFcfa}
+                        max={selectedPlan.maxFcfa}
+                        step={50}
+                        value={selectedAmount}
+                        onChange={(event) => handleAmountChange(selectedPlan.id, Number(event.target.value))}
+                        aria-label={t('login.amountLabel')}
+                        aria-valuetext={t('login.amountValue', { amount: formatFcfa(selectedAmount) })}
+                        className="login-amount-range mt-4"
+                        style={{ '--login-range-track': rangeTrack } as React.CSSProperties}
+                      />
+
+                      <div className="mt-1 flex justify-between text-xs text-white/40">
+                        <span>{formatFcfa(selectedPlan.floorFcfa)} FCFA</span>
+                        <span>{formatFcfa(selectedPlan.maxFcfa)} FCFA</span>
                       </div>
-                    )}
+
+                      <p className="mt-2 text-xs leading-relaxed text-white/40">{t('login.amountHint')}</p>
+
+                      {isBelowFloor && (
+                        <div
+                          role="alert"
+                          className="mt-3 rounded-xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100"
+                        >
+                          <p className="font-medium">{t('login.amountBelowFloorJoke')}</p>
+                          <p className="mt-1 text-xs text-amber-100/70">
+                            {t('login.amountBelowFloor', { floor: formatFcfa(selectedPlan.floorFcfa) })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </fieldset>
+                )}
+
+                {/* 3. Moyen de paiement */}
+                <fieldset>
+                  <legend className="mb-3 text-sm font-medium text-white/80">{t('login.methodLabel')}</legend>
+                  {methods.length === 0 ? (
+                    <p className="rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/60">
+                      {t('login.methodMissing')}
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {methods.map((method) => {
+                          const isActive = method.id === selectedMethod?.id;
+                          const brand = methodBrand[method.id];
+                          return (
+                            <button
+                              key={method.id}
+                              type="button"
+                              onClick={() => setSelectedMethodId(method.id)}
+                              aria-pressed={isActive}
+                              className={`relative flex min-h-14 items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+                                isActive
+                                  ? 'border-white bg-white/5'
+                                  : 'border-rule bg-ground hover:border-control'
+                              }`}
+                            >
+                              <span
+                                aria-hidden="true"
+                                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[11px] font-black uppercase tracking-tight text-white/70"
+                                style={brand ? { backgroundColor: brand.bg, color: brand.fg } : undefined}
+                              >
+                                {brand ? brand.mark : <Smartphone className="h-5 w-5" />}
+                              </span>
+                              <span className="min-w-0 pr-6 text-sm font-semibold text-white">
+                                {method.label}
+                              </span>
+                              {isActive && (
+                                <CheckCircle2
+                                  aria-hidden="true"
+                                  className="absolute right-3 top-3 h-4 w-4 text-white"
+                                />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {selectedMethod && (
+                        <div className="rounded-lg bg-raised p-5">
+                          <p className="text-xs text-ink-muted">
+                            {t('login.methodNumber')}
+                          </p>
+                          <div className="mt-1.5 flex flex-wrap items-center justify-between gap-3">
+                            <a
+                              href={`tel:${selectedMethod.number}`}
+                              className="break-all text-2xl font-semibold tabular-nums tracking-wide text-brand-gold"
+                            >
+                              {selectedMethod.number}
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => void copyText(selectedMethod.number)}
+                              className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-control px-3.5 text-xs font-semibold text-white transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                            >
+                              <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                              {t('common.copy')}
+                            </button>
+                          </div>
+                          <p className="mt-3 text-xs leading-relaxed text-white/60">
+                            {t('login.methodSendTo', { amount: formatFcfa(selectedAmount) })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </fieldset>
+
+                {/* 4-6. Coordonnées */}
+                <div className="grid gap-4">
+                  <div>
+                    <label htmlFor="payer-msisdn" className="mb-2 block text-sm font-medium text-white/80">
+                      {t('login.msisdnLabel')}
+                    </label>
+                    <input
+                      id="payer-msisdn"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      value={payerMsisdn}
+                      onChange={(event) => setPayerMsisdn(event.target.value)}
+                      placeholder={t('login.msisdnPlaceholder')}
+                      className="w-full rounded-md border border-control bg-ground px-4 py-3 text-white outline-none transition-colors placeholder:text-ink-faint focus:border-white focus-visible:ring-2 focus-visible:ring-white"
+                    />
+                    <p className="mt-1 text-xs text-white/40">{t('login.msisdnHint')}</p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="payment-reference" className="mb-2 block text-sm font-medium text-white/80">
+                      {t('login.referenceLabel')}
+                    </label>
+                    <input
+                      id="payment-reference"
+                      value={reference}
+                      onChange={(event) => setReference(event.target.value)}
+                      autoComplete="off"
+                      spellCheck={false}
+                      placeholder={t('login.referencePlaceholder')}
+                      className="w-full rounded-md border border-control bg-ground px-4 py-3 font-mono text-white outline-none transition-colors placeholder:text-ink-faint focus:border-white focus-visible:ring-2 focus-visible:ring-white"
+                    />
+                    <p className="mt-1 text-xs text-white/40">{t('login.referenceHint')}</p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="account-username" className="mb-2 block text-sm font-medium text-white/80">
+                      {t('login.usernameLabel')}
+                    </label>
+                    <input
+                      id="account-username"
+                      value={username}
+                      onChange={(event) => setUsername(event.target.value)}
+                      autoComplete="username"
+                      maxLength={32}
+                      placeholder={t('login.usernamePlaceholder')}
+                      className="w-full rounded-md border border-control bg-ground px-4 py-3 text-white outline-none transition-colors placeholder:text-ink-faint focus:border-white focus-visible:ring-2 focus-visible:ring-white"
+                    />
+                    <p className="mt-1 text-xs text-white/40">{t('login.usernameHint')}</p>
+                  </div>
+                </div>
+
+                {submitError && (
+                  <p role="alert" className="rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                    {submitError}
+                  </p>
+                )}
+
+                {isTurnstileEnabled && (
+                  <div className="flex justify-center overflow-hidden">
+                    <TurnstileWidget onTokenChange={setSubmitToken} resetSignal={submitResetSignal} />
                   </div>
                 )}
-              </fieldset>
 
-              {/* 4-6. Coordonnées */}
-              <div className="grid gap-4">
-                <div>
-                  <label htmlFor="payer-msisdn" className="mb-2 block text-sm font-medium text-white/80">
-                    {t('login.msisdnLabel')}
-                  </label>
-                  <input
-                    id="payer-msisdn"
-                    type="tel"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    value={payerMsisdn}
-                    onChange={(event) => setPayerMsisdn(event.target.value)}
-                    placeholder={t('login.msisdnPlaceholder')}
-                    className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-white outline-none transition-colors placeholder:text-white/25 focus:border-brand-gold/60 focus-visible:ring-2 focus-visible:ring-brand-gold"
-                  />
-                  <p className="mt-1 text-xs text-white/40">{t('login.msisdnHint')}</p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleSubmit()}
+                  disabled={!canSubmit}
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                      {t('login.submitting')}
+                    </>
+                  ) : (
+                    t('login.submit')
+                  )}
+                </button>
+              </section>
+            )}
 
-                <div>
-                  <label htmlFor="payment-reference" className="mb-2 block text-sm font-medium text-white/80">
-                    {t('login.referenceLabel')}
-                  </label>
-                  <input
-                    id="payment-reference"
-                    value={reference}
-                    onChange={(event) => setReference(event.target.value)}
-                    autoComplete="off"
-                    spellCheck={false}
-                    placeholder={t('login.referencePlaceholder')}
-                    className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 font-mono text-white outline-none transition-colors placeholder:text-white/25 focus:border-brand-gold/60 focus-visible:ring-2 focus-visible:ring-brand-gold"
-                  />
-                  <p className="mt-1 text-xs text-white/40">{t('login.referenceHint')}</p>
-                </div>
-
-                <div>
-                  <label htmlFor="account-username" className="mb-2 block text-sm font-medium text-white/80">
-                    {t('login.usernameLabel')}
-                  </label>
-                  <input
-                    id="account-username"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                    autoComplete="username"
-                    maxLength={32}
-                    placeholder={t('login.usernamePlaceholder')}
-                    className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-white outline-none transition-colors placeholder:text-white/25 focus:border-brand-gold/60 focus-visible:ring-2 focus-visible:ring-brand-gold"
-                  />
-                  <p className="mt-1 text-xs text-white/40">{t('login.usernameHint')}</p>
-                </div>
-              </div>
-
-              {submitError && (
-                <p className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-                  {submitError}
-                </p>
-              )}
-
-              {isTurnstileEnabled && (
-                <div className="flex justify-center overflow-hidden">
-                  <TurnstileWidget onTokenChange={setSubmitToken} resetSignal={submitResetSignal} />
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => void handleSubmit()}
-                disabled={!canSubmit}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-gold px-6 font-semibold text-black transition-colors hover:bg-brand-gold-bright disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                    {t('login.submitting')}
-                  </>
-                ) : (
-                  t('login.submit')
-                )}
-              </button>
-            </motion.section>
+          {/* Offres de renouvellement publiques */}
+          {bargains.length > 0 && (
+            <section className="mt-6 rounded-lg bg-surface p-6">
+              <h2 className="flex items-center gap-2 text-base font-semibold">
+                <Tag className="h-5 w-5 text-ink-faint" aria-hidden="true" />
+                {t('login.bargainsTitle')}
+              </h2>
+              <p className="mt-1 text-sm text-white/55">{t('login.bargainsBody')}</p>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                {bargains.map((bargain) => (
+                  <li key={bargain.id} className="rounded-xl border border-white/10 bg-black/40 p-4">
+                    <p className="text-sm font-semibold text-white">{bargain.title}</p>
+                    {bargain.description && (
+                      <p className="mt-1 text-xs leading-relaxed text-white/50">{bargain.description}</p>
+                    )}
+                    <p className="mt-2 flex items-baseline gap-2">
+                      <span className="font-display text-xl font-bold leading-none text-brand-gold">
+                        {formatFcfa(bargain.priceFcfa)}
+                      </span>
+                      <span className="text-xs font-medium text-brand-gold/80">
+                        FCFA
+                      </span>
+                      <span className="text-xs text-white/45">· {t(planLabelKey(bargain.planId))}</span>
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
-        </AnimatePresence>
 
-        {/* Suivi d'une demande */}
-        {tab === 'create' && createdRequest && (
-          <section className="mt-6 rounded-2xl border border-emerald-400/25 bg-emerald-500/5 p-6">
-            <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <CheckCircle2 className="h-5 w-5 text-emerald-300" aria-hidden="true" />
-              {t('login.createdTitle')}
+          {/* Suivi d'une demande */}
+          {tab === 'create' && createdRequest && (
+            <section className="mt-6 rounded-2xl border border-emerald-400/25 bg-emerald-500/5 p-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold">
+                <CheckCircle2 className="h-5 w-5 text-emerald-300" aria-hidden="true" />
+                {t('login.createdTitle')}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-white/65">{t('login.createdBody')}</p>
+
+              <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-white/10 bg-black/40 p-3">
+                  <dt className="text-xs text-ink-muted">{t('login.createdReference')}</dt>
+                  <dd className="mt-1 font-mono text-sm text-brand-gold">{createdRequest.reference}</dd>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-black/40 p-3">
+                  <dt className="text-xs text-ink-muted">{t('login.createdAmount')}</dt>
+                  <dd className="mt-1 text-sm tabular-nums text-brand-gold">
+                    {t('login.amountValue', { amount: formatFcfa(createdRequest.amountFcfa) })}
+                  </dd>
+                </div>
+              </dl>
+
+              <p className="mt-4 flex items-center gap-2 text-sm text-white/70">
+                {statusIcon}
+                {statusMessage}
+              </p>
+
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => void handleCheckStatus()}
+                  disabled={isCheckingStatus}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-control px-4 text-sm font-medium text-white transition-colors hover:bg-raised disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  {isCheckingStatus
+                    ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                    : <CircleDashed className="h-4 w-4" aria-hidden="true" />}
+                  {isCheckingStatus ? t('login.statusChecking') : t('login.checkStatus')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetRequest}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-control px-4 text-sm font-medium text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  {t('login.anotherRequest')}
+                </button>
+              </div>
+            </section>
+          )}
+
+          {/* Support */}
+          <section className="mt-6 rounded-lg bg-surface p-6">
+            <h2 className="flex items-center gap-2 text-base font-semibold">
+              <MessageCircle className="h-5 w-5 text-[#25D366]" aria-hidden="true" />
+              {t('login.supportTitle')}
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-white/65">{t('login.createdBody')}</p>
-
-            <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg border border-white/10 bg-black/40 p-3">
-                <dt className="text-xs uppercase tracking-widest text-white/45">{t('login.createdReference')}</dt>
-                <dd className="mt-1 font-mono text-sm text-brand-gold">{createdRequest.reference}</dd>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-black/40 p-3">
-                <dt className="text-xs uppercase tracking-widest text-white/45">{t('login.createdAmount')}</dt>
-                <dd className="mt-1 font-mono text-sm text-brand-gold">
-                  {t('login.amountValue', { amount: formatFcfa(createdRequest.amountFcfa) })}
-                </dd>
-              </div>
-            </dl>
-
-            <p className="mt-4 flex items-center gap-2 text-sm text-white/70">
-              {statusIcon}
-              {statusMessage}
-            </p>
-
-            <div className="mt-4 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => void handleCheckStatus()}
-                disabled={isCheckingStatus}
-                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/15 px-4 text-sm font-medium text-white transition-colors hover:border-white/30 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
-              >
-                {isCheckingStatus
-                  ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                  : <CircleDashed className="h-4 w-4" aria-hidden="true" />}
-                {isCheckingStatus ? t('login.statusChecking') : t('login.checkStatus')}
-              </button>
-              <button
-                type="button"
-                onClick={handleResetRequest}
-                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/10 px-4 text-sm font-medium text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
-              >
-                {t('login.anotherRequest')}
-              </button>
-            </div>
+            <p className="mt-1 text-sm text-white/55">{t('login.supportBody')}</p>
+            <a
+              href={CREATE_ACCOUNT_WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#25D366] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#1ebe5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden="true" />
+              {t('login.supportLink')}
+            </a>
           </section>
-        )}
-
-        {/* Support */}
-        <section className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h2 className="flex items-center gap-2 text-base font-semibold">
-            <MessageCircle className="h-5 w-5 text-[#25D366]" aria-hidden="true" />
-            {t('login.supportTitle')}
-          </h2>
-          <p className="mt-1 text-sm text-white/55">{t('login.supportBody')}</p>
-          <a
-            href={CREATE_ACCOUNT_WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#25D366] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#1ebe5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
-          >
-            <MessageCircle className="h-4 w-4" aria-hidden="true" />
-            {t('login.supportLink')}
-          </a>
-        </section>
+        </div>
       </div>
     </div>
   );

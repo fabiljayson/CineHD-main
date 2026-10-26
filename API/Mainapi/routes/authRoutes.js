@@ -20,6 +20,7 @@ const { getTrustedClientIp } = require('../utils/clientIp');
 const { verifyTurnstileFromRequest } = require('../utils/turnstile');
 const { getSessionDeviceInfo } = require('../utils/sessionDeviceInfo');
 const { normalizeAccountCode, hashAccountCode } = require('../utils/accountCredentials');
+const { verifyAccountPassword } = require('../utils/accountPasswords');
 const {
   SUPPORTED_PROVIDERS,
   isSupportedProvider,
@@ -640,6 +641,95 @@ router.post('/account/login', authRateLimit, ...authBodyParsers, async (req, res
     });
   } catch (error) {
     console.error('Error logging in with account code:', error);
+    res.status(500).json({ success: false, error: 'Erreur lors de la connexion' });
+  }
+});
+
+// POST /account/password-login
+// Connexion par pseudo + mot de passe. Réservé aux comptes qui en possèdent un
+// (staff / admin) : les abonnés se connectent avec leur code CINE-XXXXX via
+// /account/login. Même émission de session que la connexion par code, pour que
+// le frontend ne voie aucune différence une fois la session posée.
+router.post('/account/password-login', authRateLimit, ...authBodyParsers, async (req, res) => {
+  try {
+    const { username, password, turnstileToken } = req.body || {};
+    if (!username || typeof username !== 'string' || !password || typeof password !== 'string') {
+      return res.status(400).json({ success: false, error: 'Pseudo et mot de passe requis' });
+    }
+
+    const turnstileResult = await verifyTurnstileFromRequest(req, turnstileToken);
+    if (!turnstileResult.valid) {
+      return res.status(turnstileResult.status).json({ success: false, error: turnstileResult.error });
+    }
+
+    const pool = getPool();
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Service temporairement indisponible' });
+    }
+
+    const normalizedUsername = String(username).replace(/\s+/g, ' ').trim();
+    if (!normalizedUsername) {
+      return res.status(401).json({ success: false, error: 'Identifiants invalides' });
+    }
+
+    const [credentialRows] = await pool.execute(
+      `SELECT id, user_id, username, active, password_hash, subscription_expires_at
+         FROM account_credentials
+        WHERE username = ? AND password_hash IS NOT NULL
+        LIMIT 1`,
+      [normalizedUsername]
+    );
+
+    const credential = credentialRows[0];
+    // Vérifie toujours (hash factice si aucun compte) pour que le temps de
+    // réponse ne révèle pas l'existence d'un pseudo.
+    const verified = await verifyAccountPassword(
+      String(password).slice(0, 256),
+      credential?.password_hash || 'scrypt$16384$8$1$AAAA$AAAA',
+    );
+    if (!credential || !verified || Number(credential.active) !== 1) {
+      return res.status(401).json({ success: false, error: 'Identifiants invalides' });
+    }
+
+    const userId = String(credential.user_id);
+    const { readUserData } = getSyncModule();
+    const storedUserData = await readUserData('bip39', userId) || {};
+    const storedAuth = parseStoredAuth(storedUserData);
+    const userProfile = {
+      id: userId,
+      username: storedAuth?.userProfile?.username || credential.username || `Utilisateur-${userId.substring(0, 8)}`,
+      avatar: storedAuth?.userProfile?.avatar || DEFAULT_AVATAR,
+      provider: 'bip39',
+      createdAt: storedAuth?.userProfile?.createdAt || new Date().toISOString(),
+    };
+
+    const payload = await finalizeResolvedSession(req, {
+      provider: 'bip39',
+      providerUserId: userId,
+      fallbackUserType: 'bip39',
+      sourceAuthData: { userProfile, provider: 'bip39' },
+      externalUser: {
+        id: userId,
+        username: userProfile.username,
+        avatar: userProfile.avatar,
+      },
+    });
+
+    await pool.execute('UPDATE account_credentials SET last_login_at = NOW() WHERE id = ?', [credential.id]);
+
+    const subscriptionExpiresAt = credential.subscription_expires_at
+      ? new Date(credential.subscription_expires_at).toISOString()
+      : null;
+
+    return res.status(200).json({
+      ...payload,
+      userId: payload.account.userId,
+      userProfile: payload.authData.userProfile,
+      subscriptionExpiresAt,
+      message: 'Connexion réussie',
+    });
+  } catch (error) {
+    console.error('Error logging in with account password:', error);
     res.status(500).json({ success: false, error: 'Erreur lors de la connexion' });
   }
 });

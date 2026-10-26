@@ -5,6 +5,7 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import { TooltipProvider } from './components/ui/tooltip';
 import Header from './components/Header';
 import Home from './pages/Home';
+import LandingPage from './pages/LandingPage';
 import DnsBlockBanner from './components/DnsBlockBanner';
 import { AdFreePopupProvider } from './context/AdFreePopupContext';
 import { SearchProvider } from './context/SearchContext';
@@ -485,6 +486,28 @@ const IOSHomeScreenHandler = () => {
 
   return null;
 };
+
+// Session telle que le reste de l'application la lit (mêmes drapeaux que
+// PrivateRoute et ProfileGate). Une seule définition pour la porte d'entrée
+// de l'application : elle décide si la landing ou le catalogue s'affiche à `/`.
+const isSessionAuthenticated = () => {
+  if (readLocalStorage('discord_auth') === 'true') return true;
+  if (readLocalStorage('google_auth') === 'true') return true;
+  if (readLocalStorage('bip39_auth') === 'true') return true;
+  if (readLocalStorage('is_vip') === 'true') return true;
+  const authStr = readLocalStorage('auth');
+  if (authStr) {
+    try {
+      const authObj = JSON.parse(authStr);
+      if (authObj.userProfile && authObj.userProfile.provider === 'access_code') return true;
+    } catch { }
+  }
+  return false;
+};
+
+// Racine `\` : premier écran de l'application. Visiteur = landing (inscription
+// + connexion), utilisateur authentifié = catalogue, comme avant.
+const LandingRoot: React.FC = () => (isSessionAuthenticated() ? <Home /> : <LandingPage />);
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const isDiscordAuth = readLocalStorage('discord_auth') === 'true';
@@ -1781,14 +1804,18 @@ const AppWithIntro: React.FC = () => {
   }, []);
   // Pages avec hero header (pas d'espace top): Home, ProviderContent, Movies, TVShows
   const currentPath = location.pathname;
+  // Racine non authentifiée : la landing prend tout l'écran, sans header ni
+  // footer globaux (elle porte son propre bandeau et son propre pied).
+  const isLandingRoot = currentPath === '/' && !isSessionAuthenticated();
   const isHeroHeaderPage =
     currentPath === '/' ||
+    currentPath === '/home' ||
     currentPath === '/movies' ||
     currentPath === '/anime' ||
     currentPath === '/tv-shows' ||
     currentPath.startsWith('/provider/');
   const isWrappedRoute = currentPath === '/wrapped' || currentPath.startsWith('/wrapped/');
-  const shouldShowHeader = !isWatchRoute && !isWrappedRoute;
+  const shouldShowHeader = !isWatchRoute && !isWrappedRoute && !isLandingRoot;
   const isAprilFoolsAdminRouteEnabled = isAprilFoolsAdminEnabled(location.search);
   const isNoFooterPage = isWatchRoute;
 
@@ -1905,8 +1932,10 @@ const AppWithIntro: React.FC = () => {
         <DefaultProfileNudge />
         <ProfileGate>
           <Routes>
-            {/* Eager — landing page, kept in main bundle */}
-            <Route path="/" element={<Home />} />
+            {/* Eager — premier écran : landing pour les visiteurs, catalogue
+                pour les utilisateurs déjà authentifiés (LandingRoot). */}
+            <Route path="/" element={<LandingRoot />} />
+            <Route path="/home" element={<Home />} />
 
             {/* Routes spéciales avec props ou logique conditionnelle — lazy (perf) */}
             <Route path="/login-bip39" element={<DelayedSuspense fallback={<RouteProgressBar />}><LoginBip39Lazy /></DelayedSuspense>} />
@@ -1929,7 +1958,7 @@ const AppWithIntro: React.FC = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </ProfileGate>
-        {!isWatchRoute && <Footer />}
+        {!isWatchRoute && !isLandingRoot && <Footer />}
       </div>
 
       {/* Redirect Popup */}

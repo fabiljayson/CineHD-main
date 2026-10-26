@@ -693,6 +693,17 @@ const appReady = (async () => {
       await initWrappedTables();
       app.use("/api/wrapped", wrappedRouter);
       console.log("Wrapped routes initialized successfully");
+
+      // Initialize Personalized Recommendations (frontend: /api/recommendations/personalized)
+      const recommendationRoutes = require("./recommendationRoutes");
+      recommendationRoutes.initRecommendationRoutes(pool, redis);
+      app.use("/api/recommendations", recommendationRoutes.router);
+      console.log("Recommendation routes initialized successfully");
+
+      // Admin stats overview (frontend: /api/admin/stats/overview) — self-wires
+      // to getPool()/redis, only needs the isAdmin guard already inside the router.
+      app.use("/api/admin/stats", require("./routes/adminStats"));
+      console.log("Admin stats routes initialized successfully");
     });
 
     // Les routeurs ci-dessus sont montés APRÈS le handler d'erreur initial :

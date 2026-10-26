@@ -108,6 +108,8 @@ API/Mainapi/exportscripts/
 *.jks
 *.p12
 *.mobileprovision
+# Credentials Widevine (drmproxy) — CDM device identity, jamais dans le dépôt
+*.wvd
 keystore.properties
 signing.properties
 release-signing.properties

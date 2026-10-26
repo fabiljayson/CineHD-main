@@ -12,7 +12,12 @@ export const PRESENCE_ICONS = {
 } as const
 export const TMDB_API_BASE = 'https://api.themoviedb.org/3'
 export const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p'
-export const TMDB_API_KEY = 'f3d757824f08ea2cff45eb8f47ca3a1e'
+// Injected at build time via TMDB_API_KEY (never hardcode: this repo is
+// public). Empty => media.ts degrades gracefully (no TMDB enrichment).
+export const TMDB_API_KEY
+  = typeof process !== 'undefined' && process.env?.TMDB_API_KEY
+    ? process.env.TMDB_API_KEY
+    : ''
 
 export const PROVIDER_NAMES: Record<string, string> = {
   8: 'Netflix',

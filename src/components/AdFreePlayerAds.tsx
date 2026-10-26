@@ -479,16 +479,6 @@ const AdFreePlayerAds: React.FC<AdFreePlayerAdsProps> = ({
                 <p className="text-red-300 font-bold text-sm sm:text-base leading-snug">
                   {t("adBlocker.adultAdsWarning")}
                 </p>
-                <p className="text-red-200/90 text-xs sm:text-sm mt-1.5">
-                  {t("adBlocker.adultAdsDisablePrefix")}
-                  <Link
-                    to="/settings#intermission"
-                    className="text-red-300 hover:text-red-100 underline font-semibold"
-                  >
-                    {t("adBlocker.adultAdsSettingsLink")}
-                  </Link>
-                  {t("adBlocker.adultAdsDisableSuffix")}
-                </p>
               </div>
             </div>
           )}

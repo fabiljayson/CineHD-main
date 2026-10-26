@@ -80,7 +80,7 @@ const LIVE_TV_IPTV_CATEGORY_FAVORITES_STORAGE_KEY = 'live_tv_favorite_iptv_categ
 const metadataCache = new Map();
 
 type ProfileMediaItemType = 'movie' | 'tv' | 'collection';
-type ProfileExtraFavoriteType = 'shared-list' | 'live-tv';
+type ProfileExtraFavoriteType = 'shared-list';
 type ProfileItemType = ProfileMediaItemType | ProfileExtraFavoriteType;
 
 interface WatchItem {
@@ -102,11 +102,6 @@ interface WatchItem {
   username?: string;
   itemCount?: number;
   isVip?: boolean;
-  source?: string;
-  liveTvKind?: 'channel' | 'iptv';
-  liveTvTargetId?: string;
-  liveTvCatalogId?: string;
-  liveTvCategoryId?: string;
 }
 
 interface UserProfile {
@@ -154,32 +149,11 @@ interface DragHandleProps {
   attributes: Record<string, any>;
 }
 
-interface LiveTVFavorite {
-  key: string;
-  source: string;
-  id: string;
-  name: string;
-  poster?: string | null;
-  addedAt: string;
-  kind: 'channel' | 'iptv';
-  catalogId?: string;
-  categoryId?: string;
-}
-
 const PROFILE_IMPORT_PRESERVED_ARRAY_KEYS = new Set([
   SHARED_LIST_FAVORITES_STORAGE_KEY,
   LIVE_TV_FAVORITES_STORAGE_KEY,
   LIVE_TV_IPTV_CATEGORY_FAVORITES_STORAGE_KEY,
 ]);
-
-const readStoredArray = <T,>(key: string): T[] => {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(key) || '[]');
-    return Array.isArray(parsed) ? (parsed as T[]) : [];
-  } catch {
-    return [];
-  }
-};
 
 // Bulk-read the localStorage keys backing the watchlist/favorites/watched lists
 // in one pass. Avoids repeated JSON.parse hits when several lists are loaded
@@ -210,25 +184,7 @@ const readWatchlistFamily = () => {
   };
 };
 
-const isLiveTVFavorite = (value: unknown): value is LiveTVFavorite => {
-  if (!value || typeof value !== 'object') return false;
-
-  const candidate = value as Partial<LiveTVFavorite>;
-  return (
-    typeof candidate.key === 'string' &&
-    typeof candidate.source === 'string' &&
-    typeof candidate.id === 'string' &&
-    typeof candidate.name === 'string' &&
-    typeof candidate.addedAt === 'string' &&
-    (candidate.kind === 'channel' || candidate.kind === 'iptv')
-  );
-};
-
-const readLiveTvFavorites = (): LiveTVFavorite[] => {
-  return readStoredArray<unknown>(LIVE_TV_FAVORITES_STORAGE_KEY).filter(isLiveTVFavorite);
-};
-
-const isTmdbWatchItem = (item: WatchItem): item is WatchItem & { id: number; type: ProfileMediaItemType } => {
+const isTmdbWatchItem =(item: WatchItem): item is WatchItem & { id: number; type: ProfileMediaItemType } => {
   return (
     typeof item.id === 'number' &&
     (item.type === 'movie' || item.type === 'tv' || item.type === 'collection')
@@ -497,7 +453,7 @@ const Profile: React.FC = () => {
       activeTab === 'in-progress' ? inProgress :
       [];
 
-    const orderedTypes: FilterItemType[] = ['all', 'movie', 'tv', 'collection', 'shared-list', 'live-tv'];
+    const orderedTypes: FilterItemType[] = ['all', 'movie', 'tv', 'collection', 'shared-list'];
     return orderedTypes.filter((type) => type === 'all' || sourceItems.some((item) => item.type === type));
   }, [activeTab, watchlist, favorites, watched, inProgress]);
 
@@ -829,21 +785,7 @@ const Profile: React.FC = () => {
         searchText: `${favorite.listName} ${favorite.username} ${favorite.shareCode}`,
       }));
 
-      const liveTvItems: WatchItem[] = readLiveTvFavorites().map((favorite) => ({
-        id: favorite.key,
-        type: 'live-tv',
-        title: favorite.name,
-        poster_path: favorite.poster || '',
-        addedAt: favorite.addedAt,
-        source: favorite.source,
-        liveTvKind: favorite.kind,
-        liveTvTargetId: favorite.id,
-        liveTvCatalogId: favorite.catalogId,
-        liveTvCategoryId: favorite.categoryId,
-        searchText: `${favorite.name} ${favorite.source} ${favorite.kind}`,
-      }));
-
-      allItems = [...allItems, ...sharedListItems, ...liveTvItems];
+      allItems = [...allItems, ...sharedListItems];
     }
 
     if (type === 'watched' || type === 'watchlist') {
@@ -2839,31 +2781,6 @@ const Profile: React.FC = () => {
       return `/list/${encodeURIComponent(item.shareCode || String(item.id))}`;
     }
 
-    if (item.type === 'live-tv') {
-      const source = item.source?.trim();
-      const targetId = item.liveTvTargetId?.trim();
-
-      if (!source || !targetId || !item.liveTvKind) {
-        return '/live-tv';
-      }
-
-      const params = new URLSearchParams({
-        source,
-        targetId,
-        kind: item.liveTvKind,
-      });
-
-      if (item.liveTvCatalogId) {
-        params.set('catalogId', item.liveTvCatalogId);
-      }
-
-      if (item.liveTvCategoryId) {
-        params.set('categoryId', item.liveTvCategoryId);
-      }
-
-      return `/live-tv?${params.toString()}`;
-    }
-
     if (item.type === 'collection' && typeof item.id === 'number') {
       return `/collection/${item.id}`;
     }
@@ -2905,10 +2822,6 @@ const Profile: React.FC = () => {
         details.push(t('lists.itemCount', { count: item.itemCount }));
       }
       return details.join(' • ');
-    }
-
-    if (item.type === 'live-tv') {
-      return item.source === 'iptv' ? t('liveTV.iptvWebSource') : t('nav.liveTV');
     }
 
     return '';
@@ -2958,8 +2871,6 @@ const Profile: React.FC = () => {
         key = 'favorites_tv';
       } else if (itemType === 'shared-list') {
         key = SHARED_LIST_FAVORITES_STORAGE_KEY;
-      } else if (itemType === 'live-tv') {
-        key = LIVE_TV_FAVORITES_STORAGE_KEY;
       } else {
         key = 'favorite_collections';
       }
@@ -2973,9 +2884,6 @@ const Profile: React.FC = () => {
     const updatedItems = listItems.filter((item: any) => {
       if (itemType === 'shared-list') {
         return item.shareCode !== itemId;
-      }
-      if (itemType === 'live-tv') {
-        return item.key !== itemId;
       }
       return item.id !== itemId;
     });
@@ -3148,8 +3056,6 @@ const Profile: React.FC = () => {
                   >
                     {item.type === 'shared-list' ? (
                       <Share2 className="w-10 h-10 text-amber-300 mb-3" />
-                    ) : item.type === 'live-tv' ? (
-                      <Monitor className="w-10 h-10 text-cyan-300 mb-3" />
                     ) : item.type === 'collection' ? (
                       <List className="w-10 h-10 text-purple-300 mb-3" />
                     ) : item.type === 'tv' ? (

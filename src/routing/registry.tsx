@@ -33,7 +33,6 @@ export const ROUTES: RouteEntry[] = [
   { path: '/vip/invoices',            loader: lz(() => import('../pages/VipInvoicesPage')) },
   { path: '/ftv',                     loader: lz(() => import('../pages/FranceTV/FranceTVBrowse')) },
   { path: '/top10',                   loader: lz(() => import('../pages/Top10Page')) },
-  { path: '/calendar',                loader: lz(() => import('../pages/CalendarPage')) },
 
   // Provider catalogs
   { path: '/provider/:providerId',                          loader: lz(() => import('../pages/ProviderContent')) },
@@ -60,7 +59,6 @@ export const ROUTES: RouteEntry[] = [
   { path: '/watch/movie/:tmdbid',                         loader: lz(() => import('../pages/Watch/WatchMovie')) },
   { path: '/watch/tv/:tmdbid/s/:season/e/:episode',       loader: lz(() => import('../pages/Watch/WatchTv')) },
   { path: '/watch/anime/:id/season/:season/episode/:episode', loader: lz(() => import('../pages/Watch/WatchAnime')) },
-  { path: '/live-tv',                 loader: lz(() => import('../pages/LiveTV')) },
   { path: '/ftv/info/:encoded',       loader: lz(() => import('../pages/FranceTV/FranceTVInfo')) },
   { path: '/ftv/watch/:encoded',      loader: lz(() => import('../pages/FranceTV/FranceTVPlayer')) },
 
@@ -96,7 +94,6 @@ export const ROUTES: RouteEntry[] = [
   { path: '/privacy',                 loader: lz(() => import('../pages/Privacy')) },
   { path: '/terms-of-service',        loader: lz(() => import('../pages/TermsOfService')) },
   { path: '/cinegraph',               loader: lz(() => import('../pages/CineGraph')) },
-  { path: '/settings',                loader: lz(() => import('../pages/SettingsPage')) },
   { path: '/wrapped',                 loader: lz(() => import('../pages/WrappedPage')) },
   { path: '/wrapped/:year',           loader: lz(() => import('../pages/WrappedPage')) },
   { path: '/frais',                   loader: lz(() => import('../pages/CostsPage')) },

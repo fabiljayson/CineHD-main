@@ -108,7 +108,6 @@ const Privacy = () => {
         title: t('privacyPolicyPage.supportCard.title'),
         paragraphs: getStringArray('privacyPolicyPage.supportCard.paragraphs'),
         actions: [
-          { label: t('privacyPolicyPage.supportCard.actions.settings'), to: '/settings', variant: 'primary' },
           { label: t('privacyPolicyPage.supportCard.actions.terms'), to: '/terms-of-service', variant: 'secondary' },
           { label: t('privacyPolicyPage.supportCard.actions.email'), href: `mailto:${CONTACT_EMAIL}`, variant: 'ghost' },
           { label: t('privacyPolicyPage.supportCard.actions.whatsapp'), href: SUPPORT_WHATSAPP_URL, external: true, variant: 'ghost' },

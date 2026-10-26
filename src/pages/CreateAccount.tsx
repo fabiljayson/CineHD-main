@@ -70,7 +70,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
   const stateReturnTo = typeof location.state === 'object' && location.state && 'returnTo' in location.state && typeof location.state.returnTo === 'string'
     ? location.state.returnTo
     : null;
-  const returnPath = stateReturnTo || (hasValidLinkAction ? (pendingAction.returnTo || '/settings#accounts') : '/settings#accounts');
+  const returnPath = stateReturnTo || (hasValidLinkAction ? (pendingAction.returnTo || '/profile') : '/profile');
   const authorizeReturnPath = !isLinkMode && pendingAction?.type === 'oauth-authorize'
     ? pendingAction.returnTo || '/'
     : null;
@@ -107,8 +107,8 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
 
   useEffect(() => {
     if (!isLinkMode || hasLinkSession) return;
-    toast.error(t('auth.bip39.linkSessionMissing', 'Session de liaison introuvable. Retournez dans Paramètres et recommencez.'));
-    navigate('/settings#accounts', { replace: true });
+    toast.error(t('auth.bip39.linkSessionMissing', 'Link session not found. Start again from your profile.'));
+    navigate('/profile', { replace: true });
   }, [hasLinkSession, isLinkMode, navigate, t]);
 
   const renderTurnstile = useCallback(() => {
@@ -205,7 +205,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
       const currentAuthToken = isLinkMode ? localStorage.getItem('auth_token') : null;
       if (isLinkMode && !currentAuthToken) {
         clearPendingAuthAction();
-        throw new Error(t('auth.bip39.linkSessionMissing', 'Session de liaison introuvable. Retournez dans Paramètres et recommencez.'));
+        throw new Error(t('auth.bip39.linkSessionMissing', 'Link session not found. Start again from your profile.'));
       }
 
       const response = await fetch(`${API_URL}/api/auth/bip39/create`, {

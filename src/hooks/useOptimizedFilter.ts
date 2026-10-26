@@ -160,8 +160,7 @@ export const useOptimizedFilter = ({ items, initialFilters }: UseOptimizedFilter
         movie: 0,
         tv: 0,
         collection: 0,
-        'shared-list': 0,
-        'live-tv': 0
+        'shared-list': 0
       }
     );
   }, [items]);

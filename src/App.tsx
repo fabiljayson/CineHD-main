@@ -1780,7 +1780,7 @@ const AppWithIntro: React.FC = () => {
 
   // Détecter si on est sur une route /watch ou la page 404
   const isWatchRoute = location.pathname.startsWith('/watch/') || location.pathname.startsWith('/watchparty/room/') || location.pathname.startsWith('/ftv/watch/');
-  const isScreensaverDisabledRoute = isWatchRoute || location.pathname.startsWith('/live-tv');
+  const isScreensaverDisabledRoute = isWatchRoute;
 
   // Screensaver logic
   const [screensaverEnabled, setScreensaverEnabled] = useState(() => readLocalStorage('screensaver_enabled') === 'true');

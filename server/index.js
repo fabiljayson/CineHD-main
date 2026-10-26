@@ -25,7 +25,7 @@ const archivedAssets = await startAssetHistory(DIST);
 const PUBLIC_HTML_PATHS = new Set([
   '/', '/index.html', '/movies', '/anime', '/tv-shows', '/collections', '/search',
   '/about', '/privacy', '/terms-of-service', '/extension', '/app',
-  '/list-catalog', '/top10', '/calendar', '/live-tv', '/cinegraph',
+  '/list-catalog', '/top10', '/cinegraph',
 ]);
 
 // Médias et polices servis depuis public/ : leur nom ne porte pas de hash, on

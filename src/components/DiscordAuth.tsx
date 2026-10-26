@@ -68,7 +68,7 @@ const DiscordAuth: React.FC = () => {
           clearPendingAuthAction();
           setStep('Compte Discord lié, redirection…');
           await sleep(900);
-          window.location.href = pendingAction.returnTo || '/settings#accounts';
+          window.location.href = pendingAction.returnTo || '/profile';
           return;
         }
 

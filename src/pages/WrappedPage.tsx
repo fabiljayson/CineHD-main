@@ -120,7 +120,6 @@ function WrappedLivePage({ version }: { version: WrappedVersion }) {
 
     if (!session.collectionEnabled) return <WrappedGate title={t('wrapped.dataCollectionDisabled')} onClose={onClose}>
         <p className="text-white/75">{t('wrapped.dataCollectionDisabledDesc')}</p>
-        <button type="button" onClick={() => navigate('/settings')} className="min-h-12 rounded-xl bg-[#a9dfff] px-6 font-bold text-[#101318]">{t('wrapped.goToSettings')}</button>
     </WrappedGate>;
 
     if (!Number.isInteger(year) || year < 2024 || year > currentYear) return <WrappedGate title={t('wrappedStory.invalidYear')} onClose={onClose}>

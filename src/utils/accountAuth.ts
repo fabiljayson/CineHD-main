@@ -355,7 +355,7 @@ export function getPendingAuthAction(): PendingAuthAction | null {
   return null;
 }
 
-export function setPendingAuthLink(provider: AuthMethod, returnTo = '/settings#accounts') {
+export function setPendingAuthLink(provider: AuthMethod, returnTo = '/profile') {
   const payload: PendingAuthAction = {
     type: 'link',
     provider,

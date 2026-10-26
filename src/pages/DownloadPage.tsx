@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { Download, Calendar, Star, Loader, AlertCircle, Copy, ExternalLink, X, Crown, Unlock } from 'lucide-react';
-import AdFreePlayerAds from '../components/AdFreePlayerAds';
 import { toast } from 'sonner';
 import { getTmdbLanguage } from '../i18n';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -875,9 +874,6 @@ const DownloadPage: React.FC = () => {
   const [selectedLink, setSelectedLink] = useState<DownloadLink | null>(null);
   const [isDecoding, setIsDecoding] = useState(false);
   const [decodedLink, setDecodedLink] = useState<DecodedLink | null>(null);
-  const [showAdPopup, setShowAdPopup] = useState(false);
-  const [pendingLinkToDecode, setPendingLinkToDecode] = useState<DownloadLink | null>(null);
-  const [adUnlocked, setAdUnlocked] = useState(false);
   // ID DarkiWorld du titre courant — passé à /decode?title_id=X pour résoudre
   // les liens via le nouvel endpoint /api/v1/titles/{titleId}/content/liens.
   const [currentDarkiWorldTitleId, setCurrentDarkiWorldTitleId] = useState<string | null>(null);
@@ -885,29 +881,6 @@ const DownloadPage: React.FC = () => {
   // Ref pour stocker l'AbortController de la requête de décodage
   const decodeAbortControllerRef = useRef<AbortController | null>(null);
   
-  // Vérifier le statut VIP au chargement et écouter les changements
-  useEffect(() => {
-    const checkVipStatus = () => {
-      const isVipUser = localStorage.getItem('is_vip') === 'true';
-      if (isVipUser) {
-        setAdUnlocked(true);
-      }
-    };
-
-    // Vérifier au chargement
-    checkVipStatus();
-
-    // Écouter les changements dans le localStorage
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'is_vip') {
-        checkVipStatus();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
   // Nettoyage des requêtes en cours lors du démontage du composant
   useEffect(() => {
     return () => {
@@ -1387,20 +1360,8 @@ const DownloadPage: React.FC = () => {
   };
 
   const handleLinkSelect = async (link: DownloadLink) => {
-    // Vérifier si l'utilisateur est VIP
-    const isVipUser = localStorage.getItem('is_vip') === 'true';
-    
-    if (adUnlocked || isVipUser) {
-      await proceedDecode(link);
-      return;
-    }
-    setPendingLinkToDecode(link);
-    setShowAdPopup(true);
-  };
-
-  const handleAdPopupClose = () => {
-    setShowAdPopup(false);
-    setPendingLinkToDecode(null);
+    // Ad interstitial disabled: decode immediately without gating on an ad.
+    await proceedDecode(link);
   };
 
   // Fonction pour fermer la popup de sélection de liens et annuler la requête
@@ -1417,16 +1378,6 @@ const DownloadPage: React.FC = () => {
     setDecodedLink(null);
     setError(null);
     setSelectedLink(null);
-  };
-
-  const handleAdPopupAccept = async () => {
-    const link = pendingLinkToDecode;
-    setShowAdPopup(false);
-    if (link) {
-      await proceedDecode(link);
-      setPendingLinkToDecode(null);
-    }
-    setAdUnlocked(true);
   };
 
   
@@ -1765,14 +1716,6 @@ const DownloadPage: React.FC = () => {
             if (selectedLink && !decodeAbortControllerRef.current) void proceedDecode(selectedLink, token);
           }}
         />
-        {showAdPopup && (
-          <AdFreePlayerAds
-            onClose={handleAdPopupClose}
-            onAccept={handleAdPopupAccept}
-            adType={'ad1'}
-            variant={'download'}
-          />
-        )}
       </div>
     </div>
   );

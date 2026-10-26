@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, X, Film, Tv, FolderOpen, SortAsc, SortDesc, Type, Monitor, Share2 } from 'lucide-react';
+import { Search, Filter, X, Film, Tv, FolderOpen, SortAsc, SortDesc, Type, Share2 } from 'lucide-react';
 import InputMask from 'react-input-mask';
 import { useTranslation } from 'react-i18next';
 import CustomDropdown from './CustomDropdown';
 import CustomDatePicker from './CustomDatePicker';
 
-export type FilterItemType = 'all' | 'movie' | 'tv' | 'collection' | 'shared-list' | 'live-tv';
+export type FilterItemType = 'all' | 'movie' | 'tv' | 'collection' | 'shared-list';
 
 export interface FilterOptions {
   searchTerm: string;
@@ -56,7 +56,6 @@ const FilterSystem: React.FC<FilterSystemProps> = ({
     { value: 'tv' as const, label: t('filter.series'), icon: Tv },
     { value: 'collection' as const, label: t('filter.collections'), icon: FolderOpen },
     { value: 'shared-list' as const, label: t('filter.sharedLists'), icon: Share2 },
-    { value: 'live-tv' as const, label: t('filter.liveTV'), icon: Monitor },
   ]), [t]);
 
   const visibleTypeFilterButtons = useMemo(

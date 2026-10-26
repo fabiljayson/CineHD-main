@@ -2098,19 +2098,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ contentType, contentI
                   {t('comments.sectionDisabledDesc')}
                 </p>
 
-                <p className="mx-auto mt-2 max-w-lg text-xs leading-6 text-slate-400 sm:text-sm">
-                  {t('settings.hideCommentsSectionDesc')}
-                </p>
-
                 <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <Link
-                    to="/settings"
-                    className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-500/10 px-4 py-2.5 text-sm font-medium text-blue-100 transition-all hover:border-blue-300/35 hover:bg-blue-500/15 hover:text-white"
-                  >
-                    <span>{t('nav.settings')}</span>
-                    <ExternalLink className="h-4 w-4" />
-                  </Link>
-
                   <div className="inline-flex items-center rounded-full border border-white/8 bg-white/[0.04] px-4 py-2 text-xs text-slate-400 sm:text-sm">
                     {contentType === 'movie' ? t('comments.onThisMovie') : t('comments.onThisSeries')}
                   </div>

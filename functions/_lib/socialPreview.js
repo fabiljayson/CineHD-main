@@ -155,18 +155,12 @@ const COPY = {
     providerBrowseTitle: "Où regarder - Movix",
     providerBrowseDescription:
       "Explorez les catalogues par plateforme de streaming sur Movix.",
-    liveTvTitle: "Live TV - Movix",
-    liveTvDescription:
-      "Accédez aux chaînes en direct et au direct TV sur Movix.",
     extensionTitle: "Extension - Movix",
     extensionDescription:
       "Installez l’extension navigateur Movix et ses intégrations.",
     top10Title: "Top 10 - Movix",
     top10Description:
       "Consultez le Top 10 films et séries de la communauté Movix.",
-    settingsTitle: "Paramètres - Movix",
-    settingsDescription:
-      "Réglez la langue, les préférences et les options de votre expérience Movix.",
     aboutTitle: "À propos de Movix",
     aboutDescription:
       "Découvrez ce qu’est Movix et les fonctionnalités de la plateforme.",
@@ -266,16 +260,11 @@ const COPY = {
     providerBrowseTitle: "Where to Watch - Movix",
     providerBrowseDescription:
       "Explore streaming catalogs by platform on Movix.",
-    liveTvTitle: "Live TV - Movix",
-    liveTvDescription: "Access live channels and TV streams on Movix.",
     extensionTitle: "Extension - Movix",
     extensionDescription:
       "Install the Movix browser extension and integrations.",
     top10Title: "Top 10 - Movix",
     top10Description: "See the Movix community Top 10 movies and TV shows.",
-    settingsTitle: "Settings - Movix",
-    settingsDescription:
-      "Adjust language, preferences and experience options on Movix.",
     aboutTitle: "About Movix",
     aboutDescription: "Learn what Movix is and what the platform offers.",
     privacyTitle: "Privacy - Movix",
@@ -975,11 +964,6 @@ function buildStaticMetadata(requestUrl, previewLanguage) {
         title: copy.suggestionTitle,
         description: copy.suggestionDescription,
       });
-    case "/live-tv":
-      return buildBaseMetadata(requestUrl, previewLanguage, {
-        title: copy.liveTvTitle,
-        description: copy.liveTvDescription,
-      });
     case "/extension":
       return buildBaseMetadata(requestUrl, previewLanguage, {
         title: copy.extensionTitle,
@@ -989,11 +973,6 @@ function buildStaticMetadata(requestUrl, previewLanguage) {
       return buildBaseMetadata(requestUrl, previewLanguage, {
         title: copy.top10Title,
         description: copy.top10Description,
-      });
-    case "/settings":
-      return buildBaseMetadata(requestUrl, previewLanguage, {
-        title: copy.settingsTitle,
-        description: copy.settingsDescription,
       });
     case "/about":
       return buildBaseMetadata(requestUrl, previewLanguage, {

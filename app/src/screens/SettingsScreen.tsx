@@ -374,7 +374,7 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={styles.hint}>
-          Ces réglages s'appliquent à l'extraction native de l'app. Pour régler l'extension ou le userscript, va sur {primaryUrl.replace(/^https?:\/\//, '')}/settings#extractions.
+          Ces réglages s'appliquent à l'extraction native de l'app. Pour régler l'extension ou le userscript, va sur {primaryUrl.replace(/^https?:\/\//, '')}/help/extraction.
         </Text>
       </View>
 

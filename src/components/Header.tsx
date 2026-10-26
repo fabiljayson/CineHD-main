@@ -4,7 +4,7 @@ import Snowfall from 'react-snowfall';
 import { useLightMode } from '@/context/LightModeContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
-import { Film, Search, Menu, X, Star, Tv2, Users, Clapperboard, Bell, Tv, Lightbulb, Network, List, Radio, Unlock, ChevronDown, ExternalLink, LayoutGrid, Settings, Dices, Sparkles, HelpCircle, Github, CalendarDays } from 'lucide-react';
+import { Film, Search, Menu, X, Star, Tv2, Users, Clapperboard, Bell, Lightbulb, Network, List, Radio, Unlock, ChevronDown, LayoutGrid, Settings, Dices, Sparkles, HelpCircle, Github } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProfileMenu from './ProfileMenu';
 import NotificationsPopup from './NotificationsPopup';
@@ -129,9 +129,7 @@ const Header: React.FC = () => {
       // Ce qui passe en ce moment, puis ce qui arrive bientôt.
       title: t('nav.groupLive'),
       items: [
-        { name: t('nav.liveTV'), path: '/live-tv', icon: <Tv size={20} />, color: 'red', desc: t('nav.liveTVDesc') },
         ...(isVip ? [{ name: t('nav.francetv'), path: '/ftv', icon: <Radio size={20} />, color: 'sky' as const, desc: t('nav.francetvDesc') }] : []),
-        { name: t('nav.calendar'), path: '/calendar', icon: <CalendarDays size={20} />, color: 'green', desc: t('nav.calendarDesc') },
       ]
     },
     {
@@ -139,10 +137,9 @@ const Header: React.FC = () => {
       title: t('nav.groupTools'),
       items: [
         ...(isVip ? [{ name: t('nav.debrid'), path: '/debrid', icon: <Unlock size={20} />, color: 'yellow' as const, desc: t('nav.debridDesc') }] : []),
-        { name: t('nav.settings'), path: '/settings', icon: <Settings size={20} />, color: 'gray', desc: t('nav.settingsDesc') },
         { name: t('nav.helpHub'), path: '/help', icon: <HelpCircle size={20} />, color: 'indigo', desc: t('nav.helpHubDesc') },
+        { name: 'github.com/fredbit24', path: 'https://github.com/fredbit24', icon: <Github size={20} />, color: 'gray', desc: t('nav.githubFredDesc'), external: true },
         { name: t('nav.github'), path: 'https://github.com/fabiljayson/CineHD-main', icon: <Github size={20} />, color: 'gray', desc: t('nav.githubDesc'), external: true },
-        { name: t('footer.ourUrls'), path: 'https://movix.online', icon: <ExternalLink size={20} />, color: 'gray', desc: t('nav.officialLinksDesc'), external: true },
       ]
     },
   ].filter(g => g.items.length > 0), [t, isVip]);

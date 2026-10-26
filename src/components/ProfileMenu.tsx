@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, User, List, Star, Check, ChevronDown, Crown, Settings, Shield, UserPlus } from 'lucide-react';
+import { LogOut, User, List, Star, Check, ChevronDown, Crown, Shield, UserPlus, KeyRound } from 'lucide-react';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import { googleAuth } from '../services/googleAuth';
 import { useVipModal } from '../context/VipModalContext';
@@ -290,14 +290,6 @@ const ProfileMenu: React.FC = () => {
                       <Check className="w-4 h-4 md:w-4 md:h-4 max-md:w-5 max-md:h-5 text-gray-400" />
                       <span className="max-md:text-base">{t('profile.watched')}</span>
                     </Link>
-                    <Link 
-                      to="/settings"
-                      className="flex items-center gap-3 px-5 py-3 max-md:py-4 hover:bg-gray-700/50 transition-colors cursor-pointer border-t border-gray-700/30"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <Settings className="w-4 h-4 md:w-4 md:h-4 max-md:w-5 max-md:h-5 text-gray-400" />
-                      <span className="max-md:text-base">{t('settings.title')}</span>
-                    </Link>
                     </div>
                   </div>
                   
@@ -368,14 +360,12 @@ const ProfileMenu: React.FC = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => window.location.href = '/login-bip39'}
-                      className="flex items-center justify-center gap-3 w-full px-4 py-3 max-md:py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg transition-colors shadow-md"
+                      className="flex items-center justify-center gap-3 w-full px-4 py-3 max-md:py-4 bg-gradient-to-r from-brand-gold-bright via-brand-gold to-brand-gold-dark hover:brightness-110 text-[#1a1204] rounded-lg transition-all shadow-[0_4px_14px_rgba(200,144,40,0.35)] border border-yellow-300/40"
                     >
-                      <div className="flex items-center justify-center w-7 h-7 max-md:w-8 max-md:h-8 bg-white/20 rounded-full p-0.5">
-                        <svg className="w-5 h-5 max-md:w-6 max-md:h-6" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                        </svg>
+                      <div className="flex items-center justify-center w-7 h-7 max-md:w-8 max-md:h-8 bg-black/15 rounded-full p-0.5">
+                        <KeyRound className="w-5 h-5 max-md:w-6 max-md:h-6" />
                       </div>
-                      <span className="font-medium max-md:text-base">{t('auth.secretPhrase')}</span>
+                      <span className="font-semibold max-md:text-base">{t('auth.iHaveACode')}</span>
                     </motion.button>
 
                     <Link
@@ -388,34 +378,6 @@ const ProfileMenu: React.FC = () => {
                       </div>
                       <span className="font-medium max-md:text-base">{t('auth.createAccount')}</span>
                     </Link>
-
-                    <Link
-                      to="/settings"
-                      className="flex items-center justify-center gap-3 w-full px-4 py-3 max-md:py-4 bg-gray-700/50 hover:bg-gray-700/80 text-white rounded-lg transition-colors shadow-md border border-gray-600/30"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <div className="flex items-center justify-center w-7 h-7 max-md:w-8 max-md:h-8 bg-white/10 rounded-full p-0.5">
-                        <Settings className="w-5 h-5 max-md:w-6 max-md:h-6" />
-                      </div>
-                      <span className="font-medium max-md:text-base">{t('settings.title')}</span>
-                    </Link>
-
-                    {/* Bouton VIP pour les non-connectés */}
-                    <motion.button
-                      whileHover={isVip ? undefined : { scale: 1.02 }}
-                      whileTap={isVip ? undefined : { scale: 0.98 }}
-                      onClick={isVip ? undefined : handleOpenVipModal}
-                      className={`flex items-center justify-center gap-3 w-full px-4 py-3 max-md:py-4
-                        ${isVip
-                          ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-black cursor-default opacity-80'
-                          : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white cursor-pointer hover:shadow-md'
-                        } rounded-lg transition-colors`}
-                    >
-                      <Crown className="w-5 h-5 max-md:w-6 max-md:h-6" />
-                      <span className="font-medium max-md:text-base">
-                        {isVip ? t('vip.youAreVip') : t('vip.becomeVip')}
-                      </span>
-                    </motion.button>
                   </div>
                 </div>
               )}

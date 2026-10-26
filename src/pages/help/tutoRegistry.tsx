@@ -21,7 +21,6 @@ import {
   Unlock,
   HardDriveDownload,
   Globe,
-  Tv,
   Filter,
   ListOrdered,
   Palette,
@@ -49,7 +48,6 @@ import VipHelpPage from './VipHelpPage';
 import DebridHelpPage from './DebridHelpPage';
 import TelechargementPage from './TelechargementPage';
 import MiroirsPage from './MiroirsPage';
-import LiveTvHelpPage from './LiveTvHelpPage';
 import ExtractionPage from './ExtractionPage';
 import PrioriteSourcesPage from './PrioriteSourcesPage';
 import DernierLecteurPage from './DernierLecteurPage';
@@ -494,32 +492,6 @@ export const TUTO_REGISTRY: TutoMeta[] = [
       'help.miroirs.newDeviceBody',
       'help.miroirs.reliabilityBody',
       'help.miroirs.limitsBody',
-    ],
-  },
-  {
-    slug: 'live-tv',
-    component: LiveTvHelpPage,
-    titleKey: 'help.hub.cardLiveTvTitle',
-    subKey: 'help.hub.cardLiveTvSub',
-    icon: <Tv className="w-8 h-8" />,
-    accent: 'purple',
-    searchKeys: [
-      'help.liveTv.title',
-      'help.liveTv.heroSub',
-      'help.liveTv.introBody',
-      'help.liveTv.sourcesBody',
-      'help.liveTv.categoriesIntro',
-      'help.liveTv.catGeneralisteExample',
-      'help.liveTv.catCinemaExample',
-      'help.liveTv.catInfoExample',
-      'help.liveTv.catSportExample',
-      'help.liveTv.catEnfantsExample',
-      'help.liveTv.catMusiqueExample',
-      'help.liveTv.catDocuExample',
-      'help.liveTv.matchesBody',
-      'help.liveTv.favoritesBody',
-      'help.liveTv.extensionBody',
-      'help.liveTv.limitsBody',
     ],
   },
   {

@@ -49,7 +49,7 @@ const LoginBip39: React.FC<LoginBip39Props> = ({ mode = 'login' }) => {
   const isLinkMode = mode === 'link';
   const pendingAction = getPendingAuthAction();
   const hasValidLinkAction = pendingAction?.type === 'link' && pendingAction.provider === 'bip39';
-  const returnPath = hasValidLinkAction ? (pendingAction.returnTo || '/settings#accounts') : '/settings#accounts';
+  const returnPath = hasValidLinkAction ? (pendingAction.returnTo || '/profile') : '/profile';
   const authorizeReturnPath = !isLinkMode && pendingAction?.type === 'oauth-authorize'
     ? pendingAction.returnTo || '/'
     : null;
@@ -94,7 +94,7 @@ const LoginBip39: React.FC<LoginBip39Props> = ({ mode = 'login' }) => {
   useEffect(() => {
     if (!isLinkMode) return;
     if (hasLinkSession) return;
-    setError(t('auth.bip39.linkSessionMissing', 'Session de liaison introuvable. Retournez dans Paramètres et recommencez.'));
+    setError(t('auth.bip39.linkSessionMissing', 'Link session not found. Start again from your profile.'));
   }, [hasLinkSession, isLinkMode, t]);
 
   const handleBack = () => {
@@ -116,7 +116,7 @@ const LoginBip39: React.FC<LoginBip39Props> = ({ mode = 'login' }) => {
     }
 
     if (isLinkMode && !hasLinkSession) {
-      setError(t('auth.bip39.linkSessionMissing', 'Session de liaison introuvable. Retournez dans Paramètres et recommencez.'));
+      setError(t('auth.bip39.linkSessionMissing', 'Link session not found. Start again from your profile.'));
       return;
     }
 
@@ -128,7 +128,7 @@ const LoginBip39: React.FC<LoginBip39Props> = ({ mode = 'login' }) => {
         const authToken = localStorage.getItem('auth_token');
         if (!authToken) {
           clearPendingAuthAction();
-          throw new Error(t('auth.bip39.linkSessionMissing', 'Session de liaison introuvable. Retournez dans Paramètres et recommencez.'));
+          throw new Error(t('auth.bip39.linkSessionMissing', 'Link session not found. Start again from your profile.'));
         }
 
         const linkResponse = await fetch(`${API_URL}/api/auth/links/bip39`, {

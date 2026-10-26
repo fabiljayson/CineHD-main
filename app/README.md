@@ -164,7 +164,7 @@ Puis rebuild l'app.
 
 ## Notes
 
-- `app/.env.example` propose `MOVIX_SITE_URL`, mais aucune source de `app/` ne la lit actuellement : l'adresse est résolue à l'exécution via `addressResolver.ts`. À considérer comme obsolète tant que le code ne l'a pas branchée.
+- Aucune variable d'environnement ne fixe l'URL du site : elle est résolue à l'exécution via `addressResolver.ts` (fallback dans `src/config/index.ts`).
 - Le `DnsPackage.kt` doit être enregistré dans `MainApplication.kt` (ajouté au `getPackages()`)
 - Pour iOS, le bridging header doit pointer vers `Movix-Bridging-Header.h`
 - L'app reste dans le VPN DNS (sinon le WebView contournerait le DNS) ; ses propres sockets vers Cloudflare sont protégées par `protect()` pour éviter les boucles

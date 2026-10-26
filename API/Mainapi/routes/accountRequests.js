@@ -8,14 +8,17 @@
  *
  * Mount point: app.use('/api', require('./routes/accountRequests'))
  *   GET  /api/account-requests/plans          offres + numéros de collecte
- *   POST /api/account-requests                dépôt d'une demande
+ *   POST /api/account-requests                dépôt d'une demande (collecte manuelle)
  *   POST /api/account-requests/status         état d'une demande (jamais le code)
+ *   POST /api/account-requests/checkout       paiement en ligne CamPay (USSD push)
+ *   POST /api/account-requests/checkout/status  suivi d'une collecte CamPay
  *   GET  /api/admin/account-requests          liste admin
  *   POST /api/admin/account-requests/:id/approve          validation + code
  *   POST /api/admin/account-requests/:id/reject           refus motivé
  *   POST /api/admin/account-requests/:id/regenerate-code  nouveau code
  */
 
+const crypto = require('crypto');
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
@@ -41,6 +44,12 @@ const {
   generateAccountCode,
 } = require('../utils/accountCredentials');
 const { approveAccountRequest } = require('../utils/accountApproval');
+const { createSubscriptionReceipt } = require('../utils/accountSubscriptions');
+const {
+  getTransactionStatus,
+  initCollect,
+  isCamPayConfigured,
+} = require('../utils/camPay');
 
 const router = express.Router();
 const authBodyParsers = createAuthBodyParsers();
@@ -80,6 +89,20 @@ const statusRateLimit = rateLimit({
   validate: { xForwardedForHeader: false, ip: false },
 });
 
+// Le suivi CamPay est un pollage (invite USSD confirmée en général en moins de
+// deux minutes) : le plafond est donc plus haut que pour le suivi manuel.
+const checkoutStatusRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 90,
+  store: createRedisRateLimitStore({ prefix: 'rate-limit:account-requests:checkout-status:' }),
+  passOnStoreError: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Trop de vérifications. Réessayez dans 15 minutes.' },
+  keyGenerator: clientKey,
+  validate: { xForwardedForHeader: false, ip: false },
+});
+
 /** 6XXXXXXXX → 2376XXXXXXXX, chiffres seuls, 9 à 15 caractères. */
 function normalizeMsisdn(raw) {
   let digits = String(raw || '').replace(/\D+/g, '');
@@ -91,6 +114,22 @@ function normalizeMsisdn(raw) {
 
 function normalizeReference(raw) {
   return String(raw || '').trim().replace(/\s+/g, ' ');
+}
+
+/**
+ * Format attendu par CamPay (ER101) : chiffres seuls commençant par 237.
+ * normalizeMsisdn ne préfixe pas les numbers 9 chiffres saisis sans zéro.
+ */
+function toCamPayMsisdn(raw) {
+  const normalized = normalizeMsisdn(raw);
+  if (normalized.startsWith('237')) return normalized;
+  if (normalized.length === 9) return `237${normalized}`;
+  return null;
+}
+
+/** Référence marchande (external_reference CamPay) : unique par construction. */
+function generateCheckoutReference() {
+  return `CINE-${crypto.randomBytes(6).toString('hex').toUpperCase()}`;
 }
 
 function normalizeUsername(raw) {
@@ -116,6 +155,8 @@ function serializeRequest(row) {
     status: row.status,
     adminNote: row.admin_note || null,
     credentialId: row.credential_id == null ? null : Number(row.credential_id),
+    campayStatus: row.campay_status || null,
+    paidAt: row.paid_at ? new Date(row.paid_at).toISOString() : null,
     reviewedAt: row.reviewed_at ? new Date(row.reviewed_at).toISOString() : null,
     reviewedBy: row.reviewed_by || null,
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
@@ -130,7 +171,7 @@ function serializeAdminRequest(row) {
 // === Offres publiques ===
 
 router.get('/account-requests/plans', setNoStore, (req, res) => {
-  return res.json({ success: true, ...serializePlansPayload() });
+  return res.json({ success: true, campay: isCamPayConfigured(), ...serializePlansPayload() });
 });
 
 // === Dépôt d'une demande ===
@@ -249,6 +290,254 @@ router.post('/account-requests/status', setNoStore, statusRateLimit, ...authBody
   } catch (error) {
     console.error('Account request status error:', error);
     return res.status(500).json({ success: false, error: 'Impossible de vérifier la demande.' });
+  }
+});
+
+// === Paiement en ligne (CamPay, collecte push USSD) ===
+
+/**
+ * Applique un paiement CamPay confirmé : crée le compte (validation
+ * existante), génère le reçu et démarre le minuteur d'abonnement.
+ *
+ * @returns {Promise<{ settled: boolean, code: string|null, reason?: string }>}
+ *   `code` n'est renvoyé qu'au moment du passage à approved (affiché une fois
+ *   à l'acheteur) ; un rejeu du poll ne le sert jamais en différé.
+ */
+async function settleCamPayPayment(pool, request, camPayStatus) {
+  // Montant confirmé par l'opérateur : en dessous du montant de la demande,
+  // on refuse (tentative de fraude ou configuration erronée) et on laisse une
+  // trace lisible pour l'admin.
+  const confirmedAmount = camPayStatus.amountFcfa;
+  if (confirmedAmount !== null && Number(confirmedAmount) < Number(request.amount_fcfa)) {
+    await pool.execute(
+      `UPDATE account_requests SET campay_status = 'FAILED', admin_note = ?, updated_at = NOW() WHERE id = ?`,
+      [`CamPay : montant confirmé ${confirmedAmount} FCFA inférieur aux ${request.amount_fcfa} FCFA demandés.`, request.id]
+    );
+    return { settled: false, code: null, reason: 'amount_mismatch' };
+  }
+
+  await pool.execute(
+    `UPDATE account_requests SET campay_status = 'SUCCESSFUL', campay_operator = COALESCE(campay_operator, ?), paid_at = NOW(), updated_at = NOW() WHERE id = ?`,
+    [camPayStatus.operator, request.id]
+  );
+
+  // Validation = création du credential sous verrou de ligne (voir
+  // utils/accountApproval.js) : deux polls simultanés ne créent pas deux comptes.
+  let code = null;
+  try {
+    const approval = await approveAccountRequest(pool, request.id, { adminId: 'campay' });
+    code = approval.code;
+  } catch (error) {
+    if (!error || error.status !== 409) throw error;
+    // 409 = validation concurrente déjà faite (autre poll ou admin) ou demande
+    // refusée entre-temps : seule la première situation a un compte à prolonger.
+    const [checkRows] = await pool.execute('SELECT status FROM account_requests WHERE id = ?', [request.id]);
+    if (!checkRows[0] || checkRows[0].status !== 'approved') {
+      return { settled: false, code: null, reason: 'rejected' };
+    }
+  }
+
+  // Reçu + minuteur : prolongation empilée gérée par createSubscriptionReceipt
+  // (transaction + verrou du credential).
+  const [credRows] = await pool.execute('SELECT credential_id FROM account_requests WHERE id = ?', [request.id]);
+  const credentialId = credRows[0] && credRows[0].credential_id;
+  if (credentialId) {
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+      await createSubscriptionReceipt(conn, {
+        requestId: request.id,
+        credentialId: Number(credentialId),
+        issuedBy: 'campay',
+        planId: request.plan_id,
+        amountFcfa: Number(request.amount_fcfa),
+        paymentMethod: request.payment_method,
+        payerMsisdn: request.payer_msisdn,
+        paymentReference: request.campay_reference || '',
+      });
+      await conn.commit();
+    } catch (error) {
+      try { await conn.rollback(); } catch { /* rollback best effort */ }
+      // ER_DUP_ENTRY = reçu déjà émis (rejeu après un crash entre la validation
+      // et le reçu) : le minuteur est déjà bon, rien à refaire.
+      if (!error || error.code !== 'ER_DUP_ENTRY') {
+        console.error('CamPay receipt creation failed:', error);
+      }
+    } finally {
+      conn.release();
+    }
+  }
+
+  return { settled: true, code };
+}
+
+/**
+ * Démarre une collecte CamPay : crée la demande (référence marchande
+ * générée côté serveur) et déclenche l'invitation USSD sur le téléphone de
+ * l'acheteur. Sans CamPay configuré, la collecte manuelle reste le parcours.
+ */
+router.post('/account-requests/checkout', setNoStore, createRequestRateLimit, ...authBodyParsers, async (req, res) => {
+  try {
+    const pool = getPool();
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Service temporairement indisponible.' });
+    }
+    if (!isCamPayConfigured()) {
+      return res.status(409).json({ success: false, error: 'Paiement en ligne indisponible.', code: 'CAMPAY_NOT_CONFIGURED' });
+    }
+
+    const { planId, amountFcfa, paymentMethod, payerMsisdn, username, turnstileToken } = req.body || {};
+
+    const turnstileResult = await verifyTurnstileFromRequest(req, turnstileToken);
+    if (!turnstileResult.valid) {
+      return res.status(turnstileResult.status).json({ success: false, error: turnstileResult.error });
+    }
+
+    const plan = getPlanById(String(planId || ''));
+    const method = getPaymentMethodById(String(paymentMethod || ''));
+    const selectionError = validatePlanSelection(plan, amountFcfa, method);
+    if (selectionError) {
+      return res.status(400).json({ success: false, error: selectionError, code: 'INVALID_SELECTION' });
+    }
+
+    const msisdn = toCamPayMsisdn(payerMsisdn);
+    if (!msisdn) {
+      return res.status(400).json({ success: false, error: 'Numéro mobile money invalide.', code: 'INVALID_MSISDN' });
+    }
+
+    const cleanUsername = normalizeUsername(username);
+    const usernameError = validateUsername(cleanUsername);
+    if (usernameError) {
+      return res.status(400).json({ success: false, error: usernameError, code: 'INVALID_USERNAME' });
+    }
+
+    const [takenRows] = await pool.execute(
+      'SELECT id FROM account_credentials WHERE username = ? AND active = 1 LIMIT 1',
+      [cleanUsername]
+    );
+    if (takenRows.length > 0) {
+      return res.status(409).json({ success: false, error: 'Ce pseudo est déjà utilisé.', code: 'USERNAME_TAKEN' });
+    }
+
+    const reference = generateCheckoutReference();
+    let insertId;
+    try {
+      const [result] = await pool.execute(
+        `INSERT INTO account_requests (reference, plan_id, amount_fcfa, payment_method, payer_msisdn, username, status, campay_status)
+         VALUES (?, ?, ?, ?, ?, ?, 'pending', 'PENDING')`,
+        [reference, plan.id, amountFcfa, method.id, msisdn, cleanUsername]
+      );
+      insertId = result.insertId;
+    } catch (error) {
+      if (error && error.code === 'ER_DUP_ENTRY') {
+        return res.status(409).json({ success: false, error: 'Ce pseudo est déjà utilisé.', code: 'USERNAME_TAKEN' });
+      }
+      throw error;
+    }
+
+    let collect;
+    try {
+      collect = await initCollect({
+        amountFcfa,
+        msisdn,
+        description: `CineHD abonnement ${plan.id}`,
+        externalReference: reference,
+      });
+    } catch (error) {
+      await pool.execute(
+        `UPDATE account_requests SET campay_status = 'FAILED', admin_note = ?, updated_at = NOW() WHERE id = ?`,
+        [String(error.message || 'Initiation CamPay échouée.').slice(0, 500), insertId]
+      );
+      return res.status(error.status || 502).json({ success: false, error: error.message, code: 'CAMPAY_INIT_FAILED' });
+    }
+
+    await pool.execute(
+      'UPDATE account_requests SET campay_reference = ?, campay_operator = ?, updated_at = NOW() WHERE id = ?',
+      [collect.reference, collect.operator, insertId]
+    );
+
+    const [rows] = await pool.execute('SELECT * FROM account_requests WHERE id = ?', [insertId]);
+    return res.status(201).json({
+      success: true,
+      request: serializeRequest(rows[0]),
+      camPay: { reference: collect.reference, ussdCode: collect.ussdCode, operator: collect.operator },
+    });
+  } catch (error) {
+    console.error('Account checkout error:', error);
+    return res.status(500).json({ success: false, error: "Impossible d'initialiser le paiement." });
+  }
+});
+
+/**
+ * Suit une collecte CamPay : interroge l'opérateur et règle la demande quand
+ * le paiement est confirmé (validation + reçu automatiques). Le code de
+ * connexion n'est servi qu'une fois, sur le passage à approved.
+ */
+router.post('/account-requests/checkout/status', setNoStore, checkoutStatusRateLimit, ...authBodyParsers, async (req, res) => {
+  try {
+    const pool = getPool();
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Service temporairement indisponible.' });
+    }
+
+    const reference = String(req.body?.reference || '').trim();
+    if (!reference) {
+      return res.status(400).json({ success: false, error: 'Référence de paiement requise.' });
+    }
+
+    const [rows] = await pool.execute(
+      'SELECT * FROM account_requests WHERE campay_reference = ? ORDER BY id DESC LIMIT 1',
+      [reference]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Aucune demande trouvée.' });
+    }
+    const request = rows[0];
+
+    // Réglée (approved/rejected) : le code n'est jamais servi en différé — il
+    // vaut mot de passe, affiché une seule fois au moment du règlement.
+    if (request.status !== 'pending') {
+      return res.json({ success: true, status: request.status, operator: request.campay_operator || null });
+    }
+    if (request.campay_status === 'FAILED') {
+      return res.json({ success: true, status: 'failed', operator: request.campay_operator || null });
+    }
+
+    let camPayStatus;
+    try {
+      camPayStatus = await getTransactionStatus(request.campay_reference);
+    } catch (error) {
+      // CamPay injoignable : la demande reste en attente, le client rejouera.
+      console.error('CamPay status lookup failed:', error && error.message);
+      return res.json({ success: true, status: 'pending', operator: request.campay_operator || null });
+    }
+
+    if (camPayStatus.status === 'SUCCESSFUL') {
+      const settle = await settleCamPayPayment(pool, request, camPayStatus);
+      const [freshRows] = await pool.execute('SELECT * FROM account_requests WHERE id = ?', [request.id]);
+      const fresh = freshRows[0];
+      return res.json({
+        success: true,
+        status: settle.settled ? 'approved' : (fresh && fresh.status === 'rejected' ? 'rejected' : 'failed'),
+        code: settle.code || null,
+        username: settle.code && fresh ? fresh.username : null,
+        operator: (fresh && fresh.campay_operator) || camPayStatus.operator || null,
+      });
+    }
+
+    if (camPayStatus.status === 'FAILED') {
+      await pool.execute(
+        `UPDATE account_requests SET campay_status = 'FAILED', updated_at = NOW() WHERE id = ?`,
+        [request.id]
+      );
+      return res.json({ success: true, status: 'failed', operator: camPayStatus.operator || null });
+    }
+
+    // PENDING (ou statut inconnu) : on rejouera le poll côté client.
+    return res.json({ success: true, status: 'pending', operator: request.campay_operator || camPayStatus.operator || null });
+  } catch (error) {
+    console.error('Account checkout status error:', error);
+    return res.status(500).json({ success: false, error: 'Impossible de vérifier le paiement.' });
   }
 });
 

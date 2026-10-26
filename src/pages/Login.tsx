@@ -28,9 +28,11 @@ import {
 } from '../utils/accountAuth';
 import { CREATE_ACCOUNT_WHATSAPP_URL } from '../config/support';
 import {
+  checkoutWithCamPay,
   createAccountRequest,
   getAccountPlans,
   getAccountRequestStatus,
+  getCheckoutStatus,
   getSubscriptionBargains,
   loginWithAccountCode,
   loginWithAccountPassword,
@@ -39,6 +41,7 @@ import {
   type AccountPlanId,
   type AccountRequestStatus,
   type AccountRequestSummary,
+  type CamPayCheckoutSession,
   type SubscriptionBargain,
 } from '../services/accountRequestsService';
 
@@ -159,8 +162,13 @@ const Login: React.FC = () => {
   const [submitToken, setSubmitToken] = useState('');
   const [submitResetSignal, setSubmitResetSignal] = useState(0);
   const [createdRequest, setCreatedRequest] = useState<AccountRequestSummary | null>(null);
-  const [requestStatus, setRequestStatus] = useState<AccountRequestStatus | null>(null);
+  const [requestStatus, setRequestStatus] = useState<AccountRequestStatus | 'failed' | null>(null);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  // Paiement en ligne CamPay (collecte push USSD) : session en cours + code de
+  // connexion servi une seule fois au moment du paiement confirmé.
+  const [campayEnabled, setCampayEnabled] = useState(false);
+  const [checkoutSession, setCheckoutSession] = useState<CamPayCheckoutSession | null>(null);
+  const [issuedCode, setIssuedCode] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -169,6 +177,7 @@ const Login: React.FC = () => {
         if (!mounted) return;
         setPlans(payload.plans);
         setMethods(payload.methods);
+        setCampayEnabled(Boolean(payload.campay));
         setAmounts(Object.fromEntries(payload.plans.map((plan) => [plan.id, plan.maxFcfa])));
         if (payload.plans.length > 0) {
           const preferred = payload.plans.find((plan) => plan.id === 'month') || payload.plans[0];
@@ -230,7 +239,8 @@ const Login: React.FC = () => {
     && selectedMethod
     && !isBelowFloor
     && payerMsisdn.trim().length >= 9
-    && reference.trim().length >= 4
+    // CamPay génère la référence côté serveur : le champ n'est plus saisi.
+    && (campayEnabled || reference.trim().length >= 4)
     && username.trim().length >= 3
     && !isSubmitting
     && (!isTurnstileEnabled || submitToken)
@@ -317,6 +327,23 @@ const Login: React.FC = () => {
     setSubmitError('');
 
     try {
+      if (campayEnabled) {
+        // Collecte CamPay : le serveur génère la référence et déclenche
+        // l'invitation USSD sur le téléphone de l'acheteur.
+        const session = await checkoutWithCamPay({
+          planId: selectedPlan.id,
+          amountFcfa: selectedAmount,
+          paymentMethod: selectedMethod.id as AccountPaymentMethod['id'],
+          payerMsisdn: payerMsisdn.trim(),
+          username: username.trim(),
+          turnstileToken: submitToken,
+        });
+        setCheckoutSession(session);
+        setCreatedRequest(session.request);
+        setRequestStatus('pending');
+        return;
+      }
+
       const created = await createAccountRequest({
         planId: selectedPlan.id,
         amountFcfa: selectedAmount,
@@ -338,13 +365,22 @@ const Login: React.FC = () => {
       setIsSubmitting(false);
       setSubmitToken('');
     }
-  }, [canSubmit, payerMsisdn, reference, selectedAmount, selectedMethod, selectedPlan, submitToken, t, username]);
+  }, [campayEnabled, canSubmit, payerMsisdn, reference, selectedAmount, selectedMethod, selectedPlan, submitToken, t, username]);
 
   const handleCheckStatus = useCallback(async () => {
     if (!createdRequest) return;
 
     setIsCheckingStatus(true);
     try {
+      // Collecte CamPay : le suivi interroge l'opérateur (le serveur règle la
+      // demande et ne resert le code qu'une seule fois, au moment de l'approval).
+      if (checkoutSession) {
+        const result = await getCheckoutStatus(checkoutSession.camPay.reference);
+        setRequestStatus(result.status);
+        if (result.status === 'approved' && result.code) setIssuedCode(result.code);
+        return;
+      }
+
       const status = await getAccountRequestStatus({
         reference: createdRequest.reference,
         payerMsisdn: createdRequest.payerMsisdn,
@@ -363,28 +399,89 @@ const Login: React.FC = () => {
     } finally {
       setIsCheckingStatus(false);
     }
-  }, [createdRequest, t]);
+  }, [checkoutSession, createdRequest, t]);
 
   const handleResetRequest = () => {
     setCreatedRequest(null);
     setRequestStatus(null);
+    setCheckoutSession(null);
+    setIssuedCode(null);
     setSubmitError('');
     setPayerMsisdn('');
     setReference('');
     setUsername('');
   };
 
+  // Le code de connexion servi une fois au paiement confirmé s'utilise
+  // aussitôt : on bascule sur l'onglet connexion avec le code pré-rempli (le
+  // Turnstile de l'onglet gère son propre jeton, aucun token de l'onglet
+  // création n'est réutilisé).
+  const handleLoginWithIssuedCode = () => {
+    if (!issuedCode) return;
+    setCode(issuedCode);
+    handleTabChange('code');
+  };
+
+  // Suivi automatique d'une collecte CamPay : CamPay ne propose aucun webhook,
+  // on interroge l'état toutes les 4 s (décroissance jusqu'à 10 s) tant que la
+  // demande est en attente — l'invitation USSD est confirmée en général en
+  // moins de deux minutes. Le code de connexion n'arrive qu'une fois.
+  useEffect(() => {
+    if (!checkoutSession || issuedCode || requestStatus !== 'pending') return;
+
+    let cancelled = false;
+    let delay = 4000;
+    let timer = 0;
+
+    const poll = async () => {
+      try {
+        const result = await getCheckoutStatus(checkoutSession.camPay.reference);
+        if (cancelled) return;
+        if (result.status === 'approved') {
+          setRequestStatus('approved');
+          if (result.code) setIssuedCode(result.code);
+          return;
+        }
+        if (result.status === 'rejected' || result.status === 'failed') {
+          setRequestStatus(result.status);
+          return;
+        }
+      } catch {
+        // Erreur réseau ponctuelle : on rejoue, le backoff suffit à lisser.
+      }
+      delay = Math.min(delay + 1000, 10000);
+      timer = window.setTimeout(() => void poll(), delay);
+    };
+
+    timer = window.setTimeout(() => void poll(), delay);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [checkoutSession, issuedCode, requestStatus]);
+
   const statusMessage = requestStatus === 'approved'
-    ? t('login.statusApproved')
+    ? (checkoutSession ? t('login.statusApprovedCampay') : t('login.statusApproved'))
     : requestStatus === 'rejected'
       ? t('login.statusRejected')
-      : t('login.statusPending');
+      : requestStatus === 'failed'
+        ? t('login.statusPaymentFailed')
+        : (checkoutSession ? t('login.statusPendingCampay') : t('login.statusPending'));
 
   const statusIcon = requestStatus === 'approved'
     ? <CheckCircle2 className="h-5 w-5 text-emerald-300" aria-hidden="true" />
-    : requestStatus === 'rejected'
+    : (requestStatus === 'rejected' || requestStatus === 'failed')
       ? <XCircle className="h-5 w-5 text-red-300" aria-hidden="true" />
       : <CircleDashed className="h-5 w-5 text-amber-200" aria-hidden="true" />;
+
+  // Opérateur tel que renvoyé par CamPay ('mtn' | 'orange' | libellé brut).
+  const campayOperator = checkoutSession?.camPay.operator
+    ? (/orange/i.test(checkoutSession.camPay.operator)
+      ? 'Orange Money'
+      : /mtn/i.test(checkoutSession.camPay.operator)
+        ? 'MTN MoMo'
+        : checkoutSession.camPay.operator)
+    : null;
 
   return (
     <div className="min-h-svh bg-ground text-ink">
@@ -796,21 +893,25 @@ const Login: React.FC = () => {
                     <p className="mt-1 text-xs text-white/40">{t('login.msisdnHint')}</p>
                   </div>
 
-                  <div>
-                    <label htmlFor="payment-reference" className="mb-2 block text-sm font-medium text-white/80">
-                      {t('login.referenceLabel')}
-                    </label>
-                    <input
-                      id="payment-reference"
-                      value={reference}
-                      onChange={(event) => setReference(event.target.value)}
-                      autoComplete="off"
-                      spellCheck={false}
-                      placeholder={t('login.referencePlaceholder')}
-                      className="w-full rounded-md border border-control bg-ground px-4 py-3 font-mono text-white outline-none transition-colors placeholder:text-ink-faint focus:border-white focus-visible:ring-2 focus-visible:ring-white"
-                    />
-                    <p className="mt-1 text-xs text-white/40">{t('login.referenceHint')}</p>
-                  </div>
+                  {/* CamPay génère la référence côté serveur : le champ n'apparaît
+                      que pour la collecte manuelle (fallback sans agrégateur). */}
+                  {!campayEnabled && (
+                    <div>
+                      <label htmlFor="payment-reference" className="mb-2 block text-sm font-medium text-white/80">
+                        {t('login.referenceLabel')}
+                      </label>
+                      <input
+                        id="payment-reference"
+                        value={reference}
+                        onChange={(event) => setReference(event.target.value)}
+                        autoComplete="off"
+                        spellCheck={false}
+                        placeholder={t('login.referencePlaceholder')}
+                        className="w-full rounded-md border border-control bg-ground px-4 py-3 font-mono text-white outline-none transition-colors placeholder:text-ink-faint focus:border-white focus-visible:ring-2 focus-visible:ring-white"
+                      />
+                      <p className="mt-1 text-xs text-white/40">{t('login.referenceHint')}</p>
+                    </div>
+                  )}
 
                   <div>
                     <label htmlFor="account-username" className="mb-2 block text-sm font-medium text-white/80">
@@ -853,7 +954,7 @@ const Login: React.FC = () => {
                       {t('login.submitting')}
                     </>
                   ) : (
-                    t('login.submit')
+                    campayEnabled ? t('login.submitCheckout') : t('login.submit')
                   )}
                 </button>
               </section>
@@ -894,9 +995,11 @@ const Login: React.FC = () => {
             <section className="mt-6 rounded-2xl border border-emerald-400/25 bg-emerald-500/5 p-6">
               <h2 className="flex items-center gap-2 text-lg font-semibold">
                 <CheckCircle2 className="h-5 w-5 text-emerald-300" aria-hidden="true" />
-                {t('login.createdTitle')}
+                {checkoutSession ? t('login.createdTitleCampay') : t('login.createdTitle')}
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-white/65">{t('login.createdBody')}</p>
+              <p className="mt-2 text-sm leading-relaxed text-white/65">
+                {checkoutSession ? t('login.createdBodyCampay') : t('login.createdBody')}
+              </p>
 
               <dl className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-white/10 bg-black/40 p-3">
@@ -911,10 +1014,68 @@ const Login: React.FC = () => {
                 </div>
               </dl>
 
+              {/* Invite de paiement CamPay en attente : l'invitation USSD est
+                  déjà partie sur le téléphone de l'acheteur. */}
+              {checkoutSession && requestStatus === 'pending' && (
+                <div className="mt-4 rounded-xl border border-amber-300/30 bg-amber-500/10 p-4">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-amber-200">
+                    <Smartphone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    {t('login.campayPrompt', { operator: campayOperator || t('login.campayOperatorAny') })}
+                  </p>
+                  {checkoutSession.camPay.ussdCode && (
+                    <p className="mt-2 text-sm text-white/75">
+                      {t('login.campayUssdCode')}{' '}
+                      <span className="font-mono font-semibold text-brand-gold">
+                        {checkoutSession.camPay.ussdCode}
+                      </span>
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs leading-relaxed text-white/60">
+                    {t('login.campayPromptHint')}
+                  </p>
+                </div>
+              )}
+
               <p className="mt-4 flex items-center gap-2 text-sm text-white/70">
                 {statusIcon}
                 {statusMessage}
               </p>
+
+              {/* Code de connexion servi une seule fois, au moment où CamPay
+                  confirme le paiement : affiché ici, jamais ressert ensuite. */}
+              {issuedCode && (
+                <div className="mt-4 rounded-xl border border-emerald-400/40 bg-emerald-500/10 p-4">
+                  <p className="text-sm font-semibold text-emerald-200">
+                    {t('login.issuedCodeTitle')}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                    <span className="font-mono text-xl font-bold tracking-widest text-white">
+                      {issuedCode}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void copyText(issuedCode)}
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-control px-4 text-sm font-semibold text-white transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                      >
+                        <Copy className="h-4 w-4" aria-hidden="true" />
+                        {t('common.copy')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleLoginWithIssuedCode}
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-4 text-sm font-semibold text-black transition-colors hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                      >
+                        <KeyRound className="h-4 w-4" aria-hidden="true" />
+                        {t('login.loginNow')}
+                      </button>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs leading-relaxed text-white/60">
+                    {t('login.issuedCodeHint')}
+                  </p>
+                </div>
+              )}
 
               <div className="mt-4 flex flex-wrap gap-3">
                 <button
@@ -926,7 +1087,9 @@ const Login: React.FC = () => {
                   {isCheckingStatus
                     ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
                     : <CircleDashed className="h-4 w-4" aria-hidden="true" />}
-                  {isCheckingStatus ? t('login.statusChecking') : t('login.checkStatus')}
+                  {isCheckingStatus
+                    ? t('login.statusChecking')
+                    : (checkoutSession ? t('login.checkStatusCampay') : t('login.checkStatus'))}
                 </button>
                 <button
                   type="button"

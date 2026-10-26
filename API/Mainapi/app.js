@@ -680,6 +680,11 @@ const appReady = (async () => {
       // d'abonnement (aucun système de durée n'existait avant).
       await ensureColumn('account_credentials', 'password_hash', 'password_hash VARCHAR(128) DEFAULT NULL');
       await ensureColumn('account_credentials', 'subscription_expires_at', 'subscription_expires_at DATETIME DEFAULT NULL');
+      // Paiement en ligne CamPay : suivi de la collecte USSD sur la demande.
+      await ensureColumn('account_requests', 'campay_reference', 'campay_reference VARCHAR(64) DEFAULT NULL');
+      await ensureColumn('account_requests', 'campay_status', "campay_status ENUM('PENDING', 'SUCCESSFUL', 'FAILED') DEFAULT NULL");
+      await ensureColumn('account_requests', 'campay_operator', 'campay_operator VARCHAR(16) DEFAULT NULL');
+      await ensureColumn('account_requests', 'paid_at', 'paid_at DATETIME DEFAULT NULL');
       // Reçus d'abonnement + offres de renouvellement (rendues depuis le
       // schéma déclaratif pour garder une seule source de vérité).
       const { getTablesByGroup, renderCreateTable } = require('./db/schema');

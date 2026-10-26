@@ -24,6 +24,8 @@ export interface AccountPlansPayload {
   currency: string;
   plans: AccountPlan[];
   methods: AccountPaymentMethod[];
+  /** Paiement en ligne CamPay actif (sinon : collecte manuelle seule). */
+  campay?: boolean;
 }
 
 export interface AccountRequestSummary {
@@ -37,6 +39,9 @@ export interface AccountRequestSummary {
   status: AccountRequestStatus;
   adminNote?: string | null;
   credentialId?: number | null;
+  /** État de la collecte CamPay (PENDING | SUCCESSFUL | FAILED). */
+  campayStatus?: string | null;
+  paidAt?: string | null;
   reviewedAt?: string | null;
   reviewedBy?: string | null;
   createdAt?: string | null;
@@ -150,6 +155,7 @@ const normalizePlansPayload = (data: Partial<AccountPlansPayload> | null | undef
   currency: data?.currency || 'XAF',
   plans: Array.isArray(data?.plans) ? data.plans : [],
   methods: Array.isArray(data?.methods) ? data.methods : [],
+  campay: Boolean(data?.campay),
 });
 
 /** Offres + numéros de collecte réellement configurés côté serveur. */
@@ -195,6 +201,60 @@ export async function getAccountRequestStatus(input: {
     body: JSON.stringify(input),
   });
   return data.status;
+}
+
+// === Paiement en ligne (CamPay, collecte push USSD) ===
+
+export interface CamPayCheckoutInput {
+  planId: AccountPlanId;
+  amountFcfa: number;
+  paymentMethod: AccountPaymentMethodId;
+  payerMsisdn: string;
+  username: string;
+  turnstileToken?: string;
+}
+
+export interface CamPayCheckoutSession {
+  request: AccountRequestSummary;
+  camPay: {
+    /** Référence à passer à getCheckoutStatus. */
+    reference: string;
+    /** Code USSD indicatif affiché à l'écran (*126# MTN / #150*50# Orange). */
+    ussdCode: string | null;
+    operator: string | null;
+  };
+}
+
+export interface CamPayCheckoutStatus {
+  status: AccountRequestStatus | 'failed';
+  operator: string | null;
+  /** Fourni une seule fois, sur le passage à approved (affichez-le une fois). */
+  code?: string | null;
+  username?: string | null;
+}
+
+/** Démarre une collecte CamPay : invitation USSD sur le téléphone de l'acheteur. */
+export async function checkoutWithCamPay(input: CamPayCheckoutInput): Promise<CamPayCheckoutSession> {
+  return requestJson<CamPayCheckoutSession>('/api/account-requests/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+}
+
+/** Suit une collecte CamPay (polling côté client, aucun webhook côté CamPay). */
+export async function getCheckoutStatus(reference: string): Promise<CamPayCheckoutStatus> {
+  const data = await requestJson<CamPayCheckoutStatus>('/api/account-requests/checkout/status', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reference }),
+  });
+  return {
+    status: data.status,
+    operator: data.operator || null,
+    code: data.code || null,
+    username: data.username || null,
+  };
 }
 
 /** Connexion par code : renvoie une session résolue classique (bip39). */

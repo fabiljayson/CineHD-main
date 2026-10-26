@@ -4,7 +4,13 @@
   
     // index.js
     var blacklistUrls = [];
-    var whitelistOrigins = [".*"];
+    // Only the site's own origins may use this proxy from a browser.
+    // Requests WITHOUT an Origin header (server-side relays like the Main API)
+    // are not strings and still pass isListedInWhitelist — see below.
+    var whitelistOrigins = [
+      /^https:\/\/([a-z0-9-]+\.)*(movix\.(cash|chat|cloud|college|date|fun|golf|health|luxe|men|online|show|tax))(?::\d+)?$/i,
+      /^https?:\/\/(localhost|127\.0\.0\.1)(?::\d+)?$/i
+    ];
     function isListedInWhitelist(uri, listing) {
       let isListed = false;
       if (typeof uri === "string") {

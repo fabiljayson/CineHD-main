@@ -29,6 +29,7 @@ import RedirectPopup from './components/RedirectPopup';
 import WhatsAppAnnouncementPopup from './components/WhatsAppAnnouncementPopup';
 import { SITE_URL } from './config/runtime';
 import RequireUsernameChange from './components/RequireUsernameChange';
+import PlaybackWall from './components/PlaybackWall';
 import { TopProgressBar } from './components/TopProgressBar';
 import SmoothScroll from './components/SmoothScroll';
 import { getProviderCatalogScope, ROUTES, type RouteEntry } from './routing/registry';
@@ -39,6 +40,7 @@ import ScreenSaver from './components/ScreenSaver';
 import { useIdleTimer } from './hooks/useIdleTimer';
 import { startVipVerification } from './utils/vipUtils';
 import { readLocalStorage, readSessionStorage } from './utils/browserStorage';
+import { isSessionAuthenticated, useSessionAuthenticated } from './utils/session';
 import { broadcastAuthChange, clearStoredAuthSession, getResolvedAccountContext } from './utils/accountAuth';
 import { isSyncableStorageKey, SYNC_OUTBOX_STORAGE_KEY } from './utils/syncStorage';
 import { isWrappedTestRoute } from './utils/wrappedExperiment';
@@ -487,49 +489,21 @@ const IOSHomeScreenHandler = () => {
   return null;
 };
 
-// Session telle que le reste de l'application la lit (mêmes drapeaux que
-// PrivateRoute et ProfileGate). Une seule définition pour la porte d'entrée
-// de l'application : elle décide si la landing ou le catalogue s'affiche à `/`.
-const isSessionAuthenticated = () => {
-  if (readLocalStorage('discord_auth') === 'true') return true;
-  if (readLocalStorage('google_auth') === 'true') return true;
-  if (readLocalStorage('bip39_auth') === 'true') return true;
-  if (readLocalStorage('is_vip') === 'true') return true;
-  const authStr = readLocalStorage('auth');
-  if (authStr) {
-    try {
-      const authObj = JSON.parse(authStr);
-      if (authObj.userProfile && authObj.userProfile.provider === 'access_code') return true;
-    } catch { }
-  }
-  return false;
-};
-
-// Racine `\` : premier écran de l'application. Visiteur = landing (inscription
-// + connexion), utilisateur authentifié = catalogue, comme avant.
+// Session telle que le reste de l'application la lit : une seule définition
+// partagée par la racine `/`, les routes protégées et la lecture (utils/session).
 const LandingRoot: React.FC = () => (isSessionAuthenticated() ? <Home /> : <LandingPage />);
 
-const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const isDiscordAuth = readLocalStorage('discord_auth') === 'true';
-  const isGoogleAuth = readLocalStorage('google_auth') === 'true';
-  const isBip39Auth = readLocalStorage('bip39_auth') === 'true';
-  const isVipUser = readLocalStorage('is_vip') === 'true';
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => (
+  isSessionAuthenticated() ? children : <Navigate to="/login" />
+);
 
-  // Vérifier l'ancienne méthode d'authentification VIP (pour compatibilité)
-  let isVipAuth = false;
-  const authStr = readLocalStorage('auth');
-  if (authStr) {
-    try {
-      const authObj = JSON.parse(authStr);
-      if (authObj.userProfile && authObj.userProfile.provider === 'access_code') {
-        isVipAuth = true;
-      }
-    } catch { }
-  }
-
-  const isAuthenticated = isDiscordAuth || isGoogleAuth || isBip39Auth || isVipAuth || isVipUser;
-  return isAuthenticated ? children : <Navigate to="/login" />;
-};
+// Garde de lecture : le catalogue reste ouvert, mais monte le lecteur seulement
+// à quelqu'un de connecté. Sans session on affiche le mur (qui conserve l'URL
+// et propose la connexion) à la place de la page — le lecteur, ses fetchs de
+// sources et ses iframes ne sont jamais montés pour un anonyme.
+const PlaybackRoute = ({ children }: { children: React.ReactNode }) => (
+  useSessionAuthenticated() ? children : <PlaybackWall />
+);
 
 // Pages secondaires lazy-ifiées (perf) : elles étaient importées eagerly et ajoutaient
 // ~80 Ko de source au chunk d'entrée payé par tous les visiteurs. Déclarées au niveau
@@ -589,6 +563,10 @@ const renderRouteEntry = (entry: RouteEntry) => {
   );
   if (entry.guard === 'private') {
     element = <PrivateRoute>{element}</PrivateRoute>;
+  } else if (entry.guard === 'playback') {
+    // Pas de `contextLabel` : on ne passe pas le patron de route (« /watch/movie/:tmdbid »)
+    // au mur — le libellé générique est plus lisible qu'un motif d'URL.
+    element = <PlaybackRoute>{element}</PlaybackRoute>;
   }
   return <Route key={entry.path} path={entry.path} element={element} />;
 };

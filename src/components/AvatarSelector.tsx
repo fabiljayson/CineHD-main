@@ -34,8 +34,8 @@ const AvatarButton = memo(({
     whileHover={{ scale: 1.05 }}
     whileTap={{ scale: 0.95 }}
     className={`relative w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 lg:w-22 lg:h-22 rounded-full ring-2 transition-all duration-200 ${isSelected
-        ? 'ring-yellow-500'
-        : 'ring-transparent hover:ring-red-600'
+        ? 'ring-white'
+        : 'ring-transparent hover:ring-control'
       }`}
   >
     <img
@@ -46,9 +46,9 @@ const AvatarButton = memo(({
       decoding="async"
     />
     {isSelected && (
-      <div className="absolute inset-0 bg-yellow-500/20 rounded-full flex items-center justify-center">
-        <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
-          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+      <div className="absolute inset-0 bg-white/15 rounded-full flex items-center justify-center">
+        <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+          <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
         </div>
@@ -140,19 +140,19 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-gray-900 rounded-2xl p-6 max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            className="bg-surface rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="flex justify-between items-center mb-6 flex-shrink-0">
-              <h3 className="text-xl font-bold text-white">{t('profile.selectAvatar')}</h3>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <h3 className="text-lg font-semibold text-white">{t('profile.selectAvatar')}</h3>
+              <button
+                type="button"
                 onClick={handleClose}
-                className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                aria-label={t('common.close', 'Fermer')}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink-muted transition-colors hover:bg-raised hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
-                <X className="w-5 h-5" />
-              </motion.button>
+                <X className="w-5 h-5" aria-hidden="true" />
+              </button>
             </div>
 
             {/* Platform Tabs */}
@@ -160,10 +160,11 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({
               {allPlatforms.map((platform) => (
                 <button
                   key={platform}
+                  type="button"
                   onClick={() => setSelectedPlatform(platform)}
-                  className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${selectedPlatform === platform
-                      ? 'bg-red-600 text-white border-red-500'
-                      : 'bg-gray-800/60 text-gray-300 border-gray-700 hover:bg-gray-800'
+                  className={`inline-flex min-h-11 items-center rounded-full border px-3 text-sm transition-colors ${selectedPlatform === platform
+                      ? 'bg-white text-black border-white'
+                      : 'bg-transparent text-ink-muted border-control hover:bg-raised hover:text-white'
                     }`}
                 >
                   {platform}
@@ -185,7 +186,7 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({
                   {Object.entries(currentCategories).map(([category, avatars]) => (
                     <div key={category} className="relative">
                       {/* Sticky Category Title - higher z-index */}
-                      <h4 className="text-sm font-semibold text-gray-300 sticky top-0 bg-gray-900 py-2 z-20 border-b border-gray-800/50">
+                      <h4 className="text-sm font-semibold text-ink-muted sticky top-0 bg-surface py-2 z-20 border-b border-rule">
                         {category}
                       </h4>
 

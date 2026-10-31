@@ -160,8 +160,8 @@ const ProfileMenu: React.FC = () => {
     if (openVipModal) {
       openVipModal(); // Utiliser la fonction du contexte pour ouvrir la modal
     } else {
-      // Fallback: rediriger vers la page de connexion VIP
-      window.location.href = '/login-bip39';
+      // Fallback: rediriger vers la page de connexion
+      window.location.href = '/login';
     }
   };
 
@@ -359,24 +359,20 @@ const ProfileMenu: React.FC = () => {
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => window.location.href = '/login-bip39'}
-                      className="flex items-center justify-center gap-3 w-full px-4 py-3 max-md:py-4 bg-gradient-to-r from-brand-gold-bright via-brand-gold to-brand-gold-dark hover:brightness-110 text-[#1a1204] rounded-lg transition-all shadow-[0_4px_14px_rgba(200,144,40,0.35)] border border-yellow-300/40"
+                      onClick={() => window.location.href = '/login'}
+                      className="flex min-h-12 w-full items-center justify-center gap-3 rounded-full bg-white px-4 font-semibold text-black transition-colors hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                     >
-                      <div className="flex items-center justify-center w-7 h-7 max-md:w-8 max-md:h-8 bg-black/15 rounded-full p-0.5">
-                        <KeyRound className="w-5 h-5 max-md:w-6 max-md:h-6" />
-                      </div>
-                      <span className="font-semibold max-md:text-base">{t('auth.iHaveACode')}</span>
+                      <KeyRound className="h-5 w-5 shrink-0" aria-hidden="true" />
+                      <span className="max-md:text-base">{t('auth.iHaveACode')}</span>
                     </motion.button>
 
                     <Link
                       to="/login?tab=create"
-                      className="flex items-center justify-center gap-3 w-full px-4 py-3 max-md:py-4 bg-brand-gold/15 hover:bg-brand-gold/25 text-amber-100 rounded-lg transition-colors shadow-md border border-brand-gold/40"
+                      className="flex min-h-12 w-full items-center justify-center gap-3 rounded-full border border-control px-4 font-medium text-white transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                       onClick={() => setIsOpen(false)}
                     >
-                      <div className="flex items-center justify-center w-7 h-7 max-md:w-8 max-md:h-8 bg-brand-gold/20 rounded-full p-0.5">
-                        <UserPlus className="w-5 h-5 max-md:w-6 max-md:h-6" />
-                      </div>
-                      <span className="font-medium max-md:text-base">{t('auth.createAccount')}</span>
+                      <UserPlus className="h-5 w-5 shrink-0" aria-hidden="true" />
+                      <span className="max-md:text-base">{t('auth.createAccount')}</span>
                     </Link>
                   </div>
                 </div>

@@ -78,10 +78,22 @@ function getSyncModule() {
   return _syncModule;
 }
 
+/**
+ * Une session en base est obligatoire : `validateAuthRequest` exige que
+ * `sessionId` existe dans `user_sessions`. Renvoyer `null` produisait un jeton
+ * signé mais immédiatement refusé — l'utilisateur voyait « connexion réussie »
+ * puis 401 sur toutes les routes protégées (et un admin renvoyé hors du panel).
+ * On échoue donc explicitement : mieux vaut un message clair qu'une session
+ * fantôme.
+ */
 const createUserSession = async (userType, userId, req) => {
   try {
     const pool = getPool();
-    if (!pool) { console.error('MySQL pool not ready for session creation'); return null; }
+    if (!pool) {
+      const error = new Error('Base de données indisponible pour créer la session');
+      error.code = 'SESSION_CREATION_FAILED';
+      throw error;
+    }
 
     const userAgent = req.headers['user-agent'] || 'Unknown';
     const clientId = getSessionClientId(req);
@@ -117,7 +129,11 @@ const createUserSession = async (userType, userId, req) => {
     return sessionId;
   } catch (error) {
     console.error('Error creating user session:', error);
-    return null;
+    if (error?.code === 'SESSION_CREATION_FAILED') throw error;
+    const wrapped = new Error('Impossible de créer la session');
+    wrapped.code = 'SESSION_CREATION_FAILED';
+    wrapped.cause = error;
+    throw wrapped;
   }
 };
 
@@ -730,6 +746,12 @@ router.post('/account/password-login', authRateLimit, ...authBodyParsers, async 
     });
   } catch (error) {
     console.error('Error logging in with account password:', error);
+    if (error?.code === 'SESSION_CREATION_FAILED') {
+      return res.status(503).json({
+        success: false,
+        error: 'Session indisponible — réessayez dans un instant',
+      });
+    }
     res.status(500).json({ success: false, error: 'Erreur lors de la connexion' });
   }
 });

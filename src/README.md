@@ -41,7 +41,7 @@ Les variables principales sont documentées dans `.env.example` :
 - `VITE_MAIN_API`
 - `VITE_TMDB_API_KEY`
 - `VITE_SITE_URL`
-- `VITE_WATCHPARTY_API` (repli uniquement : le socket des rooms WatchParty utilise `VITE_MAIN_API`)
+- `VITE_WATCHPARTY_API` (service REST et socket WatchParty ; en développement, repli sur `http://localhost:25566`, en production sur `VITE_MAIN_API`)
 - `VITE_PROXIES_EMBED_API`
 - `VITE_SUPPORT_WHATSAPP_URL`
 - `VITE_TURNSTILE_SITE_KEY`

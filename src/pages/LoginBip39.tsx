@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { ArrowLeft, Eye, EyeOff, Shield, LogIn, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -191,76 +190,75 @@ const LoginBip39: React.FC<LoginBip39Props> = ({ mode = 'login' }) => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+    <div className="min-h-svh bg-ground text-ink">
+      <div className="mx-auto w-full max-w-md px-4 py-6 sm:py-10">
+        <div className="relative mb-8 text-center">
+          <button
+            type="button"
             onClick={handleBack}
-            className="absolute top-4 left-4 p-2 bg-gray-800/50 rounded-full text-gray-400 hover:text-white transition-colors"
+            aria-label={t('common.back')}
+            className="absolute left-0 top-0 inline-flex h-11 w-11 items-center justify-center rounded-full border border-control text-ink-muted transition-colors hover:bg-raised hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
-            <ArrowLeft className="w-5 h-5" />
-          </motion.button>
+            <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+          </button>
 
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent mb-2">
+          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
             {isLinkMode
               ? t('auth.bip39.linkTitle', 'Lier un compte BIP39')
               : t('auth.secureLogin')}
           </h1>
-          <p className="text-gray-400">
+          <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-muted">
             {isLinkMode
               ? t('auth.bip39.linkDescription', 'Vérifiez votre phrase secrète pour lier ce compte BIP39.')
               : t('auth.connectWithSecretPhrase')}
           </p>
         </div>
 
-        <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 backdrop-blur-sm">
+        <div className="rounded-lg bg-surface p-6">
           <div className="mb-6">
-            <div className="bg-gradient-to-br from-blue-500/10 to-purple-600/10 border border-blue-500/30 rounded-xl p-4 mb-6">
-              <Shield className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-              <p className="text-gray-300 text-sm text-center mb-3">
+            <div className="mb-6 rounded-lg border border-rule bg-ground p-4">
+              <Shield className="mx-auto mb-3 h-8 w-8 text-ink-muted" aria-hidden="true" />
+              <p className="mb-3 text-center text-sm leading-relaxed text-ink-muted">
                 {isLinkMode
                   ? t('auth.bip39.enter12WordsToLink', 'Entrez vos 12 mots pour lier ce compte BIP39.')
                   : t('auth.bip39.enter12WordsToAccess')}
               </p>
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
-                <p className="text-yellow-200/90 text-xs text-center leading-relaxed">
+              <div className="rounded-md border border-control/50 bg-surface p-3">
+                <p className="text-center text-xs leading-relaxed text-ink-faint">
                   {t('auth.bip39.spaceWarning')}
                 </p>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="bip39-mnemonic" className="mb-2 block text-sm font-medium text-white/80">
                 {t('auth.bip39.phraseLabel')}
               </label>
               <div className="relative">
                 <textarea
+                  id="bip39-mnemonic"
                   value={mnemonic}
                   onChange={(e) => setMnemonic(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleLogin(); } }}
-                  className="w-full bg-gray-800/70 text-white px-4 py-3 pr-12 rounded-xl border border-gray-700 focus:ring-2 focus:ring-red-500 outline-none transition-all duration-300 resize-none"
+                  className="w-full resize-none rounded-md border border-control bg-ground px-4 py-3 pr-12 text-white outline-none transition-colors placeholder:text-ink-faint focus:border-white focus-visible:ring-2 focus-visible:ring-white"
                   placeholder={t('auth.bip39.phrasePlaceholder')}
                   rows={3}
                 />
                 <button
+                  type="button"
                   onClick={() => setShowMnemonic(!showMnemonic)}
-                  className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors"
+                  aria-label={showMnemonic ? t('auth.hidePhrase', 'Masquer la phrase') : t('auth.showPhrase', 'Afficher la phrase')}
+                  className="absolute right-1 top-1 inline-flex h-10 w-10 items-center justify-center rounded-md text-ink-muted transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
-                  {showMnemonic ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showMnemonic ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg"
-              >
-                <p className="text-red-400 text-sm">{error}</p>
-              </motion.div>
+              <p role="alert" className="mt-4 rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                {error}
+              </p>
             )}
           </div>
 
@@ -271,62 +269,59 @@ const LoginBip39: React.FC<LoginBip39Props> = ({ mode = 'login' }) => {
               </div>
             )}
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
+              type="button"
               onClick={handleLogin}
               disabled={!mnemonic.trim() || isLoading || (isTurnstileEnabled && !turnstileToken) || (isLinkMode && !hasLinkSession)}
-              className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-xl font-medium hover:from-red-700 hover:to-red-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
               {isLoading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span className="h-4 w-4 animate-spin rounded-full border-b-2 border-black motion-reduce:animate-none" aria-hidden="true"></span>
                   {isLinkMode
                     ? t('auth.bip39.linking', 'Liaison en cours...')
                     : t('auth.bip39.connecting')}
                 </>
               ) : (
                 <>
-                  <LogIn className="w-4 h-4" />
+                  <LogIn className="h-4 w-4" aria-hidden="true" />
                   {isLinkMode
                     ? t('auth.bip39.linkButton', 'Lier le compte')
                     : t('auth.login', 'Se connecter')}
                 </>
               )}
-            </motion.button>
+            </button>
 
             {!isLinkMode && (
               <div className="space-y-3">
-                <p className="text-center text-xs text-gray-500">
+                <p className="text-center text-xs text-ink-faint">
                   {t('auth.dontHaveAccount', "Vous n'avez pas de compte ?")}
                 </p>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => { navigate('/login?tab=create'); }}
+                <button
+                  type="button"
+                  onClick={() => { navigate('/create-account'); }}
                   disabled={isLoading}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 py-3 font-medium text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-control px-4 font-medium text-white transition-colors hover:bg-raised disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
-                  <UserPlus className="w-4 h-4" />
+                  <UserPlus className="h-4 w-4" aria-hidden="true" />
                   {t('auth.createSecureAccount', 'Créer un compte sécurisé')}
-                </motion.button>
+                </button>
               </div>
             )}
 
             {isLinkMode && (
               <div className="space-y-3">
-                <p className="text-center text-xs text-gray-500">
+                <p className="text-center text-xs text-ink-faint">
                   {t('auth.bip39.noAccountYet', 'Pas encore de compte BIP39 ? Vous pouvez en créer un puis le lier directement.')}
                 </p>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
+                  type="button"
                   onClick={() => { navigate('/link-bip39/create', { state: { returnTo: returnPath } }); }}
                   disabled={isLoading || !hasLinkSession}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 py-3 font-medium text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-control px-4 font-medium text-white transition-colors hover:bg-raised disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
                   {t('auth.bip39.createAndLinkButton', 'Créer et lier un nouveau compte BIP39')}
-                </motion.button>
+                </button>
               </div>
             )}
           </div>

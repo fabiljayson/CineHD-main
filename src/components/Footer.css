@@ -12,37 +12,6 @@
   opacity: 1;
 }
 
-.footer-mask-icon {
-  display: block;
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
-  mask-position: center;
-  mask-repeat: no-repeat;
-  mask-size: contain;
-  -webkit-mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: contain;
-}
-
-.footer-technology-logo {
-  display: block;
-  width: 1.5rem;
-  height: 1.5rem;
-  flex-shrink: 0;
-  object-fit: contain;
-}
-
-.footer-technology-logo[data-wide='true'] {
-  width: 2rem;
-}
-
-/* Flat house rule: solid colour text, no gradient fills. */
-.footer-vibe-text {
-  color: #ffffff;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .footer-navigation-icon { transition: none; }
-  .footer-vibe-text[data-animated='true'] { animation: none; }
 }

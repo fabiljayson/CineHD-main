@@ -90,13 +90,24 @@ const Login: React.FC = () => {
     && turnstileBypass !== 'bypass';
 
   const pendingAuthAction = getPendingAuthAction();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Où revenir après connexion. Priorité à l'action OAuth en attente ; sinon
+  // `?returnTo=` posé par le mur de lecture. On n'accepte qu'un chemin relatif
+  // de l'application (jamais `//hôte.externe` ni un scheme) pour éviter une
+  // redirection ouverte après la connexion.
+  const requestedReturnTo = searchParams.get('returnTo');
+  const safeReturnTo = requestedReturnTo
+    && requestedReturnTo.startsWith('/')
+    && !requestedReturnTo.startsWith('//')
+    ? requestedReturnTo
+    : null;
   const authorizeReturnPath = pendingAuthAction?.type === 'oauth-authorize'
     ? pendingAuthAction.returnTo || '/'
-    : null;
+    : safeReturnTo;
 
   // `?tab=create` permet d'ouvrir directement le volet de création depuis les
   // boutons « Créer un compte » (profil, Wrapped, autorisation OAuth).
-  const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<TabKey>(() => {
     const requested = searchParams.get('tab');
     return requested === 'create' || requested === 'password' ? requested : 'code';

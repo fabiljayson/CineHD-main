@@ -1669,3 +1669,458 @@ body,
   -webkit-text-fill-color: #ffffff;
   background: rgba(239, 68, 68, 0.45);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   CINE HD — GOLDEN PLAY
+   Écran de chargement cinématique : le Play doré est le héros.
+
+   Timeline (3,5 s) — voir CineHDLoadingScreen.tsx :
+     0.0 – 0.6   lueur à peine visible sur le triangle
+     0.6 – 1.6   un trait fin trace le contour, impulsion qui
+                 suit la tête du tracé
+     1.6 – 2.4   faisceau projeté, puis CINE et enfin HD
+     2.4 – 3.5   le lockup se pose, un reflet d'or le traverse
+     3.5 +       ligne de progression + légende (seuls éléments
+                 qui bouclent ; l'intro ne se rejoue jamais)
+
+   Chaque déclaration de base est l'état final : les keyframes
+   partent donc de l'état « avant » en `both`. Résultat utile —
+   `animation: none` (prefers-reduced-motion) produit
+   directement l'image statique finale, sans double déclaration.
+   ═══════════════════════════════════════════════════════════════ */
+.cgp-root {
+  position: fixed;
+  inset: 0;
+  /* Au-dessus des popups d'annonce (z-[100000]) : l'intro n'est jamais recouverte. */
+  z-index: 150000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #050505;
+}
+
+/* Sortie : la lumière dorée se dilue, l'écran se dissout sur l'accueil. */
+.cgp-root.cgp-exit {
+  pointer-events: none;
+  animation: cgp-dissolve 640ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Vignette cinématique, presque imperceptible. */
+.cgp-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 90% at 50% 45%,
+    rgba(0, 0, 0, 0) 55%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+
+.cgp-stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 0 24px;
+  text-align: center;
+}
+
+/* ── Le lockup : géométrie exacte de CineHDWordmark ─────────── */
+.cgp-mark {
+  display: block;
+  /* Contraindre par la largeur : en hauteur seule, le viewBox 495×222
+     déborde des petits écrats (390 px → ~600 px de large). */
+  width: min(84vw, 620px);
+  height: auto;
+  /* Le faisceau déborde volontairement du viewBox : c'est lui qui
+     traverse l'obscurité autour du logo. */
+  overflow: visible;
+}
+
+.cgp-lockup {
+  transform-box: view-box;
+  transform-origin: 247.5px 111px;
+  animation: cgp-settle 1000ms cubic-bezier(0.16, 1, 0.3, 1) 2400ms both;
+}
+
+.cgp-tri-ghost {
+  opacity: 0;
+  animation: cgp-ghost 2600ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.cgp-tri-trace {
+  opacity: 0;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  /* `cgp-trace-out` en `forwards` seulement : sans rétro-application,
+     l'état de base (masqué) tient jusqu'à 1900 ms. */
+  animation:
+    cgp-draw 1000ms cubic-bezier(0.65, 0, 0.35, 1) 600ms both,
+    cgp-trace-out 400ms linear 2000ms forwards;
+}
+
+.cgp-tri-pulse {
+  opacity: 0;
+  stroke-dashoffset: 0.16;
+  animation: cgp-ride 1250ms cubic-bezier(0.65, 0, 0.35, 1) 550ms both;
+}
+
+/* Recouvre l'extinction du trait fin (2000 – 2400 ms) : le symbole
+   ne doit jamais paraître plus fin ni plus pâle entre les deux. */
+.cgp-tri-final {
+  opacity: 1;
+  animation: cgp-enter 800ms cubic-bezier(0.4, 0, 0.2, 1) 2000ms both;
+}
+
+.cgp-tri-sheen {
+  opacity: 0;
+  animation: cgp-sheen 1050ms cubic-bezier(0.5, 0, 0.3, 1) 2550ms both;
+}
+
+.cgp-word-cine {
+  animation: cgp-enter 500ms cubic-bezier(0.4, 0, 0.2, 1) 1750ms both;
+}
+
+.cgp-word-hd {
+  fill: #c89028;
+  animation: cgp-illuminate 550ms cubic-bezier(0.4, 0, 0.2, 1) 2000ms both;
+}
+
+/* ── Lumière : halo ambiant, faisceau projeté, impulsion ────── */
+.cgp-haze {
+  opacity: 1;
+  transform-box: view-box;
+  transform-origin: 247.5px 62px;
+  animation: cgp-haze 2200ms cubic-bezier(0.4, 0, 0.2, 1) 1400ms both;
+}
+
+.cgp-beam {
+  opacity: 0.55;
+  transform-box: view-box;
+  transform-origin: 247.5px 62px;
+  animation: cgp-beam 1600ms cubic-bezier(0.4, 0, 0.2, 1) 1600ms both;
+}
+
+.cgp-flash {
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 247.5px 62px;
+  animation: cgp-flash 800ms cubic-bezier(0.4, 0, 0.2, 1) 1500ms both;
+}
+
+/* ── État d'attente : ligne de progression et légende ──────── */
+.cgp-progress {
+  margin-top: clamp(26px, 5vh, 46px);
+  animation: cgp-rise 700ms cubic-bezier(0.16, 1, 0.3, 1) 3150ms both;
+}
+
+.cgp-progress-track {
+  position: relative;
+  width: min(58vw, 236px);
+  height: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(245, 243, 239, 0.14);
+}
+
+.cgp-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(141, 105, 43, 0.6),
+    #d6ad55 55%,
+    rgba(245, 243, 239, 0.85)
+  );
+  transition: width 300ms ease;
+}
+
+.cgp-progress-indet {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 45%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(214, 173, 85, 0),
+    #d6ad55 50%,
+    rgba(245, 243, 239, 0.9)
+  );
+  animation: cgp-sweep 1700ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.cgp-caption {
+  margin-top: 18px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: 0.3em;
+  /* Compense l'espace ajouté après le dernier caractère, sinon la
+     légende centrée glisse vers la droite. */
+  text-indent: 0.3em;
+  text-transform: uppercase;
+  color: rgba(245, 243, 239, 0.5);
+  animation: cgp-rise 700ms cubic-bezier(0.16, 1, 0.3, 1) 3300ms both;
+}
+
+@media (min-width: 640px) {
+  .cgp-caption {
+    font-size: 11px;
+    letter-spacing: 0.42em;
+    text-indent: 0.42em;
+  }
+}
+
+/* ── Sortie : la lumière s'élargit, le logo se dissout ──────── */
+.cgp-root.cgp-exit .cgp-lockup {
+  animation: cgp-exit-mark 640ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.cgp-root.cgp-exit .cgp-haze {
+  animation: cgp-exit-haze 640ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.cgp-root.cgp-exit .cgp-beam {
+  animation: cgp-exit-beam 640ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.cgp-root.cgp-exit .cgp-flash {
+  animation: none;
+  opacity: 0;
+}
+
+/* ── Accessibilité et onglet en arrière-plan ────────────────── */
+/* L'onglet masqué : on fige l'intro plutôt que de la laisser
+   se jouer dans le vide (voir thinking-orbs). */
+.cgp-paused * {
+  animation-play-state: paused;
+}
+
+/* prefers-reduced-motion : les déclarations de base sont déjà
+   l'état final, donc neutraliser les animations suffit à obtenir
+   une image statique exploitable. La racine garde sa dissolution,
+   raccourcie, pour que la sortie reste lisible. */
+.cgp-reduced * {
+  animation: none !important;
+}
+
+.cgp-root.cgp-exit.cgp-reduced {
+  animation: cgp-dissolve 220ms linear both;
+}
+
+@keyframes cgp-dissolve {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes cgp-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cgp-trace-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes cgp-draw {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes cgp-ghost {
+  0% {
+    opacity: 0;
+  }
+  22% {
+    opacity: 0.34;
+  }
+  48% {
+    opacity: 0.26;
+  }
+  74% {
+    opacity: 0.12;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes cgp-ride {
+  0% {
+    stroke-dashoffset: 0.16;
+    /* Le capuchon rond du tiret repose pile sur le point de départ :
+       on masque tant que l'impulsion n'a pas pris son élan. */
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 0.95;
+  }
+  100% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+}
+
+@keyframes cgp-illuminate {
+  0% {
+    opacity: 0;
+    fill: #8d692b;
+  }
+  100% {
+    opacity: 1;
+    fill: #c89028;
+  }
+}
+
+@keyframes cgp-settle {
+  from {
+    transform: scale(0.975);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes cgp-sheen {
+  0% {
+    transform: translateX(-110px);
+    opacity: 0;
+  }
+  14% {
+    opacity: 1;
+  }
+  84% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(120px);
+    opacity: 0;
+  }
+}
+
+@keyframes cgp-haze {
+  0% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cgp-beam {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.12);
+  }
+  45% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0.55;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes cgp-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  35% {
+    opacity: 0.85;
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+@keyframes cgp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cgp-sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(230%);
+  }
+}
+
+@keyframes cgp-exit-mark {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.045);
+  }
+}
+
+@keyframes cgp-exit-haze {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+@keyframes cgp-exit-beam {
+  from {
+    opacity: 0.55;
+    transform: scaleX(1);
+  }
+  to {
+    opacity: 0;
+    transform: scaleX(1.5);
+  }
+}

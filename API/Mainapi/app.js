@@ -507,6 +507,8 @@ app.use('/api', vipDonationsRouter);
 app.use('/api', vipPayblisRouter);
 app.use('/api', require('./routes/accountRequests'));
 app.use('/api', require('./routes/adminSubscriptions'));
+// Annuaire utilisateurs (tous fournisseurs) + préférences de compte.
+app.use('/api', require('./routes/adminUsers'));
 app.use('/api/darkiworld', darkiworldRouter);
 app.use('/api/drama', voirdramaRouter);
 app.use('/api/ftv', francetvRouter);
@@ -676,6 +678,12 @@ const appReady = (async () => {
       await ensureColumn('series', 'download_links', 'download_links JSON NULL');
       // Retro-migration: ensure link_type column exists on download_links_history (for installations that created the table before this column was added)
       await ensureColumn('download_links_history', 'link_type', "link_type ENUM('streaming','download') NOT NULL DEFAULT 'download'");
+      // Sessions : `device` (clientId + infos appareil) est déclaré dans le schéma
+      // core, mais `CREATE TABLE IF NOT EXISTS` ne rattrape pas une table déjà
+      // créée sans la colonne. Sans elle, chaque INSERT de session échoue et la
+      // connexion renvoie un jeton sans session — donc inutilisable : l'app
+      // paraît connectée puis répond 401 sur toutes les routes protégées.
+      await ensureColumn('user_sessions', 'device', 'device TEXT NULL');
       // Console d'abonnements : mot de passe des comptes admin/staff + minuteur
       // d'abonnement (aucun système de durée n'existait avant).
       await ensureColumn('account_credentials', 'password_hash', 'password_hash VARCHAR(128) DEFAULT NULL');

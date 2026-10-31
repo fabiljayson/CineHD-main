@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  BarChart3,
   CalendarClock,
   Clapperboard,
   Flag,
@@ -13,6 +14,7 @@ import {
   ShieldCheck,
   Sparkles,
   Sprout,
+  UserCog,
   Users,
   Wallet,
   Wrench
@@ -25,7 +27,9 @@ import AdminWishboard from './Greenlight/AdminWishboard';
 import AdminOAuthApps from './AdminOAuthApps';
 import AdminReports from './AdminReports';
 import AdminSharedLists from './AdminSharedLists';
+import AdminStats from './AdminStats';
 import AdminTeam from './AdminTeam';
+import AdminUsers from './AdminUsers';
 import StreamingLinksManager from './StreamingLinksManager';
 import VipInvoicesManager from './VipInvoicesManager';
 import AccountRequestsManager from './AccountRequestsManager';
@@ -36,6 +40,8 @@ import ShinyText from './ui/shiny-text';
 
 type AdminSection =
   | 'links'
+  | 'users'
+  | 'analytics'
   | 'vip-keys'
   | 'vip-invoices'
   | 'account-requests'
@@ -64,10 +70,26 @@ interface DashboardSection {
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ role }) => {
   const { t } = useTranslation();
-  const [activeSection, setActiveSection] = useState<AdminSection>('links');
+  const [activeSection, setActiveSection] = useState<AdminSection>(role === 'uploader' ? 'links' : 'users');
 
   const allSections = useMemo<DashboardSection[]>(
     () => [
+      {
+        id: 'users',
+        title: t('admin.users.cardTitle', 'Utilisateurs'),
+        description: t('admin.users.cardDesc', 'Annuaire complet, abonnements et préférences de compte'),
+        icon: UserCog,
+        accent: 'text-white',
+        highlight: '255 255 255'
+      },
+      {
+        id: 'analytics',
+        title: t('admin.analytics.cardTitle', 'Analytique'),
+        description: t('admin.analytics.cardDesc', 'Inscriptions, connexions, DAU et engagement'),
+        icon: BarChart3,
+        accent: 'text-indigo-300',
+        highlight: '129 140 248'
+      },
       {
         id: 'team',
         title: t('admin.team.cardTitle', 'Admins & Uploaders'),
@@ -256,7 +278,23 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ role }) => {
         </div>
       )}
 
-      {activeSection === 'vip-invoices' && role === 'admin' ? (
+      {activeSection === 'users' && role === 'admin' ? (
+        <div>
+          <h2 className="mb-6 flex items-center gap-3 text-2xl font-bold text-white">
+            <UserCog className="h-6 w-6 text-white" />
+            {t('admin.users.sectionTitle', 'Utilisateurs')}
+          </h2>
+          <AdminUsers />
+        </div>
+      ) : activeSection === 'analytics' && role === 'admin' ? (
+        <div>
+          <h2 className="mb-6 flex items-center gap-3 text-2xl font-bold text-white">
+            <BarChart3 className="h-6 w-6 text-indigo-300" />
+            {t('admin.analytics.sectionTitle', 'Analytique')}
+          </h2>
+          <AdminStats />
+        </div>
+      ) : activeSection === 'vip-invoices' && role === 'admin' ? (
         <div>
           <h2 className="mb-6 flex items-center gap-3 text-2xl font-bold text-white">
             <ShieldCheck className="h-6 w-6 text-yellow-300" />

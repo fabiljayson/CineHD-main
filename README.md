@@ -188,7 +188,7 @@ Les fichiers d'exemple ou de config existants sont déjà dans le repo :
 - WatchParty : `API/watchpartyAPI/.env.example`
 - Proxy embed : `API/proxiesembed/.env.example`
 
-Les variables frontend les plus importantes sont `VITE_MAIN_API`, `VITE_PROXIES_EMBED_API` et `VITE_SITE_URL`. `VITE_WATCHPARTY_API` n'est lue que comme repli dans `src/config/runtime.ts` : le socket des rooms WatchParty utilise `VITE_MAIN_API`.
+Les variables frontend les plus importantes sont `VITE_MAIN_API`, `VITE_PROXIES_EMBED_API` et `VITE_SITE_URL`. `VITE_WATCHPARTY_API` configure le service REST et le socket WatchParty. En développement, son repli est `http://localhost:25566` ; en production, son repli reste `VITE_MAIN_API`.
 
 Pour un premier lancement local, configure au minimum :
 

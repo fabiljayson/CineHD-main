@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Copy, Check, Eye, EyeOff, ArrowLeft, Camera, Shield } from 'lucide-react';
+import { Copy, Check, Eye, EyeOff, ArrowLeft, Camera, Shield, RefreshCw } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import AvatarSelector from '../components/AvatarSelector';
@@ -287,29 +287,28 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
       animate={{ opacity: 1, y: 0 }}
       className="text-center space-y-6"
     >
-      <div className="bg-gradient-to-br from-blue-500/10 to-purple-600/10 border border-blue-500/30 rounded-xl p-6">
-        <Shield className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-white mb-2">{t('auth.bip39.maxSecurity')}</h3>
-        <p className="text-gray-300 text-sm">
+      <div className="rounded-lg border border-rule bg-surface p-6">
+        <Shield className="mx-auto mb-4 h-10 w-10 text-ink-muted" aria-hidden="true" />
+        <h3 className="mb-2 text-base font-semibold text-white">{t('auth.bip39.maxSecurity')}</h3>
+        <p className="text-sm leading-relaxed text-ink-muted">
           {t('auth.bip39.maxSecurityDesc')}
         </p>
       </div>
 
       {isGenerating ? (
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
-          <span className="ml-3 text-gray-300">{t('auth.bip39.generating')}</span>
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-white motion-reduce:animate-none" aria-hidden="true"></div>
+          <span className="ml-3 text-ink-muted">{t('auth.bip39.generating')}</span>
         </div>
       ) : (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button
+          type="button"
           onClick={() => setCurrentStep(2)}
           disabled={!mnemonic || isGenerating}
-          className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-xl font-medium hover:from-red-700 hover:to-red-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-6 font-semibold text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
           {isGenerating ? t('auth.bip39.generating') : t('common.continue')}
-        </motion.button>
+        </button>
       )}
     </motion.div>
   );
@@ -320,51 +319,52 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <div className="bg-gradient-to-br from-yellow-500/10 to-orange-600/10 border border-yellow-500/30 rounded-xl p-4">
-        <h3 className="text-yellow-400 font-semibold mb-2 flex items-center gap-2">
-          ⚠️ {t('common.important')}
+      <div className="rounded-lg border border-control/50 bg-surface p-4">
+        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-white">
+          <Shield className="h-4 w-4 text-ink-muted" aria-hidden="true" />
+          {t('common.important')}
         </h3>
-        <p className="text-gray-300 text-sm">
+        <p className="text-sm leading-relaxed text-ink-muted">
           {t('auth.bip39.saveWarningDesc')}
         </p>
       </div>
 
-      <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm text-gray-400">{t('auth.bip39.yourPhrase12')}</span>
+      <div className="rounded-lg border border-rule bg-surface p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-sm text-ink-muted">{t('auth.bip39.yourPhrase12')}</span>
           <button
+            type="button"
             onClick={() => setShowMnemonic(!showMnemonic)}
-            className="text-gray-400 hover:text-white transition-colors"
+            aria-label={showMnemonic ? t('auth.hidePhrase', 'Masquer la phrase') : t('auth.showPhrase', 'Afficher la phrase')}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-ink-muted transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
-            {showMnemonic ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showMnemonic ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
           </button>
         </div>
         
-        <div className="bg-black/30 rounded-lg p-4 mb-4">
+        <div className="mb-4 rounded-md bg-ground p-4">
           <div className="grid grid-cols-3 gap-2 text-sm">
             {(showMnemonic ? mnemonic.split(' ') : Array(12).fill('•••••')).map((word, index) => (
-              <div key={index} className="bg-gray-700/50 rounded px-2 py-1 text-center">
-                <span className="text-gray-400 text-xs">{index + 1}.</span>
-                <span className="text-white ml-1">{word}</span>
+              <div key={index} className="rounded bg-raised px-2 py-1 text-center">
+                <span className="text-xs text-ink-faint">{index + 1}.</span>
+                <span className="ml-1 text-white">{word}</span>
               </div>
             ))}
           </div>
         </div>
 
         <div className="flex gap-2">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
+            type="button"
             onClick={copyToClipboard}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-control px-4 text-sm font-medium text-white transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
-            {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            {isCopied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
             {isCopied ? t('common.copied') : t('common.copy')}
-          </motion.button>
+          </button>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
+            type="button"
             onClick={() => {
               setMnemonic('');
               setIsCopied(false);
@@ -372,37 +372,37 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
               generateMnemonic();
             }}
             disabled={isGenerating}
-            className="px-4 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-control px-4 text-white transition-colors hover:bg-raised disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             title={t('auth.generateNewPhrase')}
+            aria-label={t('auth.generateNewPhrase')}
           >
-            🔄
-          </motion.button>
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+          </button>
         </div>
       </div>
 
-      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-4">
-        <label className="flex items-start gap-3 cursor-pointer">
+      <div className="rounded-lg border border-control/50 bg-surface p-4">
+        <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
             checked={isConfirmed}
             onChange={(e) => setIsConfirmed(e.target.checked)}
-            className="mt-1 w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2"
+            className="mt-0.5 h-4 w-4 rounded border-control bg-ground accent-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           />
-          <span className="text-sm text-gray-300">
+          <span className="text-sm leading-relaxed text-ink-muted">
             {t('auth.bip39.savedConfirmation')}
           </span>
         </label>
       </div>
 
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+      <button
+        type="button"
         onClick={handleConfirmed}
         disabled={!isConfirmed}
-        className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-xl font-medium hover:from-green-700 hover:to-green-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-6 font-semibold text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
       >
         {t('auth.bip39.notedContinue')}
-      </motion.button>
+      </button>
     </motion.div>
   );
 
@@ -414,52 +414,53 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
     >
       {/* Avatar Selection */}
       <div className="text-center">
-        <label className="block text-sm font-medium text-gray-300 mb-3">{t('auth.bip39.profilePicture')}</label>
+        <span className="mb-3 block text-sm font-medium text-white/80">{t('auth.bip39.profilePicture')}</span>
         <div className="relative inline-block">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="w-24 h-24 rounded-full overflow-hidden border-2 border-red-600/70 cursor-pointer"
+          <button
+            type="button"
+            aria-label={t('auth.selectAvatar')}
+            className="block h-24 w-24 overflow-hidden rounded-full border-2 border-control transition-colors hover:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             onClick={() => setShowAvatarModal(true)}
           >
             <img
               src={selectedAvatar || 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.webp'}
               alt={t('common.avatar')}
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
             />
-          </motion.div>
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+          </button>
+          <button
+            type="button"
+            aria-label={t('auth.selectAvatar')}
             onClick={() => setShowAvatarModal(true)}
-            className="absolute bottom-0 right-0 p-2 bg-red-600 rounded-full text-white hover:bg-red-700 transition-colors"
+            className="absolute bottom-0 right-0 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-black transition-colors hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
-            <Camera className="w-4 h-4" />
-          </motion.button>
+            <Camera className="h-4 w-4" aria-hidden="true" />
+          </button>
         </div>
       </div>
 
       {/* Username Input */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">{t('auth.username', "Nom d'utilisateur")}</label>
+        <label htmlFor="bip39-username" className="mb-2 block text-sm font-medium text-white/80">{t('auth.username', "Nom d'utilisateur")}</label>
         <input
+          id="bip39-username"
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="w-full bg-gray-800/70 text-white px-4 py-3 rounded-xl border border-gray-700 focus:ring-2 focus:ring-red-500 outline-none transition-all duration-300"
+          className="w-full rounded-md border border-control bg-ground px-4 py-3 text-white outline-none transition-colors placeholder:text-ink-faint focus:border-white focus-visible:ring-2 focus-visible:ring-white"
           placeholder={t('auth.bip39.usernamePlaceholder')}
           maxLength={20}
         />
       </div>
 
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+      <button
+        type="button"
         onClick={() => setCurrentStep(4)}
         disabled={!username.trim() || !selectedAvatar}
-        className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-xl font-medium hover:from-red-700 hover:to-red-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-6 font-semibold text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
       >
         {t('common.continue')}
-      </motion.button>
+      </button>
     </motion.div>
   );
 
@@ -469,21 +470,22 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <div className="bg-gradient-to-br from-green-500/10 to-blue-600/10 border border-green-500/30 rounded-xl p-4">
-        <h3 className="text-green-400 font-semibold mb-2">{t('auth.bip39.lastStep')}</h3>
-        <p className="text-gray-300 text-sm">
+      <div className="rounded-lg border border-rule bg-surface p-4">
+        <h3 className="mb-2 text-sm font-semibold text-white">{t('auth.bip39.lastStep')}</h3>
+        <p className="text-sm leading-relaxed text-ink-muted">
           {t('auth.bip39.confirmDesc')}
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label htmlFor="bip39-confirm" className="mb-2 block text-sm font-medium text-white/80">
           {t('auth.bip39.confirmPhrase')}
         </label>
         <textarea
+          id="bip39-confirm"
           value={verificationMnemonic}
           onChange={(e) => setVerificationMnemonic(e.target.value)}
-          className="w-full bg-gray-800/70 text-white px-4 py-3 rounded-xl border border-gray-700 focus:ring-2 focus:ring-red-500 outline-none transition-all duration-300 resize-none"
+          className="w-full resize-none rounded-md border border-control bg-ground px-4 py-3 text-white outline-none transition-colors placeholder:text-ink-faint focus:border-white focus-visible:ring-2 focus-visible:ring-white"
           placeholder={t('auth.bip39.phrasePlaceholder')}
           rows={3}
         />
@@ -496,25 +498,23 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
         </div>
       )}
 
-      <div className="flex gap-3">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <button
+          type="button"
           onClick={() => setCurrentStep(3)}
-          className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl font-medium transition-colors"
+          className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-control px-6 font-medium text-white transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
           {t('common.back')}
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        </button>
+        <button
+          type="button"
           onClick={createAccount}
           disabled={!verificationMnemonic.trim() || isCreating || (isTurnstileEnabled && !turnstileToken)}
-          className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-xl font-medium hover:from-green-700 hover:to-green-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
           {isCreating ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <span className="h-4 w-4 animate-spin rounded-full border-b-2 border-black motion-reduce:animate-none" aria-hidden="true"></span>
               {isLinkMode
                 ? t('auth.bip39.createAndLinkLoading', 'Création et liaison en cours...')
                 : t('auth.bip39.creating')}
@@ -524,31 +524,31 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
               ? t('auth.bip39.createAndLinkButtonShort', 'Créer et lier')
               : t('auth.createAccount', 'Créer le compte')
           )}
-        </motion.button>
+        </button>
       </div>
     </motion.div>
   );
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-svh bg-ground text-ink">
+      <div className="mx-auto w-full max-w-md px-4 py-6 sm:py-10">
         {/* Header */}
-        <div className="text-center mb-8">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+        <div className="relative mb-8 text-center">
+          <button
+            type="button"
             onClick={() => navigate(isLinkMode ? '/link-bip39' : (authorizeReturnPath || '/'))}
-            className="absolute top-4 left-4 p-2 bg-gray-800/50 rounded-full text-gray-400 hover:text-white transition-colors"
+            aria-label={t('common.back')}
+            className="absolute left-0 top-0 inline-flex h-11 w-11 items-center justify-center rounded-full border border-control text-ink-muted transition-colors hover:bg-raised hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
-            <ArrowLeft className="w-5 h-5" />
-          </motion.button>
+            <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+          </button>
           
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent mb-2">
+          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
             {isLinkMode
               ? t('auth.bip39.linkCreateTitle', 'Créer et lier un compte BIP39')
               : t('auth.createAccount', 'Créer un compte')}
           </h1>
-          <p className="text-gray-400">
+          <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-muted">
             {isLinkMode
               ? t('auth.bip39.linkCreateDescription', 'Générez une phrase secrète puis liez ce nouveau compte BIP39 à votre compte actuel.')
               : t('auth.bip39.secureConnectionDesc')}
@@ -556,19 +556,19 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
         </div>
 
         {/* Progress Steps */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8 flex items-center justify-center gap-2" aria-hidden="true">
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
-                currentStep >= step.id 
-                  ? 'bg-red-600 text-white' 
-                  : 'bg-gray-700 text-gray-400'
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors ${
+                currentStep >= step.id
+                  ? 'bg-white text-black'
+                  : 'bg-raised text-ink-faint'
               }`}>
                 {step.id}
               </div>
               {index < steps.length - 1 && (
-                <div className={`w-8 h-0.5 mx-2 transition-all duration-300 ${
-                  currentStep > step.id ? 'bg-red-600' : 'bg-gray-700'
+                <div className={`mx-2 h-0.5 w-8 transition-colors ${
+                  currentStep > step.id ? 'bg-white' : 'bg-raised'
                 }`} />
               )}
             </div>
@@ -576,12 +576,12 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
         </div>
 
         {/* Step Content */}
-        <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 backdrop-blur-sm">
+        <div className="rounded-lg bg-surface p-6">
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-white mb-2">
+            <h2 className="mb-2 text-lg font-semibold text-white">
               {steps[currentStep - 1]?.title}
             </h2>
-            <p className="text-gray-400 text-sm">
+            <p className="text-sm leading-relaxed text-ink-muted">
               {steps[currentStep - 1]?.description}
             </p>
           </div>

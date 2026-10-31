@@ -19,19 +19,46 @@ const SQL_CACHE_TTL = 120;   // 2 min — cheap queries
 
 const sum = (rows) => rows.reduce((acc, r) => acc + r.count, 0);
 
+/**
+ * Redis est facultatif ici : le tableau de bord doit répondre même sans lui.
+ *
+ * Sans cette garde, chaque commande reste en file le temps que ioredis épuise
+ * ses tentatives (maxRetriesPerRequest). Les trois `get`/`set` de la route
+ * suffisaient à faire durer `/overview` une trentaine de secondes alors que le
+ * calcul réel (scan disque + SQL) prend quelques millisecondes — et le front,
+ * dont le délai est de 20 s, restait bloqué sur les squelettes. Un cache absent
+ * ne doit jamais coûter plus que le travail qu'il évite.
+ *
+ * `wait` = connexion différée jamais tentée (lazyConnect) : on la lance une
+ * fois, sans bloquer la requête courante.
+ */
+function cacheReady() {
+  if (redis.status === 'ready') return true;
+  if (redis.status === 'wait') {
+    Promise.resolve()
+      .then(() => redis.connect())
+      .catch(() => { /* restera indisponible, traité comme un cache absent */ });
+  }
+  return false;
+}
+
 // Cluster-safe: serve Redis cache; only ONE worker scans disk at a time (single-flight lock).
 async function getUsersAggregate() {
-  try {
-    const cached = await redis.get(USERS_CACHE_KEY);
-    if (cached) return JSON.parse(cached);
-  } catch { /* ignore cache read errors */ }
+  if (cacheReady()) {
+    try {
+      const cached = await redis.get(USERS_CACHE_KEY);
+      if (cached) return JSON.parse(cached);
+    } catch { /* ignore cache read errors */ }
+  }
 
   let locked = false;
-  try {
-    locked = (await redis.set(USERS_LOCK_KEY, '1', 'PX', 30000, 'NX')) === 'OK';
-  } catch { /* ignore */ }
+  if (cacheReady()) {
+    try {
+      locked = (await redis.set(USERS_LOCK_KEY, '1', 'PX', 30000, 'NX')) === 'OK';
+    } catch { /* ignore */ }
+  }
 
-  if (!locked) {
+  if (cacheReady() && !locked) {
     // Another worker is scanning — wait briefly, then serve whatever landed in cache.
     await new Promise((r) => setTimeout(r, 300));
     try {
@@ -42,7 +69,9 @@ async function getUsersAggregate() {
 
   try {
     const agg = await scanUserStore();
-    try { await redis.set(USERS_CACHE_KEY, JSON.stringify(agg), 'EX', USERS_CACHE_TTL); } catch { /* ignore */ }
+    if (cacheReady()) {
+      try { await redis.set(USERS_CACHE_KEY, JSON.stringify(agg), 'EX', USERS_CACHE_TTL); } catch { /* ignore */ }
+    }
     return agg;
   } finally {
     if (locked) { try { await redis.del(USERS_LOCK_KEY); } catch { /* ignore */ } }
@@ -51,10 +80,12 @@ async function getUsersAggregate() {
 
 async function getSqlAggregate(range, sinceMs) {
   const key = `admin:stats:sql:v1:${range}`;
-  try {
-    const cached = await redis.get(key);
-    if (cached) return JSON.parse(cached);
-  } catch { /* ignore */ }
+  if (cacheReady()) {
+    try {
+      const cached = await redis.get(key);
+      if (cached) return JSON.parse(cached);
+    } catch { /* ignore */ }
+  }
 
   const pool = getPool();
   const sinceDate = new Date(sinceMs); // for TIMESTAMP columns
@@ -91,7 +122,9 @@ async function getSqlAggregate(range, sinceMs) {
   }
 
   const result = { sessions, dau, comments, sharedLists, vip };
-  try { await redis.set(key, JSON.stringify(result), 'EX', SQL_CACHE_TTL); } catch { /* ignore */ }
+  if (cacheReady()) {
+    try { await redis.set(key, JSON.stringify(result), 'EX', SQL_CACHE_TTL); } catch { /* ignore */ }
+  }
   return result;
 }
 

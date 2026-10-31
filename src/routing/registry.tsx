@@ -7,7 +7,13 @@ export type RouteEntry = {
   path: string;
   loader: (opts?: { silent?: boolean; routeKey?: string }) => Promise<{ default: ComponentType<unknown> }>;
   fallback?: ReactNode;
-  guard?: 'private';
+  /**
+   * `private`   : route réservée aux comptes (profil, réglages…).
+   * `playback`  : route de lecture. Le catalogue reste ouvert à tous, mais le
+   *               lecteur — l'unique chose qui coûte à servir — exige une
+   *               session. Sans session on affiche le mur au lieu de la page.
+   */
+  guard?: 'private' | 'playback';
   getComponentKey?: (pathname: string) => string;
 };
 
@@ -56,11 +62,11 @@ export const ROUTES: RouteEntry[] = [
   { path: '/search',                  loader: lz(() => import('../pages/Search')) },
 
   // Watch routes (no skeleton — RouteProgressBar fallback)
-  { path: '/watch/movie/:tmdbid',                         loader: lz(() => import('../pages/Watch/WatchMovie')) },
-  { path: '/watch/tv/:tmdbid/s/:season/e/:episode',       loader: lz(() => import('../pages/Watch/WatchTv')) },
-  { path: '/watch/anime/:id/season/:season/episode/:episode', loader: lz(() => import('../pages/Watch/WatchAnime')) },
+  { path: '/watch/movie/:tmdbid',                         loader: lz(() => import('../pages/Watch/WatchMovie')),              guard: 'playback' },
+  { path: '/watch/tv/:tmdbid/s/:season/e/:episode',       loader: lz(() => import('../pages/Watch/WatchTv')),                  guard: 'playback' },
+  { path: '/watch/anime/:id/season/:season/episode/:episode', loader: lz(() => import('../pages/Watch/WatchAnime')),           guard: 'playback' },
   { path: '/ftv/info/:encoded',       loader: lz(() => import('../pages/FranceTV/FranceTVInfo')) },
-  { path: '/ftv/watch/:encoded',      loader: lz(() => import('../pages/FranceTV/FranceTVPlayer')) },
+  { path: '/ftv/watch/:encoded',      loader: lz(() => import('../pages/FranceTV/FranceTVPlayer')), guard: 'playback' },
 
   // Watch party
   { path: '/watchparty/create',       loader: lz(() => import('../pages/WatchPartyCreate')) },

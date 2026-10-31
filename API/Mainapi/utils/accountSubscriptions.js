@@ -18,8 +18,22 @@ function generateReceiptPublicId() {
   return `RCP-${crypto.randomBytes(5).toString('hex').toUpperCase()}`;
 }
 
+/**
+ * Écrit une date dans une colonne DATETIME.
+ *
+ * Convention du module : la colonne contient l'heure « murale » locale, celle
+ * que `parseSqlDateTime` relit (il interprète une chaîne SQL sans fuseau comme
+ * heure locale). Écrire en UTC (`toISOString`) puis relire en local décalait la
+ * valeur du fuseau du serveur à chaque enregistrement — un minuteur ré-enregistré
+ * reculait d'une heure par sauvegarde. Les deux sens doivent donc utiliser le
+ * même référentiel : les composantes locales.
+ */
 function toSqlDateTime(date) {
-  return date.toISOString().slice(0, 19).replace('T', ' ');
+  const pad = (value) => String(value).padStart(2, '0');
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
+    + `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+  );
 }
 
 function parseSqlDateTime(value) {

@@ -429,7 +429,7 @@ const OAuthAuthorizePage: React.FC = () => {
     });
   };
 
-  const handleBip39Route = (targetPath: '/login-bip39' | '/login?tab=create') => {
+  const handleBip39Route = (targetPath: '/login-bip39' | '/create-account') => {
     setPendingAuthAuthorize(returnTo, preview?.client.clientId);
     window.location.replace(targetPath);
   };
@@ -725,7 +725,7 @@ const OAuthAuthorizePage: React.FC = () => {
                     {t('oauthAuthorize.loginWithBip39')}
                   </Button>
                   <Button
-                    onClick={() => handleBip39Route('/login?tab=create')}
+                    onClick={() => handleBip39Route('/create-account')}
                     disabled={!preview}
                     variant="outline"
                     className="w-full justify-center border-white/15 bg-transparent py-2.5"

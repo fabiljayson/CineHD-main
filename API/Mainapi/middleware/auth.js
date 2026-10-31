@@ -38,6 +38,11 @@ if (!JWT_SECRET) {
 const JWT_EXPIRES_IN = process.env.SESSION_JWT_EXPIRES_IN || '30d';
 
 function issueJwt(userType, userId, sessionId, authMethod = null) {
+  // Un jeton sans session est refusé par `validateAuthRequest` : le signer
+  // donnerait l'illusion d'une connexion réussie. On refuse à la source.
+  if (!sessionId) {
+    throw new Error('issueJwt: sessionId requis (session non créée)');
+  }
   const payload = { sub: userId, userType, sessionId };
   if (AUTH_METHODS.includes(authMethod)) {
     payload.authMethod = authMethod;

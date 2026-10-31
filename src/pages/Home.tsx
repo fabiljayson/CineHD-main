@@ -360,14 +360,11 @@ const Home: React.FC = () => {
   const [recommendations, setRecommendations] = useState<Media[]>([]);
   const [personalizedReco, setPersonalizedReco] = useState<PersonalizedRecommendations | null>(null);
   const fetchControllerRef = useRef<AbortController | null>(null);
-  React.useEffect(() => {
-    if (loading) {
-      setCinematicLoadingVisible(true);
-    } else {
-      const timer = window.setTimeout(() => setCinematicLoadingVisible(false), 7000);
-      return () => window.clearTimeout(timer);
-    }
-  }, [loading]);
+  // L'écran cinématique ne se montre qu'une fois, au premier rendu de la
+  // page. C'est le composant qui décide quand il a fini (voir
+  // CineHDLoadingScreen) : aucun délai fixe ne retient l'utilisateur, et
+  // un rechargement de données ultérieur retombe sur le squelette simple.
+  const handleCinematicExit = useCallback(() => setCinematicLoadingVisible(false), []);
   const homeBackgroundIndex = useScrollBackground(HOME_BACKGROUNDS.length);
 
   // Track page visit for Movix Wrapped
@@ -1141,12 +1138,18 @@ const Home: React.FC = () => {
     { id: 356, src: "https://u.cubeupload.com/mystic/2Tc1P3Ac8M479naPp1kY.png", video: "https://media.tenor.com/ag74wyAzYkMAAAPo/dc-comics-dceu.mp4", alt: "DC Comics", route: "/provider/356", label: t('home.filmsAndSeries', { count: 98 }) },
   ], [t]);
 
-  if (cinematicLoadingVisible) {
-    return <CineHDLoadingScreen ready={!loading && !cinematicLoadingVisible} />;
-  }
-
   return (
     <div className="w-full min-h-screen bg-black text-white">
+      {/* L'écran cinématique se pose PAR-DESSUS l'accueil, qui est déjà
+          rendu derrière : la dissolution dorée se fond donc dans la page
+          réelle au lieu de se fondre dans le noir. */}
+      {cinematicLoadingVisible && (
+        <CineHDLoadingScreen
+          ready={!loading}
+          caption={t('home.loadingCaption')}
+          onExitComplete={handleCinematicExit}
+        />
+      )}
       <HomeBackground images={HOME_BACKGROUNDS} activeIndex={homeBackgroundIndex} />
       <motion.div
         initial={{ opacity: 0 }}

@@ -114,7 +114,7 @@ function WrappedLivePage({ version }: { version: WrappedVersion }) {
     // Tous les hooks de la page sont exécutés avant les écrans d'accès.
     if (!session.token) return <WrappedGate title={t('wrapped.loginRequired')} onClose={onClose}>
         <p className="text-white/75">{t('wrapped.loginRequiredDesc')}</p>
-        <button type="button" onClick={() => navigate('/login-bip39')} className="min-h-12 rounded-xl bg-[#a9dfff] px-6 font-bold text-[#101318]">{t('wrapped.loginAction')}</button>
+        <button type="button" onClick={() => navigate('/login')} className="min-h-12 rounded-xl bg-[#a9dfff] px-6 font-bold text-[#101318]">{t('wrapped.loginAction')}</button>
         <button type="button" onClick={() => navigate('/login?tab=create')} className="min-h-11 underline underline-offset-4">{t('wrapped.createAccountAction')}</button>
     </WrappedGate>;
 

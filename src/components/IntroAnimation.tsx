@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useWebHaptics } from 'web-haptics/react';
 import { useTranslation } from 'react-i18next';
 import { useIntro } from '../context/IntroContext';
@@ -11,11 +11,9 @@ interface IntroAnimationProps {
    Title card façon Breaking Bad :
    brume teal + fumée turbulente (feTurbulence) → formules 3D
    qui passent devant la caméra → fragment réel du tableau
-   périodique (périodes 4-6) → ignition en cascade de
-   Mo (42) · V (23) · I (53) · Xe (54) — les 4 vrais éléments
-   qui épellent MOVIX — le reste se dissout → glissé FLIP des
-   4 tuiles vers le wordmark → glint spéculaire → tagline →
-   fumée qui avale l'écran.
+   périodique (périodes 4-6) → ignition en cascade de quelques
+   éléments → le tableau se dissout → wordmark « CineHD » →
+   glint spéculaire → tagline → fumée qui avale l'écran.
    ============================================================ */
 
 type El = [symbol: string, number: number];
@@ -27,14 +25,6 @@ const ROWS: El[][] = [P4, P5, P6];
 
 // Ignition en cascade dans l'ordre de lecture
 const IGNITE_DELAY: Record<string, string> = { Mo: '0s', V: '0.14s', I: '0.28s', Xe: '0.42s' };
-
-// Tuiles du wordmark : délais de glissé (--gld) et de glint (--gt)
-const TILES = [
-  { sym: 'Mo', num: 42, gld: '0s', gt: '0s' },
-  { sym: 'V', num: 23, gld: '0.07s', gt: '0.1s' },
-  { sym: 'I', num: 53, gld: '0.14s', gt: '0.2s' },
-  { sym: 'Xe', num: 54, gld: '0.21s', gt: '0.3s' },
-] as const;
 
 // Délais de dissolution pseudo-aléatoires stables (pas de Math.random au render)
 const DISSOLVE_DELAYS = Array.from({ length: 45 }, (_, i) => ((i * 37 + 11) % 29) / 100);
@@ -92,8 +82,8 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onAnimationComplete }) 
   const { skipIntro } = useIntro();
   const { trigger: haptic } = useWebHaptics();
 
-  // -1 ambiance | 1 tableau | 2 ignition | 3 dissolution | 4 glide |
-  // 5 posé + glint | 6 tagline | 7 wisp | 8 fumée | 9 fondu sortie
+  // -1 ambiance | 1 tableau | 2 ignition | 3 dissolution | 4 wordmark |
+  // 5 posé (afloat) | 6 tagline | 7 wisp | 8 fumée | 9 fondu sortie
   const [step, setStep] = useState(-1);
 
   const reduced = useMemo(
@@ -102,7 +92,6 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onAnimationComplete }) 
   );
 
   const gridRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const tileRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const finish = useCallback(() => {
     document.body.style.overflow = '';
@@ -147,22 +136,6 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onAnimationComplete }) 
     return () => timers.forEach(clearTimeout);
   }, [finish, vibe, reduced]);
 
-  // FLIP : mesure des cases de la grille -> variables CSS des tuiles du logo.
-  // Posé avant le premier paint du step 4, bbTileGlide lit --dx/--dy/--s.
-  useLayoutEffect(() => {
-    if (step !== 4 || reduced) return;
-    TILES.forEach(({ sym }) => {
-      const from = gridRefs.current[sym];
-      const to = tileRefs.current[sym];
-      if (!from || !to) return;
-      const a = from.getBoundingClientRect();
-      const b = to.getBoundingClientRect();
-      to.style.setProperty('--dx', `${a.left - b.left}px`);
-      to.style.setProperty('--dy', `${a.top - b.top}px`);
-      to.style.setProperty('--s', String(a.width / b.width));
-    });
-  }, [step, reduced]);
-
   return (
     <div
       className={`fixed inset-0 z-[99999] overflow-hidden transition-opacity duration-700 ease-out
@@ -174,7 +147,6 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onAnimationComplete }) 
         touchAction: 'none',
         WebkitTapHighlightColor: 'transparent',
         '--cell': 'clamp(17px, 4.6vw, 44px)',
-        '--tile': 'clamp(52px, 12vw, 104px)',
         '--bb-hi': '#0b7a44',
         '--bb': '#026635',
         '--bb-lo': '#014b27',
@@ -281,21 +253,11 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onAnimationComplete }) 
           </div>
         )}
 
-        {/* Wordmark [Mo][V][I][Xe] + tagline */}
+        {/* Wordmark CineHD + tagline */}
         <div className={`bb-logo${step >= 8 ? ' consumed' : ''}`}>
           <div className={`bb-logo-inner${!reduced && step >= 5 ? ' afloat' : ''}`}>
             <div className="bb-wordmark">
-              {TILES.map(({ sym, num, gld, gt }) => (
-                <div
-                  key={sym}
-                  ref={(el) => { tileRefs.current[sym] = el; }}
-                  className={`bb-tile${!reduced && step >= 4 ? ' glide' : ''}${!reduced && step >= 5 ? ' landed' : ''}`}
-                  style={{ '--gld': gld, '--gt': gt } as React.CSSProperties}
-                >
-                  <span className="num">{num}</span>
-                  <span className="sym">{sym}</span>
-                </div>
-              ))}
+              <span className={`bb-brand${step >= 4 ? ' in' : ''}`}>CineHD</span>
             </div>
             <div className={`bb-tagline${step >= 6 ? ' in' : ''}`}>{t('introAnimation.tagline')}</div>
           </div>
@@ -473,59 +435,27 @@ const KEYFRAMES = `
   .bb-logo-inner { display: flex; flex-direction: column; align-items: center; gap: clamp(18px, 4vh, 34px); }
   .bb-logo-inner.afloat { animation: bbLogoFloat 7s ease-in-out infinite; }
   @keyframes bbLogoFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-0.6vh); } }
-  .bb-wordmark { display: flex; align-items: center; gap: calc(var(--tile) * 0.06); }
+  .bb-wordmark { display: flex; align-items: center; justify-content: center; }
 
-  .bb-tile {
+  .bb-brand {
     position: relative;
-    width: var(--tile); height: var(--tile);
-    border: 2px solid rgba(250,255,252,0.95); border-radius: 5px;
-    background: linear-gradient(180deg, var(--bb-hi) 0%, var(--bb) 55%, var(--bb-lo) 100%);
-    box-shadow:
-      0 0 34px 6px rgba(96,214,148,0.34),
-      0 0 110px 16px rgba(40,160,95,0.20),
-      inset 0 1px 0 rgba(255,255,255,0.28),
-      inset 0 -10px 22px rgba(0,30,12,0.35);
-    display: flex; align-items: center; justify-content: center;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 900;
+    font-size: clamp(58px, 15vw, 140px);
+    letter-spacing: -0.03em;
+    line-height: 1;
     color: #fff;
     opacity: 0;
-    transform-origin: top left;
-    will-change: transform;
-    overflow: hidden;
+    text-shadow:
+      0 0 44px rgba(96,214,148,0.5),
+      0 0 130px rgba(40,160,95,0.32);
+    will-change: transform, opacity, filter;
   }
-  .bb-tile .sym {
-    font-size: calc(var(--tile) * 0.46); font-weight: 700; letter-spacing: -0.02em;
-    text-shadow: 0 0 16px rgba(255,255,255,0.35);
-    transform: translateY(3%);
-  }
-  .bb-tile .num { position: absolute; top: 6.5%; left: 8.5%; font-size: calc(var(--tile) * 0.16); font-weight: 600; }
-
-  .bb-tile::after {
-    content: '';
-    position: absolute; inset: -30%;
-    background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,0.42) 50%, transparent 58%);
-    transform: translateX(-120%);
-    opacity: 0;
-  }
-  .bb-tile.landed::after { animation: bbGlint 0.9s ease-out calc(var(--gt,0s) + 0.3s) forwards; }
-  @keyframes bbGlint {
-    0% { opacity: 1; transform: translateX(-120%) skewX(-8deg); }
-    100% { opacity: 0.9; transform: translateX(120%) skewX(-8deg); }
-  }
-
-  .bb-tile.glide { animation: bbTileGlide 0.9s cubic-bezier(0.6,0.05,0.22,1) var(--gld,0s) both; }
-  .bb-tile.glide.landed {
-    animation:
-      bbTileGlide 0.9s cubic-bezier(0.6,0.05,0.22,1) var(--gld,0s) both,
-      bbTilePulse 3s ease-in-out 1.3s infinite;
-  }
-  @keyframes bbTileGlide {
-    from { opacity: 1; transform: translate(var(--dx,0px),var(--dy,0px)) scale(var(--s,0.4)); }
-    to { opacity: 1; transform: translate(0,0) scale(1); }
-  }
-  @keyframes bbTilePulse {
-    0%, 100% { box-shadow: 0 0 34px 6px rgba(96,214,148,0.34), 0 0 110px 16px rgba(40,160,95,0.20), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -10px 22px rgba(0,30,12,0.35); }
-    50% { box-shadow: 0 0 46px 10px rgba(96,214,148,0.48), 0 0 150px 24px rgba(40,160,95,0.30), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -10px 22px rgba(0,30,12,0.35); }
+  .bb-brand.in { animation: bbBrandIn 0.95s cubic-bezier(0.2,0.7,0.25,1) forwards; }
+  @keyframes bbBrandIn {
+    0% { opacity: 0; transform: scale(0.9); filter: blur(14px); }
+    60% { opacity: 1; filter: blur(0); }
+    100% { opacity: 1; transform: scale(1); filter: blur(0); }
   }
 
   .bb-tagline {
@@ -578,7 +508,7 @@ const KEYFRAMES = `
 
   /* Version reduced-motion : wordmark statique, aucune animation */
   .bb-rm .bb-scene, .bb-rm .bb-smoke, .bb-rm .bb-grain { animation: none !important; }
-  .bb-rm .bb-tile { opacity: 1; }
+  .bb-rm .bb-brand { opacity: 1 !important; animation: none !important; transform: none !important; filter: none !important; }
   .bb-rm .bb-tagline.in { animation: none; opacity: 1; color: rgba(255,255,255,0.55); }
 `;
 

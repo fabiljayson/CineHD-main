@@ -4484,7 +4484,7 @@
     "textCopied": "Text copied",
     "shareError": "Unable to share your Wrapped.",
     "shareImageSubtitle": "Your CineHD year, ready to share",
-    "canvasTitle": "MOVIX WRAPPED",
+    "canvasTitle": "CINEHD WRAPPED",
     "topContentBadge": "TOP CONTENT",
     "topContentFallbackAlt": "Top 1",
     "shareImageTopMeta": "{{watchTime}} | {{type}}",
@@ -5931,7 +5931,7 @@
   "seo": {
     "defaultTitle": "CineHD - Stream Movies and TV Shows",
     "defaultDescription": "Discover and watch your favorite movies and TV shows streaming on CineHD.",
-    "defaultKeywords": "streaming, movies, TV shows, movix, watch online"
+    "defaultKeywords": "streaming, movies, TV shows, cinehd, watch online"
   },
   "time": {
     "seconds": "{{count}}s",
@@ -6609,7 +6609,7 @@
       "actions": {
         "terms": "Terms of service",
         "email": "Email",
-        "privacyPolicyPage.supportCard.actions.whatsapp": "WhatsApp"
+        "whatsapp": "WhatsApp"
       }
     },
     "footerNote": "This policy reflects the observable behavior of the CineHD code as of March 29, 2026. If a future change adds, removes or changes a significant data flow, this page should be aligned again with the real implementation."
@@ -6621,11 +6621,11 @@
     "seoTitle": "Terms of service - CineHD",
     "seoDescription": "CineHD terms of service: accounts, WatchParty, community features, third-party services and VIP access.",
     "intro": [
-      "This page frames the practical use of Movix as reflected by the current state of the repository: browsing, playback, accounts, profiles, WatchParty, the extension, the community layer and VIP access.",
+      "This page frames the practical use of CineHD as reflected by the current state of the repository: browsing, playback, accounts, profiles, WatchParty, the extension, the community layer and VIP access.",
       "It has been rewritten to match the real service, including third-party dependencies, technical limitations and moderation mechanisms already present in the code."
     ],
     "summaryItems": [
-      "Movix partly relies on third-party services, sources and infrastructure whose availability may vary.",
+      "CineHD partly relies on third-party services, sources and infrastructure whose availability may vary.",
       "Accounts, profiles, WatchParty rooms, community content and VIP access may be limited or suspended in case of abuse or risk.",
       "Some features require authentication, anti-bot verification, an extension or userscript, or a valid crypto invoice.",
       "Continuing to use the service after this page changes means you accept the updated terms."
@@ -6634,11 +6634,11 @@
       "scope": {
         "title": "Scope",
         "paragraphs": [
-          "These terms govern the use of Movix, including the main site, accounts and profiles, WatchParty, community features, VIP pages, the browser extension, the userscript and associated technical services.",
-          "By using Movix, you also accept the Privacy page and any specific rules displayed on certain features or forms."
+          "These terms govern the use of CineHD, including the main site, accounts and profiles, WatchParty, community features, VIP pages, the browser extension, the userscript and associated technical services.",
+          "By using CineHD, you also accept the Privacy page and any specific rules displayed on certain features or forms."
         ],
         "bullets": [
-          "Movix acts as an interface, aggregator, technical gateway and playback tool around sources, metadata and third-party services."
+          "CineHD acts as an interface, aggregator, technical gateway and playback tool around sources, metadata and third-party services."
         ]
       },
       "accounts": {
@@ -6647,26 +6647,26 @@
           "Access may use Discord, Google or BIP39. You remain responsible for the confidentiality of your BIP39 secret phrase, your linked accounts, your session tokens and the devices on which you sign in.",
           "You are responsible for the actions performed through your sessions, selected profiles and WatchParty rooms until you have closed or revoked them.",
           "You must not impersonate a third party, bypass authentication safeguards or use accounts, profiles or VIP access obtained fraudulently.",
-          "Movix may limit, close or reset sessions and account links when a security risk, abuse pattern or technical inconsistency is detected."
+          "CineHD may limit, close or reset sessions and account links when a security risk, abuse pattern or technical inconsistency is detected."
         ],
         "note": "The BIP39 phrase acts as the primary access key to the affected account. Losing or disclosing it may prevent secure recovery or lead to unauthorized access."
       },
       "acceptableUse": {
         "title": "Acceptable use",
         "bullets": [
-          "You must not use Movix to harass, spam, threaten, defraud, bypass applicable laws, publish clearly unlawful content or infringe the rights of others.",
+          "You must not use CineHD to harass, spam, threaten, defraud, bypass applicable laws, publish clearly unlawful content or infringe the rights of others.",
           "This notably forbids abusive automation, large-scale scraping, intentional infrastructure saturation, vote or report manipulation, and abuse of anti-bot, anti-abuse or session mechanisms.",
           "You must not use WatchParty, comments, shared lists, suggestions, link submissions, proxies, the extension or the userscript in a way that disrupts the service or harms other users.",
-          "You remain responsible for complying with the terms of the third-party services you use through Movix."
+          "You remain responsible for complying with the terms of the third-party services you use through CineHD."
         ]
       },
       "thirdPartyServices": {
         "title": "Third-party sources, playback and availability",
         "bullets": [
-          "Movix depends on third-party providers for metadata, images, authentication, some live channels, hosts, technical proxies, CDNs, verification services and payment services.",
+          "CineHD depends on third-party providers for metadata, images, authentication, some live channels, hosts, technical proxies, CDNs, verification services and payment services.",
           "Some playback or extraction flows may require the browser extension, the userscript, local network permissions or additional technical components.",
           "The availability of a stream, page, source or integration may change without notice depending on the state of external services, networks, browsers or devices.",
-          "Movix does not guarantee permanent availability, constant quality, universal compatibility or continuity of any given third-party source."
+          "CineHD does not guarantee permanent availability, constant quality, universal compatibility or continuity of any given third-party source."
         ],
         "note": "External services and sources keep their own terms of service and privacy policies. Their behavior is not under CineHD's exclusive control."
       },
@@ -6674,7 +6674,7 @@
         "title": "Community features and moderation",
         "bullets": [
           "Comments, replies, shared lists, votes, Wishboard entries, link submissions, WatchParty nicknames, messages and reactions must remain lawful, respectful and technically manageable.",
-          "Movix may moderate some text content automatically and manually, refuse publication, hide an item, remove content or limit interactions when abuse, risk or a violation is detected.",
+          "CineHD may moderate some text content automatically and manually, refuse publication, hide an item, remove content or limit interactions when abuse, risk or a violation is detected.",
           "Public lists, some votes, some community content and public WatchParty rooms may be visible to other users.",
           "Repeated abuse may result in a feature suspension, session revocation, account restriction, loss of community access or removal of VIP benefits."
         ]
@@ -6685,7 +6685,7 @@
           "The creator of a WatchParty room remains responsible for invited people, room settings, the chosen sync mode and any content shared in the chat.",
           "Public rooms may appear in the public catalog with visible metadata such as room code, title, poster, media type and participant count.",
           "Real-time exchanges, playback state and room data are temporary and may be briefly persisted to ensure service continuity before automatic expiration.",
-          "Sync quality depends on devices, browser, network and external media sources. Movix does not guarantee perfect synchronization in every case."
+          "Sync quality depends on devices, browser, network and external media sources. CineHD does not guarantee perfect synchronization in every case."
         ]
       },
       "vip": {
@@ -6700,8 +6700,8 @@
       "changesLiability": {
         "title": "Suspension, service changes and liability",
         "bullets": [
-          "Movix may modify, suspend or stop a feature, route, integration or access for technical, maintenance, security, compliance or operational reasons.",
-          "Movix may remove content, close a session, limit a room, revoke a linked account or restrict a user when risky behavior or a breach of these terms is observed.",
+          "CineHD may modify, suspend or stop a feature, route, integration or access for technical, maintenance, security, compliance or operational reasons.",
+          "CineHD may remove content, close a session, limit a room, revoke a linked account or restrict a user when risky behavior or a breach of these terms is observed.",
           "The service is provided as is, with reasonable efforts toward stability, but without an absolute guarantee against errors, interruptions, third-party related loss or any specific outcome.",
           "If one clause is held unenforceable, the others remain valid. Continuing to use the service after this page is updated means accepting the version in force."
         ]
@@ -6711,12 +6711,12 @@
       "title": "Useful links",
       "paragraphs": [
         "The Privacy page complements these terms for the data and tracking aspects.",
-        "For any questions or reports, use the “Contact Movix” link below."
+        "For any questions or reports, use the “Contact CineHD” link below."
       ],
       "actions": {
         "privacy": "Privacy",
         "contact": "Contact CineHD",
-        "termsOfServicePage.supportCard.actions.whatsapp": "WhatsApp"
+        "whatsapp": "WhatsApp"
       }
     },
     "footerNote": "These terms describe the general rules governing the use of CineHD as of September 20, 2026. Fraudulent, abusive or technically harmful behavior may trigger immediate restrictions even if a precise case is not listed word for word above."
@@ -6812,7 +6812,7 @@
       "listTitle": "Recently generated keys",
       "createButton": "Create key",
       "regenerateButton": "Regenerate",
-      "defaultLabel": "VIP-MOVIX-7D2K-4X9P",
+      "defaultLabel": "VIP-CINEHD-7D2K-4X9P",
       "defaultNote": "Internal use",
       "fields": {
         "label": "VIP key",

@@ -69,7 +69,7 @@ const MOVIX_CONSOLE_SAFETY_WARNING_LINES: MovixConsoleWarningLine[] = [
     ].join('; '),
   },
   {
-    text: 'Coller quelque chose ici peut donner à un attaquant accès à ton compte Movix.',
+    text: 'Coller quelque chose ici peut donner à un attaquant accès à ton compte CineHD.',
     style: [
       'font-size: 22px',
       'font-weight: 900',

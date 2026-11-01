@@ -1,11 +1,11 @@
-# Politique de confidentialité CineHD (ex-Movix) · CineHD Privacy Policy
+# Politique de confidentialité CineHD · CineHD Privacy Policy
 
 > **Statut / Status** — Ce document est le miroir fidèle de la politique affichée aux utilisateurs dans l'application à l'adresse `/privacy`. En cas d'écart, la page `/privacy` alimentée par `src/i18n/locales/{fr,en}.json` fait foi.
 > This document is a faithful mirror of the policy shown to users in the application at `/privacy`. If they ever diverge, the `/privacy` page backed by `src/i18n/locales/{fr,en}.json` is authoritative.
 
 **Dernière mise à jour / Last updated : 29 mars 2026**
 
-**Contact** : [movixstreaming@gmail.com](mailto:movixstreaming@gmail.com) — ou WhatsApp via le lien de support disponible sur la page `/privacy` de l'application.
+**Contact** : [jasonfranckkenmognw@gmail.com](mailto:jasonfranckkenmognw@gmail.com) — ou WhatsApp via le lien de support disponible sur la page `/privacy` de l'application.
 
 ---
 
@@ -102,7 +102,7 @@ Les données CineHD peuvent vivre à plusieurs endroits selon la fonctionnalité
 
 **Exercer un contrôle ou poser une question**
 
-Pour une question confidentialité, une demande d'accès ou une demande de suppression qui n'est pas couverte par les réglages disponibles, écrivez à [movixstreaming@gmail.com](mailto:movixstreaming@gmail.com) ou utilisez le canal WhatsApp présent sur la page `/privacy`. Pour les réglages immédiats déjà exposés dans l'application, la page Paramètres reste le point d'entrée principal.
+Pour une question confidentialité, une demande d'accès ou une demande de suppression qui n'est pas couverte par les réglages disponibles, écrivez à [jasonfranckkenmognw@gmail.com](mailto:jasonfranckkenmognw@gmail.com) ou utilisez le canal WhatsApp présent sur la page `/privacy`. Pour les réglages immédiats déjà exposés dans l'application, la page Paramètres reste le point d'entrée principal.
 
 > Cette politique reflète le comportement observable du code CineHD au 29 mars 2026. Si une future évolution ajoute, retire ou change un flux de données important, cette page devra être alignée à nouveau sur l'implémentation réelle.
 
@@ -189,7 +189,7 @@ CineHD data may live in several places depending on the feature: in your browser
 
 **Exercise control or ask a question**
 
-For a privacy question, an access request or a deletion request not covered by the available settings, write to [movixstreaming@gmail.com](mailto:movixstreaming@gmail.com) or use the WhatsApp channel shown on the `/privacy` page. For immediate settings already exposed in the app, the Settings page remains the main entry point.
+For a privacy question, an access request or a deletion request not covered by the available settings, write to [jasonfranckkenmognw@gmail.com](mailto:jasonfranckkenmognw@gmail.com) or use the WhatsApp channel shown on the `/privacy` page. For immediate settings already exposed in the app, the Settings page remains the main entry point.
 
 > This policy reflects the observable behavior of the CineHD code as of March 29, 2026. If a future change adds, removes or changes a significant data flow, this document should be aligned again with the real implementation.
 

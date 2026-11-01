@@ -26,7 +26,7 @@ interface CinemaHeroProps {
 const tmdbImage = (path: string, size = 'w1280'): string =>
   path
     ? `https://image.tmdb.org/t/p/${size}${path}`
-    : 'https://via.placeholder.com/1280x720/0b0d10/c89028?text=MOVIX';
+    : 'https://via.placeholder.com/1280x720/0b0d10/c89028?text=CineHD';
 
 const GENRE_MAP: Record<number, string> = {
   28: 'Action', 12: 'Aventure', 16: 'Animation', 35: 'Comédie', 80: 'Crime',

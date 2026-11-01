@@ -1165,7 +1165,7 @@ const CreditsRoll: React.FC<{ topContent: WrappedData['topContent']; topGenres?:
         ...(topContent.length ? [{ label: t('wrapped.creditsStarring'), value: topContent.slice(0, 5).map(c => c.title).join(' · ') }] : []),
         ...(topGenres?.length ? [{ label: t('wrapped.creditsGenre'), value: topGenres[0].name }] : []),
         { label: t('wrapped.creditsRuntime'), value: formatCompactDuration(stats.totalMinutes, t) },
-        { label: t('wrapped.creditsProducedBy'), value: 'MOVIX' },
+        { label: t('wrapped.creditsProducedBy'), value: 'CINEHD' },
         { label: '©', value: DEFAULT_PUBLIC_DOMAIN },
     ];
 
@@ -2777,9 +2777,9 @@ const WrappedPage: React.FC<{ data: WrappedData; onClose: () => void }> = ({ dat
 
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 54px Inter, system-ui, sans-serif';
-        ctx.fillText('MOVIX', 356, 262);
+        ctx.fillText('CINEHD', 356, 262);
         ctx.fillStyle = accentGradient;
-        ctx.fillText('Wrapped', 557, 262);
+        ctx.fillText('Wrapped', 356 + ctx.measureText('CINEHD').width + 26, 262);
 
         ctx.save();
         ctx.strokeStyle = 'rgba(255,255,255,0.07)';
@@ -2790,7 +2790,7 @@ const WrappedPage: React.FC<{ data: WrappedData; onClose: () => void }> = ({ dat
 
         ctx.fillStyle = 'rgba(255,255,255,0.52)';
         ctx.font = '800 22px Inter, system-ui, sans-serif';
-        fillCenteredText(`MOVIX WRAPPED ${year}`, 330);
+        fillCenteredText(`CINEHD WRAPPED ${year}`, 330);
 
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 68px Inter, system-ui, sans-serif';

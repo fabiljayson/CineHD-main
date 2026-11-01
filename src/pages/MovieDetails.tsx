@@ -894,7 +894,7 @@ const MovieDetails = (): JSX.Element => {
   const { resetVipStatus } = useAdFreePopup(); // Récupérer la fonction reset
   const { currentProfile } = useProfile();
 
-  // Track page visit for Movix Wrapped
+  // Track page visit for CineHD Wrapped
   useWrappedTracker({
     mode: 'page',
     pageData: id ? { pageName: 'movie-details', contentId: id } : undefined,
@@ -1800,7 +1800,7 @@ const MovieDetails = (): JSX.Element => {
   const movieSocialImage = movie.backdrop_path || movie.poster_path
     ? `https://image.tmdb.org/t/p/original${movie.backdrop_path || movie.poster_path}`
     : undefined;
-  const movieDescription = movie.overview?.trim() || `Découvrez ${movie.title} sur Movix.`;
+  const movieDescription = movie.overview?.trim() || `Découvrez ${movie.title} sur CineHD.`;
   const posterCssWidth = viewportWidth < 768
     ? viewportWidth - 32
     : viewportWidth < 1024

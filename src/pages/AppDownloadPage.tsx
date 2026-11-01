@@ -69,8 +69,8 @@ const androidSteps = [
   },
   {
     step: 4,
-    title: 'Profitez de Movix',
-    desc: 'L\'icône Movix apparaît sur votre écran d\'accueil, prête à être utilisée.',
+    title: 'Profitez de CineHD',
+    desc: 'L\'icône CineHD apparaît sur votre écran d\'accueil, prête à être utilisée.',
   },
 ];
 
@@ -111,7 +111,7 @@ const AppDownloadPage: React.FC = () => {
             </div>
             <h1 className="flex flex-col gap-2 text-4xl md:text-6xl font-black tracking-tight mb-4 pb-4">
               <ShinyText
-                text="Movix dans votre poche"
+                text="CineHD dans votre poche"
                 speed={3}
                 color="#ffffff"
                 shineColor="#6366f1"
@@ -126,7 +126,7 @@ const AppDownloadPage: React.FC = () => {
               />
             </h1>
             <BlurText
-              text="Téléchargez l'application Movix et profitez de tous vos contenus préférés directement depuis votre smartphone."
+              text="Téléchargez l'application CineHD et profitez de tous vos contenus préférés directement depuis votre smartphone."
               delay={150}
               className="text-lg text-white/60 max-w-2xl mx-auto justify-center"
             />
@@ -158,7 +158,7 @@ const AppDownloadPage: React.FC = () => {
                 </div>
               </div>
               <p className="text-white/55 text-sm leading-relaxed mb-6">
-                Installez Movix sur votre appareil Android en téléchargeant directement
+                Installez CineHD sur votre appareil Android en téléchargeant directement
                 le fichier APK officiel. Rapide, léger et sans compte obligatoire.
               </p>
               <div className="flex flex-wrap gap-2 mb-6">
@@ -256,7 +256,7 @@ const AppDownloadPage: React.FC = () => {
               </div>
               <div className="flex-1 text-center md:text-left">
                 <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
-                  L'extension Movix est intégrée dans l'application
+                  L'extension CineHD est intégrée dans l'application
                 </h3>
                 <p className="text-white/55 text-sm sm:text-base leading-relaxed">
                   Pas besoin d'installer quoi que ce soit en plus : l'extension est
@@ -300,7 +300,7 @@ const AppDownloadPage: React.FC = () => {
             </h2>
             <p className="text-white/50 max-w-2xl mx-auto">
               Une expérience optimisée pour votre appareil mobile, avec toutes les
-              fonctionnalités de Movix à portée de main.
+              fonctionnalités de CineHD à portée de main.
             </p>
           </div>
 
@@ -343,7 +343,7 @@ const AppDownloadPage: React.FC = () => {
               Comment installer sur Android ?
             </h2>
             <p className="text-white/50 max-w-xl mx-auto">
-              Suivez ces quelques étapes simples pour installer Movix sur votre appareil.
+              Suivez ces quelques étapes simples pour installer CineHD sur votre appareil.
             </p>
           </div>
 
@@ -400,7 +400,7 @@ const AppDownloadPage: React.FC = () => {
             className="p-8 backdrop-blur-sm"
           >
             <Smartphone className="w-10 h-10 text-indigo-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">Prêt à installer Movix ?</h3>
+            <h3 className="text-xl font-bold text-white mb-2">Prêt à installer CineHD ?</h3>
             <p className="text-white/50 text-sm mb-6 max-w-md mx-auto">
               Téléchargez l'application Android dès maintenant et profitez d'une
               expérience optimale sur votre smartphone.

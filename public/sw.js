@@ -224,7 +224,7 @@ function renderRedirectPage(url) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="refresh" content="0; url=${safe}">
-  <title>Movix — Redirection</title>
+  <title>CineHD — Redirection</title>
   <link rel="canonical" href="${safe}">
   <style>
     html, body { margin: 0; padding: 0; height: 100%; background: #000; color: #fff;
@@ -268,7 +268,7 @@ function render503Page() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Movix — Indisponible</title>
+  <title>CineHD — Indisponible</title>
   <style>
     html, body { margin: 0; padding: 0; height: 100%; background: #000; color: #fff;
       font-family: system-ui, -apple-system, sans-serif; display: grid; place-items: center; }
@@ -335,7 +335,7 @@ self.addEventListener('push', (event) => {
   const data = event.data.json();
   const baseUrl = self.location.origin;
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Movix', {
+    self.registration.showNotification(data.title || 'CineHD', {
       body: data.body || '',
       icon: data.icon ? new URL(data.icon, baseUrl).href : `${baseUrl}/movix-192.png`,
       badge: data.badge ? new URL(data.badge, baseUrl).href : `${baseUrl}/movix-192.png`,

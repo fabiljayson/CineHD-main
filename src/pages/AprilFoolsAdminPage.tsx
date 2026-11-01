@@ -124,17 +124,17 @@ const AprilFoolsAdminPage: React.FC = () => {
   const fakeVipKeys = useMemo(
     () => [
       {
-        code: 'VIP-MOVIX-4F2K-Q8AZ',
+        code: 'VIP-CINEHD-4F2K-Q8AZ',
         pack: t('aprilAdmin.vipKeys.durationOptions.days365'),
         status: t('aprilAdmin.status.available'),
       },
       {
-        code: 'VIP-MOVIX-9L1X-R7TP',
+        code: 'VIP-CINEHD-9L1X-R7TP',
         pack: t('aprilAdmin.vipKeys.durationOptions.days30'),
         status: t('aprilAdmin.status.queued'),
       },
       {
-        code: 'VIP-MOVIX-7N6C-Z1EF',
+        code: 'VIP-CINEHD-7N6C-Z1EF',
         pack: t('aprilAdmin.vipKeys.durationOptions.lifetime'),
         status: t('aprilAdmin.status.delivered'),
       },

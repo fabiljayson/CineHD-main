@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import LegalDocumentPage, { LegalSection } from '../components/legal/LegalDocumentPage';
 import * as whatsappSupport from '../config/support';
 
-const CONTACT_EMAIL = 'movixstreaming@gmail.com';
+const CONTACT_EMAIL = 'jasonfranckkenmognw@gmail.com';
 const SUPPORT_WHATSAPP_URL = whatsappSupport.SUPPORT_WHATSAPP_URL;
 
 const TermsOfService = () => {

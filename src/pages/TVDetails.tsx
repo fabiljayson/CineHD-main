@@ -948,7 +948,7 @@ const TVDetails: React.FC = () => {
   const navigate = useNavigate();
   const { currentProfile } = useProfile();
 
-  // Track page visit for Movix Wrapped
+  // Track page visit for CineHD Wrapped
   useWrappedTracker({
     mode: 'page',
     pageData: id ? { pageName: 'tv-details', contentId: id } : undefined,
@@ -3008,7 +3008,7 @@ const TVDetails: React.FC = () => {
   const tvSocialImage = tvShow.backdrop_path || tvShow.poster_path
     ? `https://image.tmdb.org/t/p/original${tvShow.backdrop_path || tvShow.poster_path}`
     : undefined;
-  const tvDescription = tvShow.overview?.trim() || `Découvrez ${tvShow.name} sur Movix.`;
+  const tvDescription = tvShow.overview?.trim() || `Découvrez ${tvShow.name} sur CineHD.`;
   const posterCssWidth = viewportWidth < 768
     ? viewportWidth - 32
     : viewportWidth < 1024

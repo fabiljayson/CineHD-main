@@ -384,7 +384,7 @@ const Top10Page: React.FC = () => {
               <Trophy className="w-8 h-8 text-ink-faint" />
             </div>
             <h1 className="text-4xl md:text-6xl font-semibold mb-4 pb-4 flex flex-col items-center gap-1">
-              <span className="py-2 leading-tight text-white">Top 10 Movix</span>
+              <span className="py-2 leading-tight text-white">Top 10 CineHD</span>
               <span className="py-2 leading-tight text-ink-muted">{t('top10.ranking')}</span>
             </h1>
             <p className="text-lg text-ink-muted max-w-2xl mx-auto">

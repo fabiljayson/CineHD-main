@@ -28,11 +28,11 @@ const InlineCode: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
   </code>
 );
 
-const CLAUDE_CODE_SNIPPET = `claude mcp add --transport http movix ${MCP_URL}`;
+const CLAUDE_CODE_SNIPPET = `claude mcp add --transport http cinehd ${MCP_URL}`;
 
 const CURSOR_SNIPPET = `{
   "mcpServers": {
-    "movix": {
+    "cinehd": {
       "url": "${MCP_URL}"
     }
   }
@@ -40,7 +40,7 @@ const CURSOR_SNIPPET = `{
 
 const VSCODE_SNIPPET = `{
   "servers": {
-    "movix": {
+    "cinehd": {
       "type": "http",
       "url": "${MCP_URL}"
     }
@@ -49,9 +49,9 @@ const VSCODE_SNIPPET = `{
 
 const LOCAL_SNIPPET = `{
   "mcpServers": {
-    "movix": {
+    "cinehd": {
       "command": "node",
-      "args": ["/path/to/movix-mcp/dist/index.js"],
+      "args": ["/path/to/cinehd-mcp/dist/index.js"],
       "env": {
         "TMDB_API_KEY": "ta_cle_tmdb_v4"
       }

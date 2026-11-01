@@ -295,7 +295,7 @@ export function filmPoster(ctx: CanvasRenderingContext2D, item: FilmItem, image:
         const fill = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
         fill.addColorStop(0, FILM.primary); fill.addColorStop(1, FILM.deep);
         ctx.fillStyle = fill; ctx.fillRect(-width / 2, -height / 2, width, height);
-        filmText(ctx, 'MOVIX', -width / 2 + width * 0.09, -height / 2 + width * 0.09, width * 0.82, { size: Math.max(12, width * 0.07), display: true, color: FILM.paper });
+        filmText(ctx, 'CINEHD', -width / 2 + width * 0.09, -height / 2 + width * 0.09, width * 0.82, { size: Math.max(12, width * 0.07), display: true, color: FILM.paper });
         const words = item.title.trim().split(/\s+/);
         const title = words.length > 5 ? `${words.slice(0, 5).join(' ')}…` : item.title;
         filmText(ctx, title, -width / 2 + width * 0.09, -height * 0.1, width * 0.82, { size: Math.max(14, width * 0.11), minSize: Math.max(9, width * 0.05), display: true, color: FILM.paper, lines: 4, leading: 1.04 });
@@ -396,7 +396,7 @@ export function filmVignette(ctx: CanvasRenderingContext2D, strength: number) {
 export function filmHud(ctx: CanvasRenderingContext2D, options: { year: number; domain: string; chapter: string; color: string; top: number; bottom: number }) {
     const { year, domain, chapter, color, top, bottom } = options;
     if (top > 0.001) {
-        filmText(ctx, 'MOVIX', 52, 58, 220, { size: 24, display: true, color, alpha: top });
+        filmText(ctx, 'CINEHD', 52, 58, 220, { size: 24, display: true, color, alpha: top });
         filmText(ctx, `WRAPPED ${year}`, 668, 62, 320, { size: 15, weight: 800, color, align: 'right', alpha: top * 0.85, tracking: 3 });
     }
     if (bottom > 0.001) {

@@ -28,7 +28,7 @@ const supportedSources = [
   { name: 'Purstream', color: '#d946ef' },
 ];
 
-// Timeline / Histoire de Movix
+// Timeline / Histoire de CineHD
 const historyItems = [
   {
     icon: <Sparkles className="w-5 h-5" />,
@@ -218,7 +218,7 @@ const WhatIsMovixPage: React.FC = () => {
           </Link>
         </motion.div>
 
-        {/* Histoire de Movix */}
+        {/* Histoire de CineHD */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -344,7 +344,7 @@ const WhatIsMovixPage: React.FC = () => {
           >
             <img
               src={movixIcon}
-              alt="Movix Logo"
+              alt="CineHD Logo"
               className="w-12 h-12 mx-auto mb-4 drop-shadow-lg"
             />
             <h3 className="text-xl font-bold text-white mb-2">{t('whatIsMovix.readyToTry')}</h3>

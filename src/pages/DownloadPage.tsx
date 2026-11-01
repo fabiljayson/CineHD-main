@@ -814,7 +814,7 @@ const DownloadPage: React.FC = () => {
     }
   };
 
-  // Fonction pour trier les liens selon l'ordre de priorité (Movix en premier)
+  // Fonction pour trier les liens selon l'ordre de priorité (CineHD en premier)
   const sortDownloadLinks = (links: DownloadLink[]): DownloadLink[] => {
     const movix = links.filter(l => l.source === 'movix');
     const rest = links.filter(l => l.source !== 'movix');
@@ -1293,7 +1293,7 @@ const DownloadPage: React.FC = () => {
     setIsDecoding(false);
     setShowLinkSelector(true);
 
-    // Les liens Movix sont déjà des URLs directes (1fichier, Mega, …) ajoutées
+    // Les liens CineHD sont déjà des URLs directes (1fichier, Mega, …) ajoutées
     // côté admin : pas de décodage Darkino nécessaire.
     if (link.source === 'movix' && link.url) {
       setIsDecoding(false);
@@ -1636,10 +1636,10 @@ const DownloadPage: React.FC = () => {
                                   title={
                                     link.added_by
                                       ? `Ajouté par ${link.added_by.username}${link.added_at ? ` le ${new Date(link.added_at).toLocaleDateString(i18n.language)}` : ''}`
-                                      : 'Lien Movix'
+                                      : 'Lien CineHD'
                                   }
                                 >
-                                  Movix
+                                  CineHD
                                 </span>
                               )}
                               {link.full_saison === 1 && (

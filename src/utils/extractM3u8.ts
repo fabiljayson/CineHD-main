@@ -764,7 +764,7 @@ export async function extractM3u8OnDetection(
 
   // If extension with Nexus extractors is available, use its bulk extraction for better performance
   if (extensionReady && window.movixExtractAllM3u8) {
-    console.log('🔌 Using Movix Extension Nexus extractors for parallel extraction');
+    console.log('🔌 Using CineHD Extension Nexus extractors for parallel extraction');
     try {
       const extensionResult = await window.movixExtractAllM3u8(sources);
       if (hasCompleteBulkCoverage(detectedEmbeds, extensionResult?.results)) {

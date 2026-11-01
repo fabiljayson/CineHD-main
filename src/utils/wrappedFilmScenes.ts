@@ -85,7 +85,7 @@ function logo(ctx: CanvasRenderingContext2D, year: number, time: number) {
     const sweep = filmMix(-260, W + 260, filmSmooth((time - beats(0.15)) / beats(1.1)));
     const shine = ctx.createLinearGradient(sweep - 150, 0, sweep + 150, 0);
     shine.addColorStop(0, FILM.paper); shine.addColorStop(0.5, FILM.light); shine.addColorStop(1, FILM.paper);
-    filmText(ctx, 'MOVIX', W / 2, 500, 660, { size: 136, display: true, color: shine, align: 'center' });
+    filmText(ctx, 'CINEHD', W / 2, 500, 660, { size: 136, display: true, color: shine, align: 'center' });
     ctx.fillStyle = FILM.primary; ctx.fillRect(W / 2 - 170 * bar, 664, 340 * bar, 6);
     filmText(ctx, `WRAPPED ${year}`, W / 2, 694, 660, { size: 26, weight: 800, color: FILM.light, align: 'center', tracking: 10 });
     ctx.restore();
@@ -422,7 +422,7 @@ function finale(ctx: CanvasRenderingContext2D, shot: Shot) {
     filmLine(ctx, M, layout.footer, filmMix(M, W - M, end), layout.footer, FILM.paper, 0.22);
     filmText(ctx, texts.final, M, layout.footer + 26, 470, { size: 26, weight: 800, color: FILM.paper, alpha: end });
     filmText(ctx, data.domain, M, layout.footer + 66, 470, { size: 19, weight: 600, color: FILM.light, alpha: end });
-    filmText(ctx, 'MOVIX', W - M, layout.footer + 30, 200, { size: 30, display: true, color: FILM.paper, align: 'right', alpha: end });
+    filmText(ctx, 'CINEHD', W - M, layout.footer + 30, 200, { size: 30, display: true, color: FILM.paper, align: 'right', alpha: end });
     // Retour harmonique de la piste : un reflet traverse le souvenir une seule fois.
     const shine = (time - beats(6)) / beats(1.4);
     if (shine > 0 && shine < 1) {

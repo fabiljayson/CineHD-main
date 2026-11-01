@@ -396,7 +396,7 @@ function cinematicBackdrop(ctx: CanvasRenderingContext2D, tone: Tone, image: HTM
 }
 
 function header(ctx: CanvasRenderingContext2D, tone: Tone, tag: string) {
-    const mark = layout(ctx, 'MOVIX', 320, { size: 40, display: true });
+    const mark = layout(ctx, 'CINEHD', 320, { size: 40, display: true });
     paint(ctx, mark, MARGIN, 76, tone.paper);
     const label = layout(ctx, tag, CONTENT - mark.width - 56, smallCaps(22));
     paint(ctx, label, WIDTH - MARGIN, 76 + mark.cap - label.cap, tone.light, 'right');
@@ -1027,7 +1027,7 @@ function drawTicket(ctx: CanvasRenderingContext2D, tone: Tone, data: WrappedShar
     const band = 150;
     ctx.fillStyle = tone.primary;
     ctx.fillRect(ticket.x, ticket.y, ticket.width, band);
-    const mark = layout(ctx, 'MOVIX', 320, { size: 46, display: true });
+    const mark = layout(ctx, 'CINEHD', 320, { size: 46, display: true });
     paint(ctx, mark, inner.x, ticket.y + (band - mark.cap) / 2, tone.paper);
     const tag = layout(ctx, `Wrapped ${data.year}`, inner.width - mark.width - 40, smallCaps(22));
     paint(ctx, tag, inner.x + inner.width, ticket.y + (band + mark.cap) / 2 - tag.cap, alpha(tone.paper, 0.86), 'right');

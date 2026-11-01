@@ -218,7 +218,7 @@ export async function generateTicketShareImage(data: WrappedShareCardData): Prom
     // En-tête ticket
     ctx.fillStyle = ink;
     ctx.font = `400 58px ${DISPLAY_FONT}`;
-    centerInTicket(`MOVIX WRAPPED`, ty + 116);
+    centerInTicket(`CINEHD WRAPPED`, ty + 116);
     ctx.font = `400 100px ${DISPLAY_FONT}`;
     centerInTicket(String(data.year), ty + 226);
     ctx.fillStyle = inkSoft;

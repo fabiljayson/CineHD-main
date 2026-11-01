@@ -29,7 +29,7 @@ function WrappedGate({ title, children, onClose }: { title: string; children?: R
         <main className="fixed inset-0 z-50 h-[100dvh] overflow-y-auto bg-[#101318] px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-[#f4efe6]" data-lenis-prevent>
             <button type="button" onClick={onClose} className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10" aria-label={t('wrappedStory.close')}><X className="h-5 w-5" /></button>
             <div className="mx-auto flex min-h-[75dvh] max-w-lg flex-col justify-center gap-6 py-8">
-                <p className="font-semibold text-[#a9dfff]">MOVIX WRAPPED</p>
+                <p className="font-semibold text-[#a9dfff]">CINEHD WRAPPED</p>
                 <h1 className="text-balance text-4xl font-black leading-tight tracking-tight">{title}</h1>
                 {children}
             </div>

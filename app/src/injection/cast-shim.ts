@@ -1,5 +1,5 @@
 /**
- * Versioned Android Cast bridge injected before the Movix frontend.
+ * Versioned Android Cast bridge injected before the CineHD frontend.
  *
  * Android media is always prepared by the locked userscript resolver and then
  * handed to the native LAN relay. This shim deliberately exposes no direct URL
@@ -299,7 +299,7 @@ export function buildCastShim(): string {
       return callNative('CASTSHIM_LOAD_MEDIA', {
         source: source,
         metadata: {
-          title: title || 'Movix',
+          title: title || 'CineHD',
           poster: poster || '',
           currentTime:
             typeof currentTime === 'number' && currentTime >= 0

@@ -2,7 +2,7 @@
 // @name         CineHD Proxy Extension (Tampermonkey)
 // @namespace    https://movix.cash
 // @version      1.7.2
-// @description  Extension proxy pour Live TV Movix - Contourne CORS, injecte les headers et extrait les sources Nexus - version userscript Tampermonkey
+// @description  Extension proxy pour Live TV CineHD - Contourne CORS, injecte les headers et extrait les sources Nexus - version userscript Tampermonkey
 // @author       fabiljayson
 // @updateURL    https://github.com/fabiljayson/CineHD-main/raw/refs/heads/main/userscript/movix.user.js
 // @downloadURL  https://github.com/fabiljayson/CineHD-main/raw/refs/heads/main/userscript/movix.user.js
@@ -424,10 +424,10 @@
   // END KISSKH FALLBACK
 
   const USERSCRIPT_MANIFEST = {
-    name: "Movix Proxy Extension",
+    name: "CineHD Proxy Extension",
     version: "1.7.2",
     description:
-      "Extension proxy pour Live TV Movix - Contourne CORS, injecte les headers et extrait les sources Nexus",
+      "Extension proxy pour Live TV CineHD - Contourne CORS, injecte les headers et extrait les sources Nexus",
   };
 
   const pageWindow =
@@ -455,7 +455,7 @@
   // Nos appelants n'écoutent que les callbacks onload/onerror : sans `.catch`,
   // ce rejet devient un « unhandledrejection » dans la page — et comme le
   // script tourne dans le contexte de la page, il finit chez le suivi
-  // d'erreurs de Movix (« Object captured as promise rejection with keys:
+  // d'erreurs de CineHD (« Object captured as promise rejection with keys:
   // context, finalUrl, readyState… »). On l'avale ici, une fois pour toutes ;
   // le handle est rendu tel quel, `abort()` compris.
   function silenceGMRequestHandle(handle) {
@@ -1257,7 +1257,7 @@
         try {
           handler.call(this, event);
         } catch (error) {
-          console.error("[Movix Userscript] XHR handler error:", error);
+          console.error("[CineHD Userscript] XHR handler error:", error);
         }
       }
 
@@ -1267,7 +1267,7 @@
           try {
             listener.call(this, event);
           } catch (error) {
-            console.error("[Movix Userscript] XHR listener error:", error);
+            console.error("[CineHD Userscript] XHR listener error:", error);
           }
         }
       }
@@ -1377,7 +1377,7 @@
             }
           })
           .catch((error) => {
-            console.error("[Movix Userscript] Media proxy failed:", error);
+            console.error("[CineHD Userscript] Media proxy failed:", error);
             srcDescriptor.set.call(mediaElement, nextUrl);
           });
       },
@@ -1535,7 +1535,7 @@
 
   // --- BEGIN extension/Chrome/extractors.js ---
   /**
-   * Movix Extension - Direct M3U8 Extractors
+   * CineHD Extension - Direct M3U8 Extractors
    * Replaces server.py extraction logic - runs entirely in the extension service worker.
    * No VIP check needed since it runs locally.
    */
@@ -2641,7 +2641,7 @@
   }
 
   // Code ISO 639-1 déduit du libellé jwplayer ou du suffixe du fichier
-  // (`abc_fre.vtt`), pour que le lecteur Movix range la piste dans la bonne langue.
+  // (`abc_fre.vtt`), pour que le lecteur CineHD range la piste dans la bonne langue.
   const UQLOAD_SUBTITLE_LANGS = [
     ["fr", /\b(?:fr|fra|fre|french|fran[cç]ais|vf|vostfr)\b/i],
     ["en", /\b(?:en|eng|english|anglais)\b/i],
@@ -2714,7 +2714,7 @@
 
   /**
    * Télécharge le texte des sous-titres ici, avec le Referer Uqload : le site
-   * Movix ne peut pas les lire lui-même (pas d'en-têtes CORS chez Uqload).
+   * CineHD ne peut pas les lire lui-même (pas d'en-têtes CORS chez Uqload).
    * Une piste qui échoue garde son URL seule, le lecteur tentera sa chance.
    */
   async function fetchUqloadSubtitleContents(subtitles, headers) {
@@ -6009,6 +6009,6 @@
   Promise.resolve()
     .then(() => (typeof setupRules === "function" ? setupRules() : undefined))
     .catch((error) => {
-      console.error("[Movix Userscript] setupRules error:", error);
+      console.error("[CineHD Userscript] setupRules error:", error);
     });
 })();

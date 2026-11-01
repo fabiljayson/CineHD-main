@@ -1,4 +1,4 @@
-# Extension navigateur CineHD (ex-Movix)
+# Extension navigateur CineHD
 
 L'extension CineHD sert quand le site a besoin d'un coup de main côté navigateur : réécriture de headers, interception de requêtes, extraction locale de certaines sources et pont entre la page CineHD et une logique qui ne peut pas vivre uniquement dans le frontend web.
 

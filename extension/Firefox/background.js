@@ -1,4 +1,4 @@
-// Firefox-compatible background script for Movix Extension
+// Firefox-compatible background script for CineHD Extension
 // In Firefox MV3, background scripts run in an event page context.
 // extractors.js is loaded before this file via manifest "background.scripts".
 

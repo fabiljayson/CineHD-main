@@ -14,7 +14,7 @@
             <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-              <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Movix" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="movix-title">
+              <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="CineHD" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="movix-title">
                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="28"/>
                 <color key="textColor" systemColor="labelColor"/>
               </label>

@@ -567,7 +567,7 @@ export function useAppUpdate(githubUrl: string | null) {
 
     try {
       const fileName = fileNameForBuild(manifest.buildNumber);
-      const title = `Mise à jour Movix ${manifest.version}`;
+      const title = `Mise à jour CineHD ${manifest.version}`;
       const { downloadId, filePath } = await enqueueDownload(
         manifest.apkUrl,
         fileName,

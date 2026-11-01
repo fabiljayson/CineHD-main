@@ -40,7 +40,7 @@ ${playbackAwakeShim}
 
 ${bridge}
 
-// --- Userscript Movix ---
+// --- Userscript CineHD ---
 ${USERSCRIPT_SOURCE}
 
 true;

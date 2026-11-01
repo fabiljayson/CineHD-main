@@ -84,12 +84,12 @@ test('scarlet source describes the same IPA in scarlet own format', async () => 
     });
 
     const scarlet = JSON.parse(await readFile(scarletOutput, 'utf8'));
-    // Format Scarlet : un bloc META, puis des seaux par catégorie. Movix n'est
+    // Format Scarlet : un bloc META, puis des seaux par catégorie. CineHD n'est
     // ni un tweak ni un émulateur, donc « Other ».
-    assert.equal(scarlet.META.repoName, 'Movix');
+    assert.equal(scarlet.META.repoName, 'CineHD');
     assert.equal(scarlet.META.repoIcon, 'https://example.test/icon-1024.png');
     const entry = scarlet.Other[0];
-    assert.equal(entry.name, 'Movix');
+    assert.equal(entry.name, 'CineHD');
     assert.equal(entry.bundleID, 'com.movix.app');
     assert.equal(entry.version, '9.9.9');
     // `down` est l'équivalent Scarlet de `downloadURL` : la même IPA doit être

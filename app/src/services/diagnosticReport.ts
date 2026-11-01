@@ -69,6 +69,6 @@ export function clearCastDiagnostics(): void {
 
 export function clipboardDiagnosticText(report: string): string {
   if (report.length <= MAX_COPY_CHARS) return report;
-  return 'Movix — fin du journal (copie limitée). Utilise « Partager le fichier .txt » pour le journal complet.\n\n'
+  return 'CineHD — fin du journal (copie limitée). Utilise « Partager le fichier .txt » pour le journal complet.\n\n'
     + report.slice(-MAX_COPY_CHARS);
 }

@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>fr</string>
     <key>CFBundleDisplayName</key>
-    <string>Movix</string>
+    <string>CineHD</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -50,7 +50,7 @@
         <string>_CC1AD845._googlecast._tcp</string>
     </array>
     <key>NSLocalNetworkUsageDescription</key>
-    <string>Movix utilise votre réseau local pour détecter votre Chromecast et lui transmettre la vidéo.</string>
+    <string>CineHD utilise votre réseau local pour détecter votre Chromecast et lui transmettre la vidéo.</string>
     <key>UILaunchStoryboardName</key>
     <string>LaunchScreen</string>
     <key>UIRequiredDeviceCapabilities</key>

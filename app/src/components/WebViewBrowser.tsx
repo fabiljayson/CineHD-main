@@ -199,7 +199,7 @@ const WebViewBrowser = forwardRef<WebViewBrowserRef, WebViewBrowserProps>(
     // `window.open` et les liens `target="_blank"` : sans ce gestionnaire,
     // react-native-webview recharge la cible dans le WebView courant, ce qui
     // fait entrer les pop-ups publicitaires dans l'application. Seules les
-    // fenêtres de même origine que la page Movix restent internes ; tout le
+    // fenêtres de même origine que la page CineHD restent internes ; tout le
     // reste part vers le navigateur par défaut du système.
     const onOpenWindow = useCallback((event: WebViewOpenWindowEvent) => {
       const targetUrl = event.nativeEvent.targetUrl;
@@ -259,7 +259,7 @@ const WebViewBrowser = forwardRef<WebViewBrowserRef, WebViewBrowserProps>(
         style={{ flex: 1, backgroundColor: '#0a0a0a' }}
         // Injection du bridge + userscript avant le chargement
         injectedJavaScriptBeforeContentLoaded={injectedJS}
-        // Garder les iframes Turnstile sans bridge ni userscript Movix.
+        // Garder les iframes Turnstile sans bridge ni userscript CineHD.
         injectedJavaScriptBeforeContentLoadedForMainFrameOnly={true}
         // Bridge messages
         onMessage={onMessage}
@@ -275,7 +275,7 @@ const WebViewBrowser = forwardRef<WebViewBrowserRef, WebViewBrowserProps>(
         }}
         // Navigation
         onNavigationStateChange={onNavigationStateChange}
-        // Pop-ups : hors origine Movix -> navigateur système
+        // Pop-ups : hors origine CineHD -> navigateur système
         setSupportMultipleWindows={true}
         onOpenWindow={onOpenWindow}
         // Errors

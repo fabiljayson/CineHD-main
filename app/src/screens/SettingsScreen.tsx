@@ -91,9 +91,9 @@ export default function SettingsScreen() {
   const copyJournal = useCallback(async (includeNetwork = true) => {
     try {
       await copyDiagnostics(includeNetwork);
-      Alert.alert('Diagnostic Movix', 'Les logs sont copiés dans le presse-papiers.');
+      Alert.alert('Diagnostic CineHD', 'Les logs sont copiés dans le presse-papiers.');
     } catch {
-      Alert.alert('Diagnostic Movix', 'Copie impossible. Essaie de partager le fichier .txt.');
+      Alert.alert('Diagnostic CineHD', 'Copie impossible. Essaie de partager le fichier .txt.');
     }
   }, []);
 
@@ -275,7 +275,7 @@ export default function SettingsScreen() {
 
       {/* Extension Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Extension Movix</Text>
+        <Text style={styles.sectionTitle}>Extension CineHD</Text>
 
         <View style={styles.card}>
           <View style={styles.row}>
@@ -292,7 +292,7 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={styles.hint}>
-          L'extension Movix est intégrée directement dans l'application. Elle remplace
+          L'extension CineHD est intégrée directement dans l'application. Elle remplace
           le userscript Tampermonkey et l'extension Chrome/Firefox.
         </Text>
       </View>

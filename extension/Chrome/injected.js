@@ -1,7 +1,7 @@
 window.hasMovixExtension = true;
 window.hasMovixNexusExtractor = true; // Signals that M3U8 extraction is available locally
 window.dispatchEvent(new CustomEvent('movix-extension-loaded'));
-console.log("Movix Extension loaded in page context (with Nexus M3U8 extractors)");
+console.log("CineHD Extension loaded in page context (with Nexus M3U8 extractors)");
 
 window.movixKisskhFallback = function(request) {
     return new Promise((resolve) => {

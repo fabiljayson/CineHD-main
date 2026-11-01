@@ -23,9 +23,9 @@ export default function MirrorErrorScreen({ whatsappUrl, onRetry }: Props) {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}>
       <View style={styles.content}>
-        <Text style={styles.title}>Movix injoignable</Text>
+        <Text style={styles.title}>CineHD injoignable</Text>
         <Text style={styles.body}>
-          Tous les domaines Movix semblent bloqués ou hors ligne. Écris-nous
+          Tous les domaines CineHD semblent bloqués ou hors ligne. Écris-nous
           sur WhatsApp pour récupérer le nouveau lien officiel.
         </Text>
 

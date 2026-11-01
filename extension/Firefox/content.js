@@ -1,4 +1,4 @@
-// Firefox-compatible content script for Movix Extension
+// Firefox-compatible content script for CineHD Extension
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 // Inject a flag so the page knows the extension is active

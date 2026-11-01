@@ -1,4 +1,4 @@
-# Userscript CineHD (ex-Movix)
+# Userscript CineHD
 
 Le userscript CineHD est la variante Tampermonkey de l'outillage navigateur. Il reprend la logique utile pour les navigateurs Chromium quand l'installation d'une extension locale n'est pas l'option la plus pratique.
 

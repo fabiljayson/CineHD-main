@@ -3,7 +3,7 @@ export const CONFIG = {
   DNS_PRIMARY: '1.1.1.1',
   DNS_SECONDARY: '1.0.0.1',
   DNS_DOH_URL: 'https://cloudflare-dns.com/dns-query',
-  APP_NAME: 'Movix',
+  APP_NAME: 'CineHD',
   USER_AGENT:
     'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36',
 };

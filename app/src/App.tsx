@@ -30,7 +30,7 @@ function waitAtMost<T>(promise: Promise<T>, ms: number): Promise<T | undefined> 
 }
 
 // Au premier lancement, l'accord VPN d'Android peut s'afficher : on laisse le
-// temps de le lire avant de charger Movix quand même.
+// temps de le lire avant de charger CineHD quand même.
 const DNS_PROMPT_WAIT_MS = 30000;
 
 async function enableDnsFromPrompt(): Promise<void> {
@@ -54,7 +54,7 @@ async function enableDnsFromPrompt(): Promise<void> {
     }
 
     // La promesse native ne se résout qu'une fois le tunnel monté. Le choix
-    // est enregistré à la fin de l'activation, même si Movix a déjà été
+    // est enregistré à la fin de l'activation, même si CineHD a déjà été
     // chargé entre-temps parce que l'attente a dépassé son plafond.
     const activation = DnsModule.enable('1.1.1.1', '1.0.0.1').then(
       () => AsyncStorage.setItem('dns_enabled', 'true'),
@@ -126,9 +126,9 @@ export default function App() {
           }
           setDnsSettled(true);
         } else if (stored === 'true' && DnsModule && Platform.OS === 'android') {
-          // Monter le VPN AVANT de charger Movix : lancé en parallèle, le
+          // Monter le VPN AVANT de charger CineHD : lancé en parallèle, le
           // changement de réseau coupait la récupération des domaines et la
-          // première page, et l'app affichait « Movix injoignable ».
+          // première page, et l'app affichait « CineHD injoignable ».
           await waitAtMost(
             DnsModule.enable('1.1.1.1', '1.0.0.1').catch(() => {}),
             DNS_START_WAIT_MS,
@@ -139,9 +139,9 @@ export default function App() {
           setDnsSettled(true);
         } else if (stored === null) {
           // Attendre la réponse, et le VPN si l'utilisateur l'active, AVANT
-          // de charger Movix : un VPN monté en plein chargement laissait les
+          // de charger CineHD : un VPN monté en plein chargement laissait les
           // connexions déjà ouvertes bloquées (requêtes qui expirent, images
-          // qui ne chargent pas, puis « Movix injoignable »).
+          // qui ne chargent pas, puis « CineHD injoignable »).
           await promptDns();
           setDnsSettled(true);
         } else {

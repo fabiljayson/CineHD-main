@@ -1,5 +1,5 @@
 /**
- * Movix Extension - Direct M3U8 Extractors
+ * CineHD Extension - Direct M3U8 Extractors
  * Replaces server.py extraction logic - runs entirely in the extension service worker.
  * No VIP check needed since it runs locally.
  */
@@ -662,7 +662,7 @@ function extractUqloadMediaUrl(html) {
 }
 
 // Code ISO 639-1 déduit du libellé jwplayer ou du suffixe du fichier
-// (`abc_fre.vtt`), pour que le lecteur Movix range la piste dans la bonne langue.
+// (`abc_fre.vtt`), pour que le lecteur CineHD range la piste dans la bonne langue.
 const UQLOAD_SUBTITLE_LANGS = [
     ['fr', /\b(?:fr|fra|fre|french|fran[cç]ais|vf|vostfr)\b/i],
     ['en', /\b(?:en|eng|english|anglais)\b/i],
@@ -735,7 +735,7 @@ function extractUqloadSubtitles(html, pageUrl) {
 
 /**
  * Télécharge le texte des sous-titres ici, avec le Referer Uqload : le site
- * Movix ne peut pas les lire lui-même (pas d'en-têtes CORS chez Uqload).
+ * CineHD ne peut pas les lire lui-même (pas d'en-têtes CORS chez Uqload).
  * Une piste qui échoue garde son URL seule, le lecteur tentera sa chance.
  */
 async function fetchUqloadSubtitleContents(subtitles, headers) {

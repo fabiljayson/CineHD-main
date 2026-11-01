@@ -979,7 +979,7 @@ async function handleCastShimMessage(
     case 'CASTSHIM_INIT': {
       // Always resolve successfully — the shim's MovixAndroidCast.isSupported()
       // reads `payload.supported` to return a boolean. Rejecting would make
-      // Movix treat the bridge as broken; returning supported:false lets it
+      // CineHD treats the bridge as broken; returning supported:false lets it
       // fall back gracefully (hide cast UI, no error toast).
       const [supported, capabilities] = await Promise.all([
         isCastSupported(),

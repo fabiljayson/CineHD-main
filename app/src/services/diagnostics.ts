@@ -22,7 +22,7 @@ export async function buildDiagnosticReport(includeNetwork = true): Promise<stri
     includeNetwork ? getNetworkJournal() : Promise.resolve([]),
   ]);
   return [
-    'Movix — diagnostic',
+    'CineHD — diagnostic',
     `Date : ${new Date().toISOString()}`,
     `Application : ${version} · ${Platform.OS} ${Platform.Version}`,
     `Capture réseau : ${isNetworkJournalEnabled() ? 'activée' : 'désactivée'}`,

@@ -618,7 +618,7 @@ export function buildBridgeRuntime(
   // unsafeWindow = window (pas de sandboxing dans le WebView)
   window.unsafeWindow = window;
 
-  console.log('[Movix App] Bridge runtime initialisé');
+  console.log('[CineHD App] Bridge runtime initialisé');
 })();
 true;
 `;

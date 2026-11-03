@@ -409,6 +409,13 @@ const CLOUDFLARE_WORKERS_PROXIES = (
   .map((proxy) => proxy.trim())
   .filter(Boolean);
 
+// Shared secret for cloudflareproxy/worker.js (header `x-worker-token`). The
+// worker rejects Origin-less requests unless this matches, so server-side
+// relays keep working while the public open-proxy path stays closed. Must equal
+// `wrangler secret put WORKER_SHARED_TOKEN`. Empty = no token sent (relays then
+// get 403 from a hardened worker — fail closed, not open).
+const CLOUDFLARE_WORKER_TOKEN = process.env.CLOUDFLARE_WORKER_TOKEN || "";
+
 // === CACHE POUR LES PROXIES CLOUDFLARE EN ERREUR ===
 // Cache pour m\u00e9moriser les proxies en erreur (429, 500, timeout, etc.)
 // Les proxies en erreur seront ignor\u00e9s pendant PROXY_ERROR_COOLDOWN_MS millisecondes
@@ -594,7 +601,9 @@ async function makeRequestWithCorsFallback(targetUrl, options = {}) {
       const response = await axios({
         url: finalProxyUrl,
         method,
-        headers: defaultHeaders,
+        headers: CLOUDFLARE_WORKER_TOKEN
+          ? { ...defaultHeaders, "x-worker-token": CLOUDFLARE_WORKER_TOKEN }
+          : defaultHeaders,
         timeout,
         decompress,
         ...(requestData !== undefined ? { data: requestData } : {}),
@@ -1239,9 +1248,17 @@ async function make1j1fRequest(targetUrl, options = {}) {
             body,
             ja3: CHROME_JA3,
             userAgent: CHROME_UA,
-            headers: Object.keys(headers).length
-              ? { ...cycleHeaders, "x-cors-headers": JSON.stringify(headers) }
-              : cycleHeaders,
+            // Worker auth only on the relay leg — the direct `doRequest` below
+            // must never carry the shared secret to the origin site.
+            headers: {
+              ...cycleHeaders,
+              ...(CLOUDFLARE_WORKER_TOKEN
+                ? { "x-worker-token": CLOUDFLARE_WORKER_TOKEN }
+                : {}),
+              ...(Object.keys(headers).length
+                ? { "x-cors-headers": JSON.stringify(headers) }
+                : {}),
+            },
             timeout,
           },
           lowerMethod,

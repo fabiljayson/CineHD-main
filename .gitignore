@@ -119,3 +119,7 @@ release-signing.properties
 .taste-skill/
 .agents/skills/
 brag-output-*/
+
+# Wrangler (cloudflareproxy/)
+.dev.vars
+.wrangler/

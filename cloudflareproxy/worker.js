@@ -5,23 +5,42 @@
     // index.js
     var blacklistUrls = [];
     // Only the site's own origins may use this proxy from a browser.
-    // Requests WITHOUT an Origin header (server-side relays like the Main API)
-    // are not strings and still pass isListedInWhitelist — see below.
+    // Server-side relays (the Main API) send no Origin header: they
+    // authenticate with the shared secret WORKER_SHARED_TOKEN instead
+    // (`wrangler secret put WORKER_SHARED_TOKEN`). An absent or empty secret
+    // disables that path — the worker then fails closed on Origin-less calls.
     var whitelistOrigins = [
       /^https:\/\/([a-z0-9-]+\.)*(movix\.(cash|chat|cloud|college|date|fun|golf|health|luxe|men|online|show|tax))(?::\d+)?$/i,
       /^https?:\/\/(localhost|127\.0\.0\.1)(?::\d+)?$/i
     ];
-    function isListedInWhitelist(uri, listing) {
-      let isListed = false;
-      if (typeof uri === "string") {
-        listing.forEach((pattern) => {
-          if (uri.match(pattern) !== null) {
-            isListed = true;
-          }
-        });
-      } else {
-        isListed = true;
+    function getSharedToken() {
+      try {
+        return typeof WORKER_SHARED_TOKEN === "string" ? WORKER_SHARED_TOKEN : "";
+      } catch (e) {
+        return "";
       }
+    }
+    __name(getSharedToken, "getSharedToken");
+    // Length-checked XOR so a wrong token cannot be guessed byte by byte.
+    function tokenMatches(candidate, expected) {
+      if (typeof candidate !== "string" || typeof expected !== "string") return false;
+      if (expected.length === 0 || candidate.length !== expected.length) return false;
+      let diff = 0;
+      for (let i = 0; i < expected.length; i += 1) {
+        diff |= candidate.charCodeAt(i) ^ expected.charCodeAt(i);
+      }
+      return diff === 0;
+    }
+    __name(tokenMatches, "tokenMatches");
+    // A non-string (absent header) no longer matches: that was the open proxy.
+    function isListedInWhitelist(uri, listing) {
+      if (typeof uri !== "string") return false;
+      let isListed = false;
+      listing.forEach((pattern) => {
+        if (uri.match(pattern) !== null) {
+          isListed = true;
+        }
+      });
       return isListed;
     }
     __name(isListedInWhitelist, "isListedInWhitelist");
@@ -30,7 +49,11 @@
         const isPreflightRequest = event.request.method === "OPTIONS";
         const originUrl = new URL(event.request.url);
         function setupCORSHeaders(headers) {
-          headers.set("Access-Control-Allow-Origin", event.request.headers.get("Origin"));
+          // No Origin (token relay) => no CORS header to echo; writing the
+          // literal "null" would only confuse browsers.
+          if (originHeader !== null) {
+            headers.set("Access-Control-Allow-Origin", originHeader);
+          }
           if (isPreflightRequest) {
             headers.set("Access-Control-Allow-Methods", event.request.headers.get("access-control-request-method"));
             const requestedHeaders = event.request.headers.get("access-control-request-headers");
@@ -45,18 +68,32 @@
         const targetUrl = decodeURIComponent(decodeURIComponent(originUrl.search.substr(1)));
         const originHeader = event.request.headers.get("Origin");
         const connectingIp = event.request.headers.get("CF-Connecting-IP");
-        if (!isListedInWhitelist(targetUrl, blacklistUrls) && isListedInWhitelist(originHeader, whitelistOrigins)) {
-          let customHeaders = event.request.headers.get("x-cors-headers");
-          if (customHeaders !== null) {
-            try {
-              customHeaders = JSON.parse(customHeaders);
-            } catch (e) {
+        const sharedToken = getSharedToken();
+        const originAllowed = isListedInWhitelist(originHeader, whitelistOrigins);
+        // Server-side relay: no Origin, but a matching shared secret.
+        const tokenAllowed =
+          sharedToken !== "" && tokenMatches(event.request.headers.get("x-worker-token"), sharedToken);
+        if (!isListedInWhitelist(targetUrl, blacklistUrls) && (originAllowed || tokenAllowed)) {
+          // x-cors-headers lets a caller inject arbitrary headers into the
+          // proxied request — only the authenticated relay may use it, never a
+          // browser origin.
+          let customHeaders = null;
+          if (tokenAllowed) {
+            const rawCustomHeaders = event.request.headers.get("x-cors-headers");
+            if (rawCustomHeaders !== null) {
+              try {
+                const parsed = JSON.parse(rawCustomHeaders);
+                if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+                  customHeaders = parsed;
+                }
+              } catch (e) {
+              }
             }
           }
           if (originUrl.search.startsWith("?")) {
             const filteredHeaders = {};
             for (const [key, value] of event.request.headers.entries()) {
-              if (key.match("^origin") === null && key.match("eferer") === null && key.match("^cf-") === null && key.match("^x-forw") === null && key.match("^x-cors-headers") === null) {
+              if (key.match("^origin") === null && key.match("eferer") === null && key.match("^cf-") === null && key.match("^x-forw") === null && key.match("^x-cors-headers") === null && key.match("^x-worker-token") === null) {
                 filteredHeaders[key] = value;
               }
             }

@@ -107,6 +107,12 @@ const LandingPage: React.FC = () => {
           >
             {t('landing.footerPrivacy')}
           </Link>
+          <Link
+            to="/mentions-legales"
+            className="transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            {t('landing.footerLegal')}
+          </Link>
         </nav>
       </footer>
     </div>

@@ -24,7 +24,7 @@ const indexHtml = await readFile(INDEX_HTML, 'utf8');
 const archivedAssets = await startAssetHistory(DIST);
 const PUBLIC_HTML_PATHS = new Set([
   '/', '/index.html', '/movies', '/anime', '/tv-shows', '/collections', '/search',
-  '/about', '/privacy', '/terms-of-service', '/extension', '/app',
+  '/about', '/privacy', '/terms-of-service', '/mentions-legales', '/extension', '/app',
   '/list-catalog', '/top10', '/cinegraph',
 ]);
 

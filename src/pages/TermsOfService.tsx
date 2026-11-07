@@ -1,7 +1,9 @@
 import {
   Ban,
+  Copyright,
   Crown,
   FileText,
+  Gavel,
   Link2,
   MessageSquare,
   Scale,
@@ -92,12 +94,28 @@ const TermsOfService = () => {
       note: getOptionalString('termsOfServicePage.sections.vip.note'),
     },
     {
+      id: 'intellectual-property',
+      title: t('termsOfServicePage.sections.intellectualProperty.title'),
+      icon: Copyright,
+      paragraphs: getOptionalStringArray('termsOfServicePage.sections.intellectualProperty.paragraphs'),
+      bullets: getOptionalStringArray('termsOfServicePage.sections.intellectualProperty.bullets'),
+      note: getOptionalString('termsOfServicePage.sections.intellectualProperty.note'),
+    },
+    {
       id: 'changes-liability',
       title: t('termsOfServicePage.sections.changesLiability.title'),
       icon: Wrench,
       paragraphs: getOptionalStringArray('termsOfServicePage.sections.changesLiability.paragraphs'),
       bullets: getOptionalStringArray('termsOfServicePage.sections.changesLiability.bullets'),
       note: getOptionalString('termsOfServicePage.sections.changesLiability.note'),
+    },
+    {
+      id: 'law-termination',
+      title: t('termsOfServicePage.sections.lawTermination.title'),
+      icon: Gavel,
+      paragraphs: getOptionalStringArray('termsOfServicePage.sections.lawTermination.paragraphs'),
+      bullets: getOptionalStringArray('termsOfServicePage.sections.lawTermination.bullets'),
+      note: getOptionalString('termsOfServicePage.sections.lawTermination.note'),
     },
   ];
 

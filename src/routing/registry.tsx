@@ -99,6 +99,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/help/*',                  loader: lz(() => import('../pages/help/HelpRouter')) },
   { path: '/privacy',                 loader: lz(() => import('../pages/Privacy')) },
   { path: '/terms-of-service',        loader: lz(() => import('../pages/TermsOfService')) },
+  { path: '/mentions-legales',        loader: lz(() => import('../pages/LegalNotice')) },
   { path: '/cinegraph',               loader: lz(() => import('../pages/CineGraph')) },
   { path: '/wrapped',                 loader: lz(() => import('../pages/WrappedPage')) },
   { path: '/wrapped/:year',           loader: lz(() => import('../pages/WrappedPage')) },

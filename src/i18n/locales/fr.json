@@ -544,6 +544,7 @@
     "download": "Télécharger",
     "whatIsMovix": "C'est quoi CineHD ?",
     "privacy": "Confidentialité",
+    "legalNotice": "Mentions légales",
     "wrapped": "Wrapped",
     "cinegraph": "CinéGraph",
     "sharedLists": "Listes partagées",
@@ -6505,11 +6506,11 @@
   "privacyPolicyPage": {
     "title": "Politique de confidentialité",
     "eyebrow": "Traitements de données réellement présents dans CineHD",
-    "lastUpdated": "29 mars 2026",
+    "lastUpdated": "7 novembre 2026",
     "seoTitle": "Politique de confidentialité - CineHD",
     "seoDescription": "Politique de confidentialité de CineHD : stockage local, comptes, profils, sync serveur, WatchParty, communauté, sécurité, services tiers et VIP.",
     "intro": [
-      "Cette page décrit les données que CineHD traite réellement au 29 mars 2026, à partir du fonctionnement actuel du frontend, de l'API principale, de WatchParty, du bot, de l'extension, du userscript et des flux VIP.",
+      "Cette page décrit les données que CineHD traite réellement au 7 novembre 2026, à partir du fonctionnement actuel du frontend, de l'API principale, de WatchParty, du bot, de l'extension, du userscript et des flux VIP.",
       "Elle couvre à la fois ce qui reste sur votre appareil, ce qui peut être synchronisé côté serveur, ce qui transite par des services tiers et les contrôles déjà visibles dans l'interface."
     ],
     "summaryItems": [
@@ -6526,6 +6527,7 @@
         ],
         "bullets": [
           "Le navigateur peut conserver des réglages, l'ID du profil sélectionné, des informations de session locale, des états VIP, l'historique de lecture, les favoris, des listes personnalisées, la progression, des alertes d'épisodes et d'autres préférences d'interface.",
+          "Un cookie local `movix_pending_auth_action`, valable 30 minutes, mémorise une action d'authentification ou de liaison de compte en attente afin de la reprendre après la connexion.",
           "Le service worker du site met certains fichiers en cache pour accélérer le chargement, et le navigateur peut garder des caches techniques temporaires supplémentaires.",
           "L'extension navigateur et le userscript maintiennent aussi des données locales comme l'état d'activation, des statistiques de fonctionnement et des caches d'extraction.",
           "Les exports et imports de données proposés dans les paramètres restent sous votre contrôle sur votre appareil tant que vous ne choisissez pas de les synchroniser ou de les partager."
@@ -6580,7 +6582,7 @@
           "Google OAuth pour l'authentification basée sur l'email et le profil.",
           "TMDB pour les métadonnées, affiches, logos et autres éléments de catalogue.",
           "Cloudflare Turnstile pour la vérification anti-bot.",
-          "Vercel Analytics pour des mesures de fréquentation et d'usage du site.",
+          "Une mesure d'usage optionnelle via Google Analytics 4 ou Plausible selon la configuration de déploiement : aucun outil n'est chargé par défaut, un réglage local et le signal Do Not Track coupent la mesure si elle est active.",
           "OpenRouter pour certaines modérations automatisées de contenus textuels.",
           "Coinbase, CoinGecko et BlockCypher pour le pricing et la vérification des paiements VIP.",
           "Des hosters, CDNs, proxies et sources média externes qui reçoivent les métadonnées techniques normales d'une requête lorsqu'une lecture ou une extraction est lancée."
@@ -6593,6 +6595,7 @@
           "Les données CineHD peuvent vivre à plusieurs endroits selon la fonctionnalité : dans votre navigateur, dans des fichiers JSON liés à votre compte, dans des tables MySQL et dans des caches techniques temporaires. Le code ne définit pas une durée uniforme unique pour tous les cas."
         ],
         "bullets": [
+          "Le responsable du traitement est [[identité du responsable du traitement — à fournir]] ; toute question peut être adressée à jasonfranckkenmognw@gmail.com.",
           "Vous pouvez déjà gérer certaines choses directement dans ton profil : sessions actives, comptes liés, import ou export local, historique local et collecte future de Wrapped.",
           "Certaines suppressions sont locales uniquement et d'autres nécessitent une intervention support, car le dépôt n'expose pas une interface de purge universelle pour toutes les données backend.",
           "CineHD ne met pas en place, dans le code actuel, de mécanisme de vente de données personnelles à des tiers.",
@@ -6612,12 +6615,12 @@
         "whatsapp": "WhatsApp"
       }
     },
-    "footerNote": "Cette politique reflète le comportement observable du code CineHD au 29 mars 2026. Si une future évolution ajoute, retire ou change un flux de données important, cette page devra être alignée à nouveau sur l'implémentation réelle."
+    "footerNote": "Cette politique reflète le comportement observable du code CineHD au 7 novembre 2026. Si une future évolution ajoute, retire ou change un flux de données important, cette page devra être alignée à nouveau sur l'implémentation réelle."
   },
   "termsOfServicePage": {
     "title": "Conditions d'utilisation",
     "eyebrow": "Cadre d'usage de CineHD",
-    "lastUpdated": "20 septembre 2026",
+    "lastUpdated": "7 novembre 2026",
     "seoTitle": "Conditions d'utilisation - CineHD",
     "seoDescription": "Conditions d'utilisation de CineHD : comptes, WatchParty, fonctionnalités communautaires, services tiers et accès VIP.",
     "intro": [
@@ -6628,6 +6631,7 @@
       "CineHD repose en partie sur des services, sources et infrastructures tiers dont la disponibilité peut varier.",
       "Les comptes, profils, salles WatchParty, contenus communautaires et accès VIP peuvent être limités ou suspendus en cas d'abus ou de risque.",
       "Certaines fonctions nécessitent une authentification, une vérification anti-bot, une extension ou userscript, ou une facture crypto valide.",
+      "La propriété intellectuelle, les contenus protégés, la loi applicable et la résiliation sont détaillées en fin de page.",
       "L'utilisation continue du service après modification de cette page vaut acceptation des conditions mises à jour."
     ],
     "sections": {
@@ -6697,6 +6701,16 @@
           "Les factures, cadeaux, clés VIP et accès associés peuvent être suspendus, refusés ou revus en cas d'abus, d'incohérence technique ou de soupçon de fraude."
         ]
       },
+      "intellectualProperty": {
+        "title": "Propriété intellectuelle et contenus protégés",
+        "bullets": [
+          "Le code source de CineHD est publié sous licence MIT (fichier LICENSE du dépôt). Les métadonnées, affiches, logos et éléments de catalogue restent la propriété de leurs titulaires respectifs, notamment TMDB pour les métadonnées.",
+          "CineHD n'héberge pas les contenus audioviseaux diffusés par les sources tierces : il fournit une interface de recherche, d'agrégation et de lecture autour de ces sources.",
+          "Vous ne devez pas utiliser CineHD pour contourner une mesure technique de protection (DRM), dériver des flux ou extraire des contenus au-delà de l'usage strictement personnel.",
+          "Toute reproduction, revente ou exploitation commerciale des éléments protégés du service ou des contenus accessibles via celui-ci est interdite sans autorisation préalable.",
+          "Les marques, logos et noms de tiers cités dans le service appartiennent à leurs propriétaires respectifs ; leur mention n'emporte aucune cession de droits."
+        ]
+      },
       "changesLiability": {
         "title": "Suspension, évolution du service et responsabilité",
         "bullets": [
@@ -6704,6 +6718,15 @@
           "CineHD peut retirer un contenu, fermer une session, limiter une salle, révoquer un compte lié ou restreindre un utilisateur lorsqu'un comportement à risque ou une violation de ces conditions est constaté.",
           "Le service est fourni en l'état, avec des efforts raisonnables de stabilité, mais sans garantie absolue sur l'absence d'erreur, d'interruption, de perte liée à un tiers ou de résultat spécifique.",
           "Si une clause est jugée inapplicable, les autres restent valables. La poursuite de l'utilisation après mise à jour de cette page vaut acceptation de la version en vigueur."
+        ]
+      },
+      "lawTermination": {
+        "title": "Loi applicable, litiges et résiliation",
+        "bullets": [
+          "Ces conditions sont régies par le droit français. En cas de litige et à défaut de résolution amiable, les tribunaux français seront seuls compétents.",
+          "Vous pouvez cesser d'utiliser CineHD à tout moment et supprimer votre compte selon les modalités exposées dans les paramètres ou via le support.",
+          "CineHD peut suspendre ou résilier l'accès d'un utilisateur en cas de violation de ces conditions, dans le cadre décrit à la section « Suspension, évolution du service et responsabilité ».",
+          "Les limitations de responsabilité et les obligations restées applicables survivent à la résiliation de l'accès au service."
         ]
       }
     },
@@ -6719,7 +6742,73 @@
         "whatsapp": "WhatsApp"
       }
     },
-    "footerNote": "Ces conditions décrivent les règles d'utilisation générales de CineHD au 20 septembre 2026. Les comportements frauduleux, abusifs ou techniquement nuisibles peuvent entraîner des restrictions immédiates même si un cas précis n'est pas listé mot pour mot ci-dessus."
+    "footerNote": "Ces conditions décrivent les règles d'utilisation générales de CineHD au 7 novembre 2026. Les comportements frauduleux, abusifs ou techniquement nuisibles peuvent entraîner des restrictions immédiates même si un cas précis n'est pas listé mot pour mot ci-dessus."
+  },
+  "legalNoticePage": {
+    "title": "Mentions légales",
+    "eyebrow": "Identification de l'éditeur et de l'hébergeur",
+    "lastUpdated": "7 novembre 2026",
+    "seoTitle": "Mentions légales - CineHD",
+    "seoDescription": "Mentions légales de CineHD : éditeur du site, hébergeur, propriété intellectuelle et contact.",
+    "intro": [
+      "Cette page présente l'identification de l'éditeur et de l'hébergeur de CineHD, le cadre de propriété intellectuelle du service et les coordonnées de contact.",
+      "Les champs placés entre crochets [[ … ]] sont des placeholders : l'identité complète de l'éditeur et de l'hébergeur doit être renseignée par l'exploitant avant toute mise en production commerciale."
+    ],
+    "summaryItems": [
+      "L'éditeur du site : identité juridique à fournir (placeholders signalés ci-dessous).",
+      "L'hébergeur : nom et adresse à fournir.",
+      "Le code source est publié sous licence MIT ; les métadonnées et logos tiers restent la propriété de leurs titulaires.",
+      "Contact : jasonfranckkenmognw@gmail.com et les pages Confidentialité et Conditions d'utilisation."
+    ],
+    "sections": {
+      "publisher": {
+        "title": "Éditeur du site",
+        "bullets": [
+          "CineHD est édité par [[identité juridique de l'éditeur — à fournir]], [[forme juridique — à fournir]], dont le siège est situé [[adresse du siège — à fournir]].",
+          "Numéro d'immatriculation : [[SIRET ou RCS — à fournir]].",
+          "Directeur de la publication : [[nom du directeur de la publication — à fournir]].",
+          "Contact : jasonfranckkenmognw@gmail.com."
+        ],
+        "note": "Les champs entre crochets sont des placeholders à remplacer par les informations réelles de l'exploitant avant diffusion commerciale."
+      },
+      "hosting": {
+        "title": "Hébergement",
+        "bullets": [
+          "Le site et les données associées sont hébergés par [[nom de l'hébergeur — à fournir]], [[adresse de l'hébergeur — à fournir]].",
+          "Le service est déployé via des conteneurs Docker selon les configurations documentées dans le dépôt."
+        ],
+        "note": "Placeholder : l'hébergeur effectif dépend de l'environnement de déploiement choisi et doit être confirmé par l'exploitant."
+      },
+      "intellectualProperty": {
+        "title": "Propriété intellectuelle",
+        "bullets": [
+          "Le code source de CineHD est publié sous licence MIT (fichier LICENSE du dépôt).",
+          "Les métadonnées, affiches, logos et éléments de catalogue proviennent de services tiers (notamment TMDB) et restent la propriété de leurs titulaires.",
+          "Les marques, logos et noms de tiers cités dans le service appartiennent à leurs propriétaires respectifs."
+        ]
+      },
+      "contact": {
+        "title": "Contact",
+        "bullets": [
+          "Questions, demandes relatives aux données ou signalements : jasonfranckkenmognw@gmail.com.",
+          "Support WhatsApp : lien disponible depuis les pages légales et le pied de page.",
+          "Règles d'usage : page Conditions d'utilisation ; traitement des données : page Confidentialité."
+        ]
+      }
+    },
+    "supportCard": {
+      "title": "Documents associés",
+      "paragraphs": [
+        "Les conditions d'utilisation détaillent les règles d'usage du service, la propriété intellectuelle, la loi applicable et la résiliation.",
+        "La politique de confidentialité décrit les données réellement traitées par le code de CineHD."
+      ],
+      "actions": {
+        "terms": "Conditions d'utilisation",
+        "privacy": "Confidentialité",
+        "email": "Email"
+      }
+    },
+    "footerNote": "Cette page sera mise à jour dès que l'identité complète de l'éditeur et de l'hébergeur aura été fournie. Les placeholders entre crochets doivent être remplacés avant toute exploitation commerciale."
   },
   "aprilAdmin": {
     "navLabel": "Admin",
@@ -7958,7 +8047,8 @@
     "footerNote": "Trouvez votre prochain programme sur CineHD.",
     "legalLinks": "Liens légaux",
     "footerTerms": "Conditions d’utilisation",
-    "footerPrivacy": "Confidentialité"
+    "footerPrivacy": "Confidentialité",
+    "footerLegal": "Mentions légales"
   },
   "login": {
     "title": "Connexion",

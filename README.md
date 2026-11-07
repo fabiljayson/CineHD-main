@@ -289,6 +289,8 @@ Ce projet est distribué sous licence MIT. Le texte complet est disponible dans 
 
 Vie privée : la politique de confidentialité affichée aux utilisateurs sur `/privacy` est miroitée dans [docs/privacy-policy.md](docs/privacy-policy.md) et décrit les données réellement traitées par le code.
 
+Sécurité : deux identifiants ont été exposés dans l'historique public du dépôt (clé API TMDB, device Widevine `.wvd`) — procédure de rotation et checklist dans [docs/credential-rotation.md](docs/credential-rotation.md).
+
 ## Avertissement
 
 Ce projet est publié sous licence MIT ; il n'encourage ni ne cautionne une utilisation illégale, le contournement de droits, ou toute violation des lois applicables.

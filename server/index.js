@@ -48,6 +48,42 @@ const ALWAYS_REVALIDATE = new Set([
   '/_routes.json',
 ]);
 
+// En-têtes de sécurité — aucun n'était servi jusqu'ici (audit Lot A, A4).
+// La CSP est en report-only : elle ne bloque rien, elle signale les violations
+// dans la console tant que le site n'est pas en ligne, avant de la rendre
+// obligatoire. Elle reflète les origines réellement utilisées par le front
+// (TMDB, TVMaze, AniList, Google Fonts, Turnstile, Cast SDK, jsDelivr) et
+// laisse 'unsafe-inline'/'unsafe-eval' pour les scripts d'amorçage inline de
+// index.html et le lazyWithRetry — à resserrer ensuite d'après les rapports.
+const SECURITY_HEADERS = {
+  'X-Frame-Options': 'SAMEORIGIN',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+  'Content-Security-Policy-Report-Only': [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'self'",
+    "form-action 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com https://www.gstatic.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob: https:",
+    "connect-src 'self' https://api.themoviedb.org https://image.tmdb.org https://api.tvmaze.com https://www.tvmaze.com https://graphql.anilist.co https://challenges.cloudflare.com",
+    "worker-src 'self' blob:",
+    "manifest-src 'self'",
+    "frame-src 'self' https:",
+  ].join('; '),
+};
+
+app.use('/*', async (c, next) => {
+  await next();
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    c.header(name, value);
+  }
+});
+
 app.use('/*', async (c, next) => {
   await next();
   const path = new URL(c.req.url).pathname;

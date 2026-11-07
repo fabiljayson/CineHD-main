@@ -263,7 +263,9 @@ export default defineConfig(({ mode, command }) => {
       ...(process.env.ANALYZE === 'true'
         ? [
             visualizer({
-              filename: 'dist/stats.html',
+              // Hors dist/ : ce rapport ne doit jamais partir dans un
+              // déploiement (audit Lot A, A5).
+              filename: '.analyze/stats.html',
               gzipSize: true,
               brotliSize: true,
               template: 'treemap',

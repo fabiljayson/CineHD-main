@@ -66,6 +66,7 @@ API/Mainapi/cache/
 API/Mainapi/data/
 API/Mainapi/diagnostics/
 API/Mainapi/darkino-backups
+.analyze/
 
 # Discord bot (private; published separately)
 API/BOT/

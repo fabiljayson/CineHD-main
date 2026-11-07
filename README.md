@@ -268,7 +268,6 @@ le [guide de déploiement Docker](docs/deployment-docker.md).
 Limitations connues en l'état (corrections demandées au niveau du code, pas de la doc) :
 
 - `API/watchpartyAPI/` ne démarre pas avec les dépendances racine actuelles : `express`, `cors`, `socket.io` et `dotenv` manquent (détail dans « Démarrage rapide »).
-- `npm run build:report` est cassé : il appelle `scripts/bundle-report.mjs`, qui n'existe pas.
 
 ## Documentation par module
 

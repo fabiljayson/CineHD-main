@@ -724,7 +724,7 @@ router.get('/imdb/:type/:id', async (req, res) => {
           // --- Handle Movies (using FrenchStream scraping) ---
           const movieData = await getFrenchStreamMovie(id);
           if (movieData.error) {
-            responseData = { message: 'Contenu non disponible', french_stream_id: id, details: movieData.error };
+            responseData = { message: 'Contenu non disponible', french_stream_id: id };
             if (!['Movie not found on FrenchCloud', 'Movie not found on FrenchStream', 'Iframe not found on movie page'].includes(movieData.error)) {
               const error = new Error(movieData.error);
               error.responseData = responseData;
@@ -749,7 +749,7 @@ router.get('/imdb/:type/:id', async (req, res) => {
               responseData = { message: 'Contenu non disponible', french_stream_id: frenchStreamId };
             } else {
               const error = new Error(seriesList.error);
-              error.responseData = { error: 'Failed to retrieve series list from FrenchStream', details: seriesList.error, french_stream_id: frenchStreamId };
+              error.responseData = { error: 'Failed to retrieve series list from FrenchStream', french_stream_id: frenchStreamId };
               error.httpStatus = 500;
               throw error;
             }
@@ -848,7 +848,8 @@ router.get('/imdb/:type/:id', async (req, res) => {
           } else if (updateError.message && updateError.message.includes('404')) {
             res.status(200).json({ message: 'Contenu non disponible', french_stream_id: id });
           } else {
-            res.status(500).json({ error: 'Erreur lors de la mise a jour du cache', details: updateError.message });
+            console.error('Cache update error:', updateError);
+            res.status(500).json({ error: 'Erreur lors de la mise a jour du cache' });
           }
         }
       }
@@ -862,7 +863,7 @@ router.get('/imdb/:type/:id', async (req, res) => {
       if (error.message && error.message.includes('404')) {
         res.status(200).json({ message: 'Contenu non disponible', french_stream_id: id });
       } else {
-        res.status(500).json({ error: 'Erreur serveur interne lors du traitement initial', details: error.message });
+        res.status(500).json({ error: 'Erreur serveur interne lors du traitement initial' });
       }
     }
   }

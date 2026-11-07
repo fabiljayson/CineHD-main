@@ -493,8 +493,7 @@ router.get('/download/:type/:id', async (req, res) => {
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
-        error: 'Erreur lors de la récupération des liens DarkiWorld',
-        message: error.message
+        error: 'Erreur lors de la récupération des liens DarkiWorld'
       });
     }
   }
@@ -594,8 +593,7 @@ async function decodeLink(req, res) {
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
-        error: 'Erreur lors du décodage du lien DarkiWorld',
-        message: error.message
+        error: 'Erreur lors du décodage du lien DarkiWorld'
       });
     }
   }
@@ -698,8 +696,7 @@ router.get('/seasons/:titleId', async (req, res) => {
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
-        error: 'Erreur lors de la récupération des saisons DarkiWorld',
-        message: error.message
+        error: 'Erreur lors de la récupération des saisons DarkiWorld'
       });
     }
   }
@@ -796,8 +793,7 @@ router.get('/episodes/:titleId/:seasonNumber', async (req, res) => {
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
-        error: 'Erreur lors de la récupération des épisodes DarkiWorld',
-        message: error.message
+        error: 'Erreur lors de la récupération des épisodes DarkiWorld'
       });
     }
   }

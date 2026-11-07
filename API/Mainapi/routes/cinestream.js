@@ -283,7 +283,6 @@ async function fetchCinestreamMovieData(tmdbId, cachedData = null) {
     return {
       success: false,
       error: "Erreur lors de la recuperation des donnees CineStream",
-      message: error.message,
       tmdb_id: tmdbId,
     };
   }

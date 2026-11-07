@@ -160,7 +160,7 @@ router.post('/vip/invoices', setNoStore, createInvoiceRateLimit, async (req, res
     console.error('VIP invoice create error:', error);
     return res.status(error.statusCode || 400).json({
       success: false,
-      error: error.message || 'Impossible de créer l\'invoice VIP'
+      error: Number.isInteger(error?.statusCode) && error.message ? error.message : 'Impossible de créer l\'invoice VIP'
     });
   }
 });
@@ -351,7 +351,7 @@ router.post('/vip/gifts/:giftToken/unseal', giftUnsealRateLimit, async (req, res
     console.error('VIP gift unseal error:', error);
     return res.status(409).json({
       success: false,
-      error: error.message || 'Impossible de desceller ce cadeau'
+      error: Number.isInteger(error?.statusCode) && error.message ? error.message : 'Impossible de desceller ce cadeau'
     });
   }
 });
@@ -449,7 +449,7 @@ router.post('/admin/vip-invoices/:id/validate', isAdmin, async (req, res) => {
     console.error('VIP admin invoice validate error:', error);
     return res.status(409).json({
       success: false,
-      error: error.message || 'Impossible de valider cette invoice'
+      error: Number.isInteger(error?.statusCode) && error.message ? error.message : 'Impossible de valider cette invoice'
     });
   }
 });
@@ -466,7 +466,7 @@ router.post('/admin/vip-invoices/:id/cancel', isAdmin, async (req, res) => {
     console.error('VIP admin invoice cancel error:', error);
     return res.status(409).json({
       success: false,
-      error: error.message || 'Impossible d\'annuler cette invoice'
+      error: Number.isInteger(error?.statusCode) && error.message ? error.message : 'Impossible d\'annuler cette invoice'
     });
   }
 });

@@ -448,7 +448,7 @@ router.post('/account-requests/checkout', setNoStore, createRequestRateLimit, ..
         `UPDATE account_requests SET campay_status = 'FAILED', admin_note = ?, updated_at = NOW() WHERE id = ?`,
         [String(error.message || 'Initiation CamPay échouée.').slice(0, 500), insertId]
       );
-      return res.status(error.status || 502).json({ success: false, error: error.message, code: 'CAMPAY_INIT_FAILED' });
+      return res.status(error.status || 502).json({ success: false, error: 'Initiation CamPay échouée.', code: 'CAMPAY_INIT_FAILED' });
     }
 
     await pool.execute(

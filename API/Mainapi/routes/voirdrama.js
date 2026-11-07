@@ -52,7 +52,7 @@ function isRetryableDramaFailure(payload) {
 function temporaryDramaFailure(error) {
   return {
     success: false,
-    error: String(error.message || 'VoirDrama temporairement indisponible').slice(0, 1024),
+    error: 'VoirDrama temporairement indisponible',
     retryable: true,
     ...(Number.isInteger(error.upstreamStatus) ? { upstreamStatus: error.upstreamStatus } : {}),
   };
@@ -478,8 +478,7 @@ router.get('/:type/:tmdbid', async (req, res) => {
     console.error('[API DRAMA] Error:', error);
     res.status(500).json({
       success: false,
-      error: 'Erreur interne',
-      details: error.message
+      error: 'Erreur interne'
     });
   }
 });

@@ -52,9 +52,10 @@ router.post('/vip/payblis/ipn', ipnRateLimit, async (req, res) => {
         message: error.message
       });
     }
+    const safeMessage = (Number.isInteger(error?.statusCode) || error?.message?.startsWith('Signature')) && !!error.message;
     return res.status(statusCode).json({
       success: false,
-      error: error.message || 'IPN Payblis rejeté'
+      error: safeMessage ? error.message : 'IPN Payblis rejeté'
     });
   }
 });

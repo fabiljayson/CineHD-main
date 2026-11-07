@@ -853,7 +853,7 @@ router.get('/movie/:tmdbid', async (req, res) => {
     if (error.code === 'CPASMAL_UPSTREAM_ERROR' || error.code === 'SOURCE_REFRESH_UNAVAILABLE') {
       return res.status(503).json({ error: error.message });
     }
-    if (error.message && error.message.includes('not found')) {
+    if (error.message && (error.message.startsWith('Movie not found') || error.message.startsWith('TV Show not found'))) {
       return res.status(404).json({ error: error.message });
     }
     res.status(500).json({ error: 'Internal Server Error' });
@@ -901,7 +901,7 @@ router.get('/tv/:tmdbid/:season/:episode', async (req, res) => {
     if (error.code === 'CPASMAL_UPSTREAM_ERROR' || error.code === 'SOURCE_REFRESH_UNAVAILABLE') {
       return res.status(503).json({ error: error.message });
     }
-    if (error.message && error.message.includes('not found')) {
+    if (error.message && (error.message.startsWith('Movie not found') || error.message.startsWith('TV Show not found'))) {
       return res.status(404).json({ error: error.message });
     }
     res.status(500).json({ error: 'Internal Server Error' });

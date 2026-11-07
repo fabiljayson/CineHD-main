@@ -1760,7 +1760,7 @@ router.get('/test/recent', async (req, res) => {
     const recentMovies = await scrapeFStreamRecentMovies();
     res.status(200).json({ success: true, count: recentMovies.length, movies: recentMovies.slice(0, 10), timestamp: new Date().toISOString() });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message, timestamp: new Date().toISOString() });
+    res.status(500).json({ success: false, error: 'Erreur serveur FStream', timestamp: new Date().toISOString() });
   }
 });
 
@@ -1770,7 +1770,7 @@ router.get('/test/recent-series', async (req, res) => {
     const recentSeries = await scrapeFStreamRecentSeries();
     res.status(200).json({ success: true, count: recentSeries.length, series: recentSeries.slice(0, 10), timestamp: new Date().toISOString() });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message, timestamp: new Date().toISOString() });
+    res.status(500).json({ success: false, error: 'Erreur serveur FStream', timestamp: new Date().toISOString() });
   }
 });
 
@@ -1780,7 +1780,7 @@ router.get('/debug/ongoing', async (req, res) => {
     const ongoingKeys = Array.from(ongoingFStreamRequests.keys());
     res.status(200).json({ success: true, ongoingRequests: ongoingKeys.length, keys: ongoingKeys, timestamp: new Date().toISOString() });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Erreur serveur FStream' });
   }
 });
 

@@ -29,11 +29,16 @@ const { respondWithResolvedSources } = require("../utils/embedExtraction");
 
 // Wiflix range la map de langues à même l'épisode (`{ vf: [], vostfr: [] }`),
 // sans enveloppe `languages` — d'où `languageKey: null`.
+const stripDebugHtml = (payload) =>
+  payload && typeof payload === "object" && !Array.isArray(payload)
+    ? (({ debugHtml, ...rest }) => rest)(payload)
+    : payload;
+
 const respondWithEpisodeSources = (req, res, payload) =>
-  respondWithResolvedSources(req, res, payload, { languageKey: null, label: "WIFLIX TV" });
+  respondWithResolvedSources(req, res, stripDebugHtml(payload), { languageKey: null, label: "WIFLIX TV" });
 
 const respondWithMovieSources = (req, res, payload) =>
-  respondWithResolvedSources(req, res, payload, { movieMapKey: "players", label: "WIFLIX MOVIE" });
+  respondWithResolvedSources(req, res, stripDebugHtml(payload), { movieMapKey: "players", label: "WIFLIX MOVIE" });
 const {
   fetchTmdbDetails,
   fetchTmdbSeason,
@@ -476,7 +481,7 @@ async function loadWiflixTvData(tmdbId, season, cachedData) {
     const verifier = createIdentityVerifier({ apiUrl: TMDB_API_URL, apiKey: TMDB_API_KEY,
       type: 'tv', details: tmdbData, english, seasonData });
     const triedQueries = new Set(), triedUrls = new Set();
-    let searchDebugHtml = null, unavailable = false;
+    let unavailable = false;
     for (let pass = 0; pass < 2; pass++) {
       const titles = pass ? await verifier.aliases() : verifier.titles;
       for (const title of searchTitles(titles)) {
@@ -484,7 +489,6 @@ async function loadWiflixTvData(tmdbId, season, cachedData) {
         triedQueries.add(title);
         const search = await searchWiflixMovie(`${title} saison ${season}`);
         unavailable ||= search.unavailable === true;
-        searchDebugHtml = search.debugHtml || searchDebugHtml;
         for (const candidate of search.candidates || []) {
           if (triedUrls.has(candidate.url) || triedUrls.size >= 8) continue;
           triedUrls.add(candidate.url);
@@ -515,7 +519,7 @@ async function loadWiflixTvData(tmdbId, season, cachedData) {
       title: tmdbData.name, candidatesChecked: triedUrls.size, queries: [...triedQueries],
     });
     return { success: false, error: 'Série non trouvée ou identité non confirmée sur Wiflix',
-      tmdb_id: tmdbId, season, titles_tried: [...triedQueries], debugHtml: searchDebugHtml };
+      tmdb_id: tmdbId, season, titles_tried: [...triedQueries] };
   } catch (error) {
     reportRefreshFailure('refresh_exception', error);
     if (cachedData) return cachedData;
@@ -585,13 +589,8 @@ const updateWiflixCache = async (
         await refreshState.defer(cacheDir, cacheKey);
         if (existingCache?.success) return;
       }
-      let saved;
-      if (newData.success) {
-        const { debugHtml: _dh, ...cacheableData } = newData;
-        saved = await saveToCache(cacheDir, cacheKey, cacheableData);
-      } else {
-        saved = await saveToCache(cacheDir, cacheKey, newData);
-      }
+      const { debugHtml: _dh, ...cacheableData } = newData;
+      const saved = await saveToCache(cacheDir, cacheKey, cacheableData);
       if (saved === false) await refreshState.defer(cacheDir, cacheKey);
       else if (newData.success) await refreshState.clear(cacheDir, cacheKey);
     }
@@ -648,7 +647,6 @@ router.get("/movie/:tmdbId", async (req, res) => {
       res.status(500).json({
         success: false,
         error: "Erreur lors de la recuperation des donnees Wiflix",
-        message: error.message,
         tmdb_id: tmdbId,
       });
     }
@@ -699,7 +697,6 @@ router.get("/tv/:tmdbId/:season", async (req, res) => {
       res.status(500).json({
         success: false,
         error: "Erreur lors de la recuperation des donnees Wiflix",
-        message: error.message,
         tmdb_id: tmdbId,
         season,
       });

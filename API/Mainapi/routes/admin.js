@@ -206,8 +206,7 @@ router.get('/links/:type/:id', async (req, res) => {
     console.error('Error fetching streaming links:', error);
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de la récupération des liens',
-      message: error.message
+      error: 'Erreur lors de la récupération des liens'
     });
   }
 });
@@ -508,8 +507,7 @@ router.post('/admin/links', isUploaderOrAdmin, async (req, res) => {
     console.error('Error adding streaming links:', error);
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de l\'ajout des liens',
-      message: error.message
+      error: 'Erreur lors de l\'ajout des liens'
     });
   }
 });
@@ -636,8 +634,7 @@ router.delete('/admin/links', isUploaderOrAdmin, async (req, res) => {
     console.error('Error deleting streaming links:', error);
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de la suppression des liens',
-      message: error.message
+      error: 'Erreur lors de la suppression des liens'
     });
   }
 });
@@ -726,8 +723,7 @@ router.put('/admin/links', isUploaderOrAdmin, async (req, res) => {
     console.error('Error updating streaming links:', error);
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de la modification des liens',
-      message: error.message
+      error: 'Erreur lors de la modification des liens'
     });
   }
 });
@@ -1033,8 +1029,7 @@ router.get('/admin/vip-keys', isAdmin, async (req, res) => {
     console.error('Error fetching VIP keys:', error);
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de la récupération des clés VIP',
-      message: error.message
+      error: 'Erreur lors de la récupération des clés VIP'
     });
   }
 });
@@ -1110,8 +1105,7 @@ router.post('/admin/vip-keys', isAdmin, async (req, res) => {
     console.error('Error adding VIP key:', error);
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de l\'ajout de la clé VIP',
-      message: error.message
+      error: 'Erreur lors de l\'ajout de la clé VIP'
     });
   }
 });
@@ -1207,8 +1201,7 @@ router.put('/admin/vip-keys/:key', isAdmin, async (req, res) => {
     console.error('Error updating VIP key:', error);
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de la modification de la clé VIP',
-      message: error.message
+      error: 'Erreur lors de la modification de la clé VIP'
     });
   }
 });
@@ -1247,8 +1240,7 @@ router.delete('/admin/vip-keys/:key', isAdmin, async (req, res) => {
     console.error('Error deleting VIP key:', error);
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de la suppression de la clé VIP',
-      message: error.message
+      error: 'Erreur lors de la suppression de la clé VIP'
     });
   }
 });
@@ -1389,7 +1381,7 @@ router.post('/admin/download-links', isUploaderOrAdmin, async (req, res) => {
     res.json({ success: true, addedCount: added.length, totalCount: merged.length });
   } catch (error) {
     console.error('Error adding download links:', error);
-    res.status(500).json({ success: false, error: 'Failed to add download links', message: error.message });
+    res.status(500).json({ success: false, error: 'Failed to add download links' });
   }
 });
 

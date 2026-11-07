@@ -420,7 +420,7 @@ router.post('/search', async (req, res) => {
 
   } catch (error) {
     console.error('[FTV] Search error:', error.message);
-    return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: 'Erreur serveur France.tv' });
   }
 });
 
@@ -551,7 +551,7 @@ router.get('/episodes', async (req, res) => {
 
   } catch (error) {
     console.error('[FTV] Episodes error:', error.message);
-    return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: 'Erreur serveur France.tv' });
   }
 });
 
@@ -972,7 +972,7 @@ router.get('/info', async (req, res) => {
 
   } catch (error) {
     console.error('[FTV] Info error:', error.message);
-    return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: 'Erreur serveur France.tv' });
   }
 });
 

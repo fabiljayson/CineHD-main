@@ -1,0 +1,440 @@
+<!--
+  S4 — Le mur (15–24 s). Three horizontal walls — Films, Séries, Anime —
+  each a real page-slice band (genre chips + heading + posters cut before the
+  rank digits), stacked to fill the frame, with 2px gold seams between them.
+
+  In: façade (b) true push — this scene mounts at 14.3 s (track 2, over S3's
+  tail) and slides in from the right with the same `route` ease S3's exit
+  uses, so the two frames meet edge-to-edge across the cut.
+  Beats: each wall swipes left in turn (accelerating distance + blur), its
+  chosen poster steps forward at the seam, its nav label brightens.
+  Hold: the full wall reads. Out: camera dive (zoom c) into the Derry poster,
+  defocusing into the cut at 24.0 s.
+-->
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #060606;
+    }
+    #s04-le-mur {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #060606;
+    }
+    /* Camera: façade slide-in + final dive share this box. The dive origin is
+       the centre of the visible Derry slice (wall2 top 360 + pick top 232 +
+       half the 128px visible height = 656). */
+    #s04-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      transform-origin: 960px 656px;
+      will-change: transform, filter;
+    }
+    .s04-wall {
+      position: absolute;
+      left: 0;
+      width: 1920px;
+      height: 360px;
+      overflow: hidden;
+    }
+    #s04-wall-1 {
+      top: 0;
+    }
+    #s04-wall-2 {
+      top: 360px;
+    }
+    #s04-wall-3 {
+      top: 720px;
+    }
+    /* Strip: the band tiled x2 (3840 wide) so a full 1700px travel never
+       runs off the right edge. Holds the pick at its tile-2 copy so the
+       selection rides the wall. */
+    .s04-strip {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 3840px;
+      height: 360px;
+      will-change: transform, filter;
+    }
+    .s04-band {
+      position: absolute;
+      top: 0;
+      width: 1920px;
+      height: 360px;
+      object-fit: cover;
+    }
+    .s04-band-a {
+      left: 0;
+    }
+    /* Second tile painted as a background so the band source is never
+       discovered twice (duplicate_media_discovery_risk). */
+    .s04-band-b {
+      position: absolute;
+      left: 1920px;
+      top: 0;
+      width: 1920px;
+      height: 360px;
+      background-size: 1920px 360px;
+      background-repeat: no-repeat;
+    }
+    /* Pick: full poster placed exactly over its tile-2 band copy (band-x +
+       1920, top 232). Visible slice = 128px, identical to the band until it
+       steps. Rank digit (pick-y ~240+) stays clipped by the 360px wall. */
+    .s04-pick {
+      position: absolute;
+      top: 232px;
+      width: 192px;
+      height: 288px;
+      object-fit: cover;
+      transform-origin: 50% 35%;
+      will-change: transform, box-shadow;
+      z-index: 2;
+    }
+    #s04-pick-colision {
+      left: 2376px;
+    }
+    #s04-pick-derry {
+      left: 2168px;
+    }
+    #s04-pick-doraemon {
+      left: 2168px;
+    }
+    /* Nav-label caption, fixed to each wall's empty top-right, on a dark
+       scrim. Muted → ink when its wall lands. */
+    /* 28px = the film's type floor (phone-legible). Top 12 + height ~40
+       keeps the caption in the band's verified-empty top-right (chips start
+       at band-y 58). */
+    .s04-cap {
+      position: absolute;
+      top: 12px;
+      right: 40px;
+      z-index: 3;
+      padding: 6px 16px;
+      border-radius: 6px;
+      background: rgba(6, 6, 6, 0.72);
+      color: #8a8a8a;
+      font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-weight: 500;
+      font-size: 28px;
+      letter-spacing: 0.12em;
+      line-height: 1;
+    }
+    /* Gold seams — the trait d'or as structure, between the walls. */
+    .s04-seam {
+      position: absolute;
+      left: 0;
+      width: 1920px;
+      height: 2px;
+      background: #c89028;
+      z-index: 4;
+    }
+    #s04-seam-1 {
+      top: 359px;
+    }
+    #s04-seam-2 {
+      top: 719px;
+    }
+  </style>
+  <div
+    id="root"
+    data-composition-id="s04-le-mur"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div
+      id="s04-le-mur"
+      class="clip"
+      data-start="0"
+      data-duration="9.7"
+      data-track-index="1"
+    >
+      <div id="s04-stage" data-layout-allow-occlusion>
+        <!-- Wall 1 — Films -->
+        <div class="s04-wall" id="s04-wall-1" data-layout-allow-overflow>
+          <div class="s04-strip" id="s04-strip-1">
+            <img
+              class="s04-band s04-band-a"
+              src="assets/04-band-films.png"
+              alt="CineHD — films : Tendances du jour."
+            />
+            <div
+              class="s04-band-b"
+              style="background-image: url('assets/04-band-films.png')"
+            ></div>
+            <img
+              class="s04-pick"
+              id="s04-pick-colision"
+              src="assets/04-pick-colision.png"
+              alt="CineHD — film sélectionné : Colisión."
+            />
+          </div>
+          <div class="s04-cap" id="s04-cap-1">Films</div>
+        </div>
+
+        <!-- Wall 2 — Séries -->
+        <div class="s04-wall" id="s04-wall-2" data-layout-allow-overflow>
+          <div class="s04-strip" id="s04-strip-2">
+            <img
+              class="s04-band s04-band-a"
+              src="assets/06-band-series.png"
+              alt="CineHD — séries : Tendances du jour."
+            />
+            <div
+              class="s04-band-b"
+              style="background-image: url('assets/06-band-series.png')"
+            ></div>
+            <img
+              class="s04-pick"
+              id="s04-pick-derry"
+              src="assets/06-pick-derry.png"
+              alt="CineHD — série sélectionnée : Ça, bienvenue à Derry."
+            />
+          </div>
+          <div class="s04-cap" id="s04-cap-2">Séries</div>
+        </div>
+
+        <!-- Wall 3 — Anime -->
+        <div class="s04-wall" id="s04-wall-3" data-layout-allow-overflow>
+          <div class="s04-strip" id="s04-strip-3">
+            <img
+              class="s04-band s04-band-a"
+              src="assets/07-band-anime.png"
+              alt="CineHD — anime : Les anime du moment."
+            />
+            <div
+              class="s04-band-b"
+              style="background-image: url('assets/07-band-anime.png')"
+            ></div>
+            <img
+              class="s04-pick"
+              id="s04-pick-doraemon"
+              src="assets/07-pick-doraemon.png"
+              alt="CineHD — anime sélectionné : Doraemon."
+            />
+          </div>
+          <div class="s04-cap" id="s04-cap-3">Anime</div>
+        </div>
+
+        <div class="s04-seam" id="s04-seam-1"></div>
+        <div class="s04-seam" id="s04-seam-2"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      function cb(x1, y1, x2, y2) {
+        const bx = (t) =>
+          3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+        const by = (t) =>
+          3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+        const dx = (t) =>
+          3 * (1 - t) * (1 - t) * x1 +
+          6 * (1 - t) * t * (x2 - x1) +
+          3 * t * t * (1 - x2);
+        return function (p) {
+          if (p <= 0) return 0;
+          if (p >= 1) return 1;
+          let t = p;
+          for (let i = 0; i < 8; i++) {
+            const x = bx(t) - p;
+            if (Math.abs(x) < 1e-6) break;
+            const d = dx(t);
+            if (Math.abs(d) < 1e-6) break;
+            t -= x / d;
+          }
+          return by(t);
+        };
+      }
+      var route = cb(0.65, 0, 0.35, 1); /* real route-change feel */
+      var wall = cb(0.4, 0, 0.2, 1); /* a wall swipes and lands */
+      var step = cb(0.34, 1.3, 0.64, 1); /* the poster selects itself */
+      var dive = cb(0.45, 0, 0.85, 0.3); /* camera accelerates into the cut */
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* In — façade (b), a true push: this frame arrives from the right with
+         the same ease S3's exit uses (global 14.3–15.0). */
+      tl.fromTo(
+        "#s04-stage",
+        { xPercent: 100 },
+        { xPercent: 0, duration: 0.7, ease: route },
+        0,
+      );
+
+      /* Wall swipes — escalating distance and blur sell the acceleration.
+         Blur rides the travel only: 0 at both seams, peak mid. */
+      tl.fromTo(
+        "#s04-strip-1",
+        { x: 0 },
+        { x: -850, duration: 1.765, ease: wall },
+        0.7,
+      );
+      tl.fromTo(
+        "#s04-strip-1",
+        { filter: "blur(0px)" },
+        {
+          filter: "blur(7px)",
+          duration: 0.8825,
+          ease: wall,
+          immediateRender: false,
+        },
+        0.7,
+      );
+      tl.fromTo(
+        "#s04-strip-1",
+        { filter: "blur(7px)" },
+        {
+          filter: "blur(0px)",
+          duration: 0.8825,
+          ease: wall,
+          immediateRender: false,
+        },
+        1.5825,
+      );
+
+      tl.fromTo(
+        "#s04-strip-2",
+        { x: 0 },
+        { x: -1304, duration: 1.765, ease: wall },
+        2.465,
+      );
+      tl.fromTo(
+        "#s04-strip-2",
+        { filter: "blur(0px)" },
+        {
+          filter: "blur(10px)",
+          duration: 0.8825,
+          ease: wall,
+          immediateRender: false,
+        },
+        2.465,
+      );
+      tl.fromTo(
+        "#s04-strip-2",
+        { filter: "blur(10px)" },
+        {
+          filter: "blur(0px)",
+          duration: 0.8825,
+          ease: wall,
+          immediateRender: false,
+        },
+        3.3475,
+      );
+
+      tl.fromTo(
+        "#s04-strip-3",
+        { x: 0 },
+        { x: -1700, duration: 1.765, ease: wall },
+        4.23,
+      );
+      tl.fromTo(
+        "#s04-strip-3",
+        { filter: "blur(0px)" },
+        {
+          filter: "blur(13px)",
+          duration: 0.8825,
+          ease: wall,
+          immediateRender: false,
+        },
+        4.23,
+      );
+      tl.fromTo(
+        "#s04-strip-3",
+        { filter: "blur(13px)" },
+        {
+          filter: "blur(0px)",
+          duration: 0.8825,
+          ease: wall,
+          immediateRender: false,
+        },
+        5.1125,
+      );
+
+      /* Picks step forward at their wall's landing, and stay selected. */
+      tl.fromTo(
+        "#s04-pick-colision",
+        { scale: 1, boxShadow: "0 0 0 rgba(0,0,0,0)" },
+        {
+          scale: 1.22,
+          boxShadow: "0 18px 50px rgba(0,0,0,0.85)",
+          duration: 0.35,
+          ease: step,
+        },
+        2.465,
+      );
+      tl.fromTo(
+        "#s04-pick-derry",
+        { scale: 1, boxShadow: "0 0 0 rgba(0,0,0,0)" },
+        {
+          scale: 1.22,
+          boxShadow: "0 18px 50px rgba(0,0,0,0.85)",
+          duration: 0.35,
+          ease: step,
+        },
+        4.23,
+      );
+      tl.fromTo(
+        "#s04-pick-doraemon",
+        { scale: 1, boxShadow: "0 0 0 rgba(0,0,0,0)" },
+        {
+          scale: 1.22,
+          boxShadow: "0 18px 50px rgba(0,0,0,0.85)",
+          duration: 0.35,
+          ease: step,
+        },
+        5.995,
+      );
+
+      /* Nav labels brighten as each wall lands. */
+      tl.fromTo(
+        "#s04-cap-1",
+        { color: "#8a8a8a" },
+        { color: "#e1e1e1", duration: 0.3 },
+        2.465,
+      );
+      tl.fromTo(
+        "#s04-cap-2",
+        { color: "#8a8a8a" },
+        { color: "#e1e1e1", duration: 0.3 },
+        4.23,
+      );
+      tl.fromTo(
+        "#s04-cap-3",
+        { color: "#8a8a8a" },
+        { color: "#e1e1e1", duration: 0.3 },
+        5.995,
+      );
+
+      /* Hold 5.995–7.76: the whole wall reads, all three picks selected. */
+
+      /* Out — camera dive (zoom c) into the Derry slice, accelerating into
+         the cut. Late defocus hides the 192px→screen upscale. */
+      tl.fromTo(
+        "#s04-stage",
+        { scale: 1 },
+        {
+          scale: 6.5,
+          transformOrigin: "960px 656px",
+          duration: 1.94,
+          ease: dive,
+        },
+        7.76,
+      );
+      tl.fromTo(
+        "#s04-stage",
+        { filter: "blur(0px)" },
+        { filter: "blur(14px)", duration: 0.6, ease: dive },
+        9.1,
+      );
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["s04-le-mur"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,207 @@
+<!--
+  S3 — Chez toi (9–15 s). The real FR home (signed-in capture, untouched),
+  framed to hero + nav only: the platforms-logo row (note ③) never enters
+  the frame — the camera window shows source rows 0–940, logos start at 965.
+
+  In: trait d'or handoff — the gold wash still covering from S2's cut
+  continues rising, then recedes to reveal the home.
+  Beats: hero hold with a slow drift → façade push (b) to the real hover
+  state of the nav (« Films » muted→white, captured with a real pointer) →
+  hold → façade push (b) out into S4.
+-->
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #060606;
+    }
+    #s03-frame {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #060606;
+    }
+    #s03-slide-a,
+    #s03-slide-b {
+      position: absolute;
+      inset: 0;
+      will-change: transform;
+    }
+    /* Camera window: scale 1.24 anchored top-left — logo + nav + hero +
+       stats in; the platforms section (heading y>=875, logos y>=965) stays
+       out of frame entirely (storyboard note ③). */
+    #s03-cam-a,
+    #s03-cam-b {
+      position: absolute;
+      inset: 0;
+      transform: scale(1.24);
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+    #s03-cam-a img,
+    #s03-cam-b img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      object-fit: cover;
+    }
+    /* Trait d'or (a) — identical geometry to S2's wash so the veil is
+       continuous through the cut at 9.0 s. */
+    #s03-wash {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 100%;
+      z-index: 4;
+      opacity: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(200, 144, 40, 0.75) 0%,
+        rgba(214, 173, 85, 0.4) 30%,
+        rgba(141, 105, 43, 0) 62%
+      );
+    }
+    #s03-line {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 1920px;
+      height: 2px;
+      background: #c89028;
+      transform-origin: left center;
+      z-index: 5;
+      opacity: 0;
+    }
+  </style>
+  <div
+    id="root"
+    data-composition-id="s03-chez-toi"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div
+      id="s03-chez-toi"
+      class="clip"
+      data-start="0"
+      data-duration="6"
+      data-track-index="1"
+    >
+      <div id="s03-frame" data-layout-allow-occlusion>
+        <div id="s03-slide-a" data-layout-allow-overflow>
+          <div id="s03-cam-a">
+            <img
+              src="assets/03-home-fr.png"
+              alt="CineHD — accueil : La Légende de Derry."
+            />
+          </div>
+        </div>
+        <div id="s03-slide-b" data-layout-allow-overflow>
+          <div id="s03-cam-b">
+            <img
+              src="assets/03-home-fr-films-hover.png"
+              alt="CineHD — accueil, lien Films survolé."
+            />
+          </div>
+        </div>
+      </div>
+      <div id="s03-wash"></div>
+      <div id="s03-line"></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      function cb(x1, y1, x2, y2) {
+        const bx = (t) =>
+          3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+        const by = (t) =>
+          3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+        const dx = (t) =>
+          3 * (1 - t) * (1 - t) * x1 +
+          6 * (1 - t) * t * (x2 - x1) +
+          3 * t * t * (1 - x2);
+        return function (p) {
+          if (p <= 0) return 0;
+          if (p >= 1) return 1;
+          let t = p;
+          for (let i = 0; i < 8; i++) {
+            const x = bx(t) - p;
+            if (Math.abs(x) < 1e-6) break;
+            const d = dx(t);
+            if (Math.abs(d) < 1e-6) break;
+            t -= x / d;
+          }
+          return by(t);
+        };
+      }
+      var expo = cb(0.16, 1, 0.3, 1); /* settle */
+      var race = cb(0.5, 0, 0.9, 0.6); /* the gold sweep */
+      var route = cb(0.65, 0, 0.35, 1); /* real route-change feel */
+      var drift = cb(0.4, 0, 0.6, 1); /* slow camera drift */
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* Cold-seek state: B waits off-frame right until the first façade. */
+      tl.fromTo(
+        "#s03-slide-b",
+        { xPercent: 100 },
+        { xPercent: 100, duration: 0.01 },
+        0,
+      );
+
+      /* In — the wash still covers from S2's cut (yPercent 42): keep it
+         rising across the cut, then recede to reveal the home. */
+      tl.fromTo(
+        "#s03-wash",
+        { yPercent: 42, opacity: 1 },
+        { yPercent: 10, opacity: 1, duration: 0.25, ease: race },
+        0,
+      );
+      tl.to(
+        "#s03-wash",
+        { yPercent: 100, opacity: 0, duration: 0.65, ease: expo },
+        0.25,
+      );
+      tl.fromTo(
+        "#s03-line",
+        { opacity: 1 },
+        { opacity: 0, duration: 0.45, ease: expo },
+        0.3,
+      );
+
+      /* Hero hold — slow drift toward the title (0.85–3.36). */
+      tl.fromTo(
+        "#s03-cam-a",
+        { scale: 1.24 },
+        { scale: 1.2499, duration: 3.06, ease: drift, transformOrigin: "0 0" },
+        0.85,
+      );
+
+      /* Façade (b) #1 at bar 7 (12.36 s global): A slides left, the real
+         hover state pushes in from the direction of travel. */
+      tl.to("#s03-slide-a", { xPercent: -100, duration: 0.55, ease: route }, 3.36);
+      tl.fromTo(
+        "#s03-slide-b",
+        { xPercent: 100 },
+        { xPercent: 0, duration: 0.55, ease: route },
+        3.36,
+      );
+      tl.fromTo(
+        "#s03-cam-b",
+        { scale: 1.24 },
+        { scale: 1.2499, duration: 2.64, ease: drift, transformOrigin: "0 0" },
+        3.36,
+      );
+
+      /* Façade (b) #2 — out (5.3–6.0), completes on the bar at 15.0 s. */
+      tl.to("#s03-slide-b", { xPercent: -100, duration: 0.7, ease: route }, 5.3);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["s03-chez-toi"] = tl;
+    })();
+  </script>
+</template>

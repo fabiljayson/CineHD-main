@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      /* Film palette — pulled from the product (SPEC.md), never invented. */
+      :root {
+        --ground: #060606;
+        --ink: #e1e1e1;
+        --gold: #c89028;
+        --font-display: "Archivo Black", "Arial Black", sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        font-family: "Inter", sans-serif;
+        color: var(--ink);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="24"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- S1 — L'allumage (0.0–4.5 s) -->
+      <div
+        id="s01-allumage"
+        data-composition-id="s01-allumage"
+        data-composition-src="compositions/s01-allumage.html"
+        data-start="0"
+        data-duration="4.5"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+
+      <!-- S2 — Le rideau (4.5–9 s). In: match-cut from S1 (same landing frame,
+           continuous scale). Out: trait d'or (a) — gold line + wash, handoff
+           to S3's opening wash-recede. -->
+      <div
+        id="s02-rideau"
+        data-composition-id="s02-rideau"
+        data-composition-src="compositions/s02-rideau.html"
+        data-start="4.5"
+        data-duration="4.5"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+
+      <!-- S3 — Chez toi (9–15 s). In: wash-recede handoff from S2's trait
+           d'or. Out: façade (b) into S4. Framing excludes the platforms-logo
+           row (storyboard note ③). -->
+      <div
+        id="s03-chez-toi"
+        data-composition-id="s03-chez-toi"
+        data-composition-src="compositions/s03-chez-toi.html"
+        data-start="9"
+        data-duration="6"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+
+      <!-- S4 — Le mur (15–24 s). Mounts at 14.3 on track 2, over S3's tail,
+           so the façade (b) push is a true edge-to-edge slide across the cut.
+           Out: camera dive (zoom c) into the Derry poster. -->
+      <div
+        id="s04-le-mur"
+        data-composition-id="s04-le-mur"
+        data-composition-src="compositions/s04-le-mur.html"
+        data-start="14.3"
+        data-duration="9.7"
+        data-track-index="2"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+
+      <!-- Music bed: one continuous excerpt from the track's top (SPEC.md TIME).
+           Quiet first ~5 s = S1 hush. Later scenes extend data-duration and add
+           the duck/fade automation per the approved edit plan. -->
+      <audio
+        id="main-music"
+        class="clip"
+        src="assets/mode-de-vie.mp3"
+        data-start="0"
+        data-duration="24"
+        data-track-index="0"
+        data-volume="1"
+        data-fade-in="0.3"
+      ></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,142 @@
+<!--
+  S2 — Le rideau (4.5–9 s). The real FR landing (untouched capture),
+  a slow push 1.00→1.05 (expo-out) biased toward the golden Play, then
+  the film's signature cut — « le trait d'or » (a): a 2px gold line
+  races along the bottom edge and a soft gold wash follows and wipes
+  the cut into S3.
+
+  In: match-cut from S1 (S1's dissolve already revealed this same
+  landing at 1.0 — the scale is continuous across the cut).
+-->
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #060606;
+    }
+    #s02-cam {
+      position: absolute;
+      inset: 0;
+      will-change: transform;
+    }
+    #s02-cam img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      object-fit: cover;
+    }
+    /* Trait d'or (a): the 2px logo-gold line along the bottom edge. */
+    #s02-line {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 1920px;
+      height: 2px;
+      background: #c89028;
+      transform-origin: left center;
+      z-index: 5;
+      opacity: 0;
+    }
+    /* The soft gold wash that follows the line and wipes the cut —
+       a warm light sweeping up from the edge, never a flat gold block. */
+    #s02-wash {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 100%;
+      z-index: 4;
+      opacity: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(200, 144, 40, 0.75) 0%,
+        rgba(214, 173, 85, 0.4) 30%,
+        rgba(141, 105, 43, 0) 62%
+      );
+    }
+  </style>
+  <div
+    id="root"
+    data-composition-id="s02-rideau"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div
+      id="s02-rideau"
+      class="clip"
+      data-start="0"
+      data-duration="4.5"
+      data-track-index="1"
+    >
+      <div id="s02-cam">
+        <img
+          id="s02-landing"
+          src="assets/02-landing-fr.png"
+          alt="CineHD — Films, séries et anime."
+        />
+      </div>
+      <div id="s02-wash"></div>
+      <div id="s02-line"></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      function cb(x1, y1, x2, y2) {
+        const bx = (t) =>
+          3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+        const by = (t) =>
+          3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+        const dx = (t) =>
+          3 * (1 - t) * (1 - t) * x1 +
+          6 * (1 - t) * t * (x2 - x1) +
+          3 * t * t * (1 - x2);
+        return function (p) {
+          if (p <= 0) return 0;
+          if (p >= 1) return 1;
+          let t = p;
+          for (let i = 0; i < 8; i++) {
+            const x = bx(t) - p;
+            if (Math.abs(x) < 1e-6) break;
+            const d = dx(t);
+            if (Math.abs(d) < 1e-6) break;
+            t -= x / d;
+          }
+          return by(t);
+        };
+      }
+      var expo = cb(0.16, 1, 0.3, 1); /* settle */
+      var race = cb(0.5, 0, 0.9, 0.6); /* a flung line, accelerating to the edge */
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* Slow push 1.00 → 1.05, biased to the golden Play (right-centre). */
+      tl.fromTo(
+        "#s02-cam",
+        { scale: 1.0, transformOrigin: "69% 46%" },
+        { scale: 1.05, duration: 4.5, ease: expo, transformOrigin: "69% 46%" },
+        0,
+      );
+
+      /* Trait d'or (a) — out over the last ~0.5 s (4.0–4.5 local). */
+      tl.fromTo(
+        "#s02-line",
+        { scaleX: 0, opacity: 1 },
+        { scaleX: 1, opacity: 1, duration: 0.5, ease: race },
+        4.0,
+      );
+      tl.fromTo(
+        "#s02-wash",
+        { yPercent: 100, opacity: 0 },
+        { yPercent: 42, opacity: 1, duration: 0.5, ease: race },
+        4.02,
+      );
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["s02-rideau"] = tl;
+    })();
+  </script>
+</template>

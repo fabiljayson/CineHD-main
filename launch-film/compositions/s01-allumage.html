@@ -1,0 +1,422 @@
+<!--
+  S1 — L'allumage (0.0–4.5 s). The app's real loading screen
+  (CineHDLoadingScreen.tsx + the .cgp-* timeline in src/index.css),
+  rebuilt as seek-safe GSAP tweens with the app's real geometry,
+  gradients, delays, durations and easing curves.
+
+  Clock (real app values, ms):
+    0–2600   ghost outline breathes to nothing
+    600–1600 fine trace draws the Play triangle
+    550–1800 pulse rides the trace head
+    1500–2300 flash bursts on the gold flood
+    1750–2250 CINE illuminates · 2000–2550 HD follows in gold
+    2000–2800 final gold stroke enters · 2400–3400 lockup settles
+    2550–3600 sheen crosses the triangle (masked to the 9px stroke)
+    1400–3600 haze blooms · 1600–3200 beam sweeps out
+    3150–3850 progress line rises (no caption: the wordmark is the text)
+    3860–4500 the loader's real 640 ms dissolve reveals the FR landing
+              behind it — the match-cut into S2's first frame.
+
+  The wordmark is ONE <text> with two <tspan>s so the advance width is
+  fixed and CINE stays centred while HD reserves its space and then
+  illuminates in gold — identical to the app's two-layer trick, without
+  a permanently invisible spacer node.
+-->
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #050505;
+    }
+    /* The landing the dissolve reveals — real FR capture, pixel-matches S2.
+       Mounted only over the dissolve window; the loader is opaque dark
+       before it, so earlier frames are identical either way. */
+    #s01-landing {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      object-fit: cover;
+      z-index: 1;
+    }
+    /* The loader is a deliberate full-frame card (a loading screen), so it
+       covers the landing until its dissolve — allowed via occlusion opt-out. */
+    #s01-loader {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+    }
+    #s01-fade {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #050505;
+    }
+    #s01-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(
+        120% 90% at 50% 45%,
+        rgba(0, 0, 0, 0) 55%,
+        rgba(0, 0, 0, 0.55) 100%
+      );
+    }
+    #s01-stage {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    /* Real loader sizing at 1080p: min(84vw, 620px) → 620px wide. */
+    #s01-mark {
+      display: block;
+      width: 620px;
+      height: auto;
+      overflow: visible;
+    }
+    #s01-word {
+      font-family: "Archivo Black", "Arial Black", sans-serif;
+    }
+    #s01-ghost,
+    #s01-trace,
+    #s01-pulse,
+    #s01-final,
+    #s01-sheen,
+    #s01-word-cine,
+    #s01-word-hd,
+    #s01-haze,
+    #s01-beam,
+    #s01-flash,
+    #s01-progress {
+      opacity: 0;
+    }
+    #s01-trace {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+    }
+    #s01-pulse {
+      stroke-dasharray: 0.16 0.84;
+      stroke-dashoffset: 0.16;
+    }
+    #s01-word-hd {
+      fill: #8d692b;
+    }
+    #s01-progress {
+      margin-top: 46px;
+    }
+    #s01-progress-track {
+      position: relative;
+      width: 236px;
+      height: 2px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(245, 243, 239, 0.14);
+    }
+    #s01-indet {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 45%;
+      border-radius: 999px;
+      background: linear-gradient(
+        90deg,
+        rgba(214, 173, 85, 0),
+        #d6ad55 50%,
+        rgba(245, 243, 239, 0.9)
+      );
+    }
+  </style>
+  <div
+    id="root"
+    data-composition-id="s01-allumage"
+    data-width="1920"
+    data-height="1080"
+  >
+    <img
+      id="s01-landing"
+      class="clip"
+      data-layout-allow-occlusion
+      src="assets/02-landing-fr.png"
+      alt="CineHD — Films, séries et anime."
+      data-start="3.5"
+      data-duration="1"
+      data-track-index="1"
+    />
+    <div
+      id="s01-loader"
+      class="clip"
+      data-layout-allow-occlusion
+      data-start="0"
+      data-duration="4.5"
+      data-track-index="2"
+    >
+      <div id="s01-fade">
+        <div id="s01-vignette"></div>
+        <div id="s01-stage">
+          <svg
+            id="s01-mark"
+            viewBox="0 0 495 222"
+            role="img"
+            aria-label="CineHD"
+          >
+            <defs>
+              <radialGradient id="s01-haze-grad">
+                <stop offset="0%" stop-color="#D6AD55" stop-opacity="0.3" />
+                <stop offset="45%" stop-color="#8D692B" stop-opacity="0.12" />
+                <stop offset="100%" stop-color="#8D692B" stop-opacity="0" />
+              </radialGradient>
+              <radialGradient id="s01-beam-grad">
+                <stop offset="0%" stop-color="#F5F3EF" stop-opacity="0.2" />
+                <stop offset="45%" stop-color="#D6AD55" stop-opacity="0.13" />
+                <stop offset="100%" stop-color="#8D692B" stop-opacity="0" />
+              </radialGradient>
+              <radialGradient id="s01-flash-grad">
+                <stop offset="0%" stop-color="#F5F3EF" stop-opacity="0.68" />
+                <stop offset="40%" stop-color="#D6AD55" stop-opacity="0.32" />
+                <stop offset="100%" stop-color="#8D692B" stop-opacity="0" />
+              </radialGradient>
+              <linearGradient
+                id="s01-sheen-grad"
+                x1="0"
+                y1="0"
+                x2="1"
+                y2="1"
+              >
+                <stop offset="0%" stop-color="#D6AD55" stop-opacity="0" />
+                <stop offset="40%" stop-color="#F5F3EF" stop-opacity="0.9" />
+                <stop offset="55%" stop-color="#D6AD55" stop-opacity="0.5" />
+                <stop offset="100%" stop-color="#D6AD55" stop-opacity="0" />
+              </linearGradient>
+              <!-- The sheen paints only the triangle's stroke: the mask
+                   carries the exact symbol path. -->
+              <mask
+                id="s01-triangle-mask"
+                maskUnits="userSpaceOnUse"
+                x="-400"
+                y="-120"
+                width="1300"
+                height="460"
+              >
+                <path
+                  d="M 218 28 L 218 96 L 280 62 Z"
+                  fill="none"
+                  stroke="#ffffff"
+                  stroke-width="9"
+                  stroke-linejoin="round"
+                  stroke-linecap="round"
+                />
+              </mask>
+            </defs>
+
+            <!-- Light: ambient haze, projected beam, the flash on the flood. -->
+            <ellipse
+              id="s01-haze"
+              cx="247.5"
+              cy="62"
+              rx="176"
+              ry="132"
+              fill="url(#s01-haze-grad)"
+            />
+            <ellipse
+              id="s01-beam"
+              cx="247.5"
+              cy="62"
+              rx="400"
+              ry="42"
+              fill="url(#s01-beam-grad)"
+            />
+            <ellipse
+              id="s01-flash"
+              cx="247.5"
+              cy="62"
+              rx="96"
+              ry="78"
+              fill="url(#s01-flash-grad)"
+            />
+
+            <g id="s01-lockup">
+              <!-- Barely-there outline in the dark (0–2.6 s). -->
+              <path
+                id="s01-ghost"
+                d="M 218 28 L 218 96 L 280 62 Z"
+                fill="none"
+                stroke="#8D692B"
+                stroke-width="9"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+              />
+              <!-- The fine line that traces the geometry (0.6–1.6 s). -->
+              <path
+                id="s01-trace"
+                d="M 218 28 L 218 96 L 280 62 Z"
+                pathLength="1"
+                fill="none"
+                stroke="#D6AD55"
+                stroke-width="3.2"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+              />
+              <!-- The pulse of light riding the trace head. -->
+              <path
+                id="s01-pulse"
+                d="M 218 28 L 218 96 L 280 62 Z"
+                pathLength="1"
+                fill="none"
+                stroke="#F5F3EF"
+                stroke-width="4.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <!-- The real logo stroke + the gold sheen, bounded to the path. -->
+              <g mask="url(#s01-triangle-mask)">
+                <path
+                  id="s01-final"
+                  d="M 218 28 L 218 96 L 280 62 Z"
+                  fill="none"
+                  stroke="#C89028"
+                  stroke-width="9"
+                  stroke-linejoin="round"
+                  stroke-linecap="round"
+                />
+                <rect
+                  id="s01-sheen"
+                  x="170"
+                  y="6"
+                  width="110"
+                  height="112"
+                  fill="url(#s01-sheen-grad)"
+                />
+              </g>
+
+              <!-- One <text>, two <tspan>s: the advance is fixed by the full
+                   "CINE HD" string, so CINE stays centred while HD reserves
+                   its space, then illuminates from #8d692b to gold. -->
+              <text
+                id="s01-word"
+                x="247"
+                y="192"
+                text-anchor="middle"
+                font-size="86"
+                letter-spacing="1"
+              >
+                <tspan id="s01-word-cine" fill="#E1E1E1">CINE</tspan>
+                <tspan id="s01-word-hd" dx="14">HD</tspan>
+              </text>
+            </g>
+          </svg>
+
+          <div id="s01-progress">
+            <div id="s01-progress-track">
+              <div id="s01-indet" data-layout-allow-overflow></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      /* Exact cubic-bezier eases from the app's CSS (pure functions of
+         progress — deterministic, seek-safe). */
+      function cb(x1, y1, x2, y2) {
+        const bx = (t) =>
+          3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+        const by = (t) =>
+          3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+        const dx = (t) =>
+          3 * (1 - t) * (1 - t) * x1 +
+          6 * (1 - t) * t * (x2 - x1) +
+          3 * t * t * (1 - x2);
+        return function (p) {
+          if (p <= 0) return 0;
+          if (p >= 1) return 1;
+          let t = p;
+          for (let i = 0; i < 8; i++) {
+            const x = bx(t) - p;
+            if (Math.abs(x) < 1e-6) break;
+            const d = dx(t);
+            if (Math.abs(d) < 1e-6) break;
+            t -= x / d;
+          }
+          return by(t);
+        };
+      }
+      var std = cb(0.4, 0, 0.2, 1); /* the app's standard ease */
+      var draw = cb(0.65, 0, 0.35, 1); /* trace / pulse */
+      var expo = cb(0.16, 1, 0.3, 1); /* settle / rise */
+      var sheenE = cb(0.5, 0, 0.3, 1);
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* Ghost outline: 0 → .34@22% → .26@48% → .12@74% → 0 over 2600 ms. */
+      tl.fromTo("#s01-ghost", { opacity: 0 }, { opacity: 0.34, duration: 0.572, ease: std }, 0);
+      tl.fromTo("#s01-ghost", { opacity: 0.34 }, { opacity: 0.26, duration: 0.676, ease: std, immediateRender: false }, 0.572);
+      tl.fromTo("#s01-ghost", { opacity: 0.26 }, { opacity: 0.12, duration: 0.676, ease: std, immediateRender: false }, 1.248);
+      tl.fromTo("#s01-ghost", { opacity: 0.12 }, { opacity: 0, duration: 0.676, ease: std, immediateRender: false }, 1.924);
+
+      /* Trace draws the triangle (600–1600 ms), visible by 8 %. */
+      tl.fromTo("#s01-trace", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.0, ease: draw }, 0.6);
+      tl.fromTo("#s01-trace", { opacity: 0 }, { opacity: 1, duration: 0.08, ease: "none" }, 0.6);
+      tl.fromTo("#s01-trace", { opacity: 1 }, { opacity: 0, duration: 0.4, ease: "none", immediateRender: false }, 2.0);
+
+      /* Pulse rides the trace head (550–1800 ms): offset .16 → −1,
+         opacity 0 → 1@8 % → .95@72 % → 0. */
+      tl.fromTo("#s01-pulse", { strokeDashoffset: 0.16 }, { strokeDashoffset: -1, duration: 1.25, ease: draw }, 0.55);
+      tl.fromTo("#s01-pulse", { opacity: 0 }, { opacity: 1, duration: 0.1, ease: "none" }, 0.55);
+      tl.fromTo("#s01-pulse", { opacity: 1 }, { opacity: 0.95, duration: 0.8, ease: "none", immediateRender: false }, 0.65);
+      tl.fromTo("#s01-pulse", { opacity: 0.95 }, { opacity: 0, duration: 0.35, ease: "none", immediateRender: false }, 1.45);
+
+      /* Flash on the gold flood (1500–2300 ms): op 0 → .85@35 % → 0,
+         scale .5 → 1.12@35 % → 1.35. */
+      tl.fromTo("#s01-flash", { opacity: 0, scale: 0.5 }, { opacity: 0.85, scale: 1.12, duration: 0.28, ease: std, svgOrigin: "247.5 62" }, 1.5);
+      tl.fromTo("#s01-flash", { opacity: 0.85, scale: 1.12 }, { opacity: 0, scale: 1.35, duration: 0.52, ease: std, immediateRender: false, svgOrigin: "247.5 62" }, 1.78);
+
+      /* CINE illuminates (1750–2250 ms); HD follows in gold (2000–2550 ms). */
+      tl.fromTo("#s01-word-cine", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: std }, 1.75);
+      tl.fromTo("#s01-word-hd", { opacity: 0, fill: "#8d692b" }, { opacity: 1, fill: "#c89028", duration: 0.55, ease: std }, 2.0);
+
+      /* The final gold stroke enters over the trace's fade (2000–2800 ms). */
+      tl.fromTo("#s01-final", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: std }, 2.0);
+
+      /* Sheen crosses the triangle (2550–3600 ms), masked to the stroke. */
+      tl.fromTo("#s01-sheen", { x: -110 }, { x: 120, duration: 1.05, ease: sheenE }, 2.55);
+      tl.fromTo("#s01-sheen", { opacity: 0 }, { opacity: 1, duration: 0.147, ease: "none" }, 2.55);
+      tl.fromTo("#s01-sheen", { opacity: 1 }, { opacity: 0, duration: 0.168, ease: "none", immediateRender: false }, 3.432);
+
+      /* Haze blooms (1400–3600 ms): op 0 → 1@55 %, scale .55 → 1.08 → 1. */
+      tl.fromTo("#s01-haze", { opacity: 0, scale: 0.55 }, { opacity: 1, scale: 1.08, duration: 1.21, ease: std, svgOrigin: "247.5 62" }, 1.4);
+      tl.fromTo("#s01-haze", { scale: 1.08 }, { scale: 1, duration: 0.99, ease: std, immediateRender: false, svgOrigin: "247.5 62" }, 2.61);
+
+      /* Beam sweeps out (1600–3200 ms): op 0 → 1@45 % → .55, scaleX .12 → 1. */
+      tl.fromTo("#s01-beam", { opacity: 0, scaleX: 0.12 }, { opacity: 1, scaleX: 1, duration: 0.72, ease: std, svgOrigin: "247.5 62" }, 1.6);
+      tl.fromTo("#s01-beam", { opacity: 1 }, { opacity: 0.55, duration: 0.88, ease: std, immediateRender: false, svgOrigin: "247.5 62" }, 2.32);
+
+      /* The lockup settles (2400–3400 ms): scale .975 → 1. */
+      tl.fromTo("#s01-lockup", { scale: 0.975 }, { scale: 1, duration: 1.0, ease: expo, svgOrigin: "247.5 111" }, 2.4);
+
+      /* Progress line rises (3150–3850 ms) with the real indeterminate sweep.
+         No caption: the approved board says the wordmark is the text. */
+      tl.fromTo("#s01-progress", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.7, ease: expo }, 3.15);
+      tl.fromTo("#s01-indet", { xPercent: -110 }, { xPercent: 230, duration: 1.7, ease: draw, repeat: 2 }, 0);
+
+      /* The loader's real 640 ms dissolve (3860–4500 ms): the light
+         dilates, the mark swells, the FR landing is revealed behind —
+         the match-cut into S2's first frame. */
+      tl.fromTo("#s01-fade", { opacity: 1 }, { opacity: 0, duration: 0.64, ease: std }, 3.86);
+      tl.fromTo("#s01-lockup", { scale: 1 }, { scale: 1.045, duration: 0.64, ease: std, immediateRender: false, svgOrigin: "247.5 111" }, 3.86);
+      tl.fromTo("#s01-haze", { opacity: 1, scale: 1 }, { opacity: 0, scale: 2.1, duration: 0.64, ease: std, immediateRender: false, svgOrigin: "247.5 62" }, 3.86);
+      tl.fromTo("#s01-beam", { opacity: 0.55, scaleX: 1 }, { opacity: 0, scaleX: 1.5, duration: 0.64, ease: std, immediateRender: false, svgOrigin: "247.5 62" }, 3.86);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["s01-allumage"] = tl;
+    })();
+  </script>
+</template>

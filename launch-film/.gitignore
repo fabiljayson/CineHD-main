@@ -1,0 +1,7 @@
+# Artefacts de rendu hyperframes (78 MB, reproductibles par `npm run check`)
+.hyperframes/
+node_modules/
+
+# Piste musicale fournie par l'utilisateur — droits commerciaux non confirmés,
+# jamais publiés dans ce dépôt public.
+assets/mode-de-vie.mp3

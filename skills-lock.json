@@ -56,6 +56,17 @@
       "skillPath": "skills/design-mobile-apps/SKILL.md",
       "computedHash": "6d6ed68c53ac9f5564aea489ededb387b8cdf29ffa6f78f2a1fa449f86f19e16"
     },
+    "earshot": {
+      "source": "leonxlnx/earshot",
+      "sourceType": "github",
+      "skillPath": "skills/earshot/SKILL.md",
+      "computedHash": "72c8dfc6401343cdb92f4f3c2df732f04575bd0f24e8b0b6b0bde028916ee15e"
+    },
+    "ffmpeg": {
+      "source": "../../../../../tmp/skills-vtk",
+      "sourceType": "local",
+      "computedHash": "51fa05bc18bb2691e622aefd1d8ec6d4d96a9e9c44cdf599003c9d6003d11a07"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
@@ -139,10 +150,82 @@
       "sourceType": "autoskills-registry",
       "computedHash": "7361ab02fb6b09913e3bdd9cf61c629ed6c17de9485e6a781054e5d437ccfc29"
     },
+    "openfilm": {
+      "source": "openfilm/openfilm",
+      "sourceType": "github",
+      "skillPath": "skills/openfilm/SKILL.md",
+      "computedHash": "a30f15632ebb29295dfff7131faf2c212e17f2bae2918a87ef0f716dcca8a157"
+    },
     "react-best-practices": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "autoskills-registry",
       "computedHash": "502eb06700e2c3cb1bd7f710860528f72281320bd5171a2087b05a090b573dc1"
+    },
+    "real-sound": {
+      "source": "leonxlnx/earshot",
+      "sourceType": "github",
+      "skillPath": "skills/real-sound/SKILL.md",
+      "computedHash": "0376c695fdcdd5d2ff0a50f6be5f21c9981e68a6bcafc8f337563cc8856e38b2"
+    },
+    "remotion-best-practices": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "b5e9e59baa671be493237d1a4924ec442384aa993b00b36dc27acacd086141f5"
+    },
+    "remotion-captions": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "880340ac3ac1173c1c89792bcd14e88661cd0c864bb5414a0f7c85991a140d4b"
+    },
+    "remotion-create": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "5a4a11b8689f20e1beab95af9ef802f34b2718a26f4e5b42dd60203c62bdb172"
+    },
+    "remotion-docs": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "44db8556c4823fbcb93ef4c44bd984d7f1477fd976ba305b314becd46747ed62"
+    },
+    "remotion-interactivity": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "74e545aaaa42807a966cf4361116b3b3654f3f6e2ded89f1de81daa090914d20"
+    },
+    "remotion-maps": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "c4169a05fa5ba0d358e7c394e38889afbc889a38cbfcb0a91c45b16bda1aaa69"
+    },
+    "remotion-markup": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "50b630f2ce7d57da8c7231781134e5c16a6ce6c8ddba3045716b087f33718cc7"
+    },
+    "remotion-multimedia": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "319c6bb0353733f919d7fc340c7192d8bca385dcf2f9f675689972598fe2c935"
+    },
+    "remotion-render": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "3a7072b91228cba4163b4726930002b7b4ebbf695c9500f1319d8e9c3e3e25b6"
+    },
+    "remotion-saas": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "21ec5b138acac3d8e40c1ee7ce6fddea39f9eb6fee686ff84fe7b900983e6cd6"
+    },
+    "remotion-studio": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "a68cb455cd8c21f30835503227920ee124ae2a8b10b6fda14e0aaf862ed28933"
+    },
+    "remotion-upgrade": {
+      "source": "../../../../../tmp/skills-remotion",
+      "sourceType": "local",
+      "computedHash": "12b646adcc7c3fc82918cb76ab7a1f38057f3a2efde667d646be96509cb959b8"
     },
     "seo": {
       "source": "addyosmani/web-quality-skills",
@@ -256,6 +339,12 @@
       "source": "cloudflare/skills",
       "sourceType": "autoskills-registry",
       "computedHash": "d9a05896e7ef591d4c499436ce0a53c510800832de30de866b2c2999efe3f622"
+    },
+    "yt-dlp": {
+      "source": "lwmxiaobei/yt-dlp-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "0748a41e6c5dded47f2a9135805b7aea82d7a6f745a64e8e4fd1d49e69772631"
     }
   }
 }

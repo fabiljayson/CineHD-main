@@ -160,14 +160,12 @@ if (cluster.isPrimary ?? cluster.isMaster) {
   }
 
   // Le master ne fait RIEN d'autre — pas de require express, mysql, redis, etc.
-  return;
-}
+} else {
+  // =============================================================================
+  // === WORKER PROCESS ONLY (below) =============================================
+  // =============================================================================
 
-// =============================================================================
-// === WORKER PROCESS ONLY (below) =============================================
-// =============================================================================
-
-process.env.UV_THREADPOOL_SIZE = 8; // 8 threads libuv par worker
+  process.env.UV_THREADPOOL_SIZE = 8; // 8 threads libuv par worker
 
 const http = require('http');
 const https = require('https');
@@ -371,3 +369,4 @@ process.on('SIGINT', shutdownWorker);
 process.on('message', (msg) => {
   if (msg === 'shutdown') shutdownWorker();
 });
+}

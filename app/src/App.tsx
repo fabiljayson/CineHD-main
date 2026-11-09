@@ -61,7 +61,8 @@ async function enableDnsFromPrompt(): Promise<void> {
       () => AsyncStorage.setItem('dns_enabled', 'false'),
     );
     await waitAtMost(activation, DNS_PROMPT_WAIT_MS);
-  } catch {
+  } catch (error) {
+    void error;
     await AsyncStorage.setItem('dns_enabled', 'false');
   }
 }
@@ -78,7 +79,9 @@ function promptDns(): Promise<void> {
           style: 'cancel',
           onPress: () => {
             AsyncStorage.setItem('dns_enabled', 'false')
-              .catch(() => {})
+              .catch(error => {
+                void error;
+              })
               .finally(resolve);
           },
         },
@@ -106,7 +109,9 @@ export default function App() {
   // lecture lancée juste après une mise à jour n'était pas enregistrée — soit
   // exactement le moment où on a besoin d'elle.
   useEffect(() => {
-    loadNetworkJournalPreference().catch(() => {});
+    loadNetworkJournalPreference().catch(error => {
+      void error;
+    });
   }, []);
 
   useEffect(() => {
@@ -117,7 +122,9 @@ export default function App() {
         if (DnsModule) {
           try {
             nativeEnabled = await DnsModule.isEnabled();
-          } catch {}
+          } catch (error) {
+            void error;
+          }
         }
 
         if (nativeEnabled) {
@@ -130,7 +137,9 @@ export default function App() {
           // changement de réseau coupait la récupération des domaines et la
           // première page, et l'app affichait « CineHD injoignable ».
           await waitAtMost(
-            DnsModule.enable('1.1.1.1', '1.0.0.1').catch(() => {}),
+            DnsModule.enable('1.1.1.1', '1.0.0.1').catch(error => {
+              void error;
+            }),
             DNS_START_WAIT_MS,
           );
           setDnsSettled(true);
@@ -160,7 +169,9 @@ export default function App() {
       try {
         const active = await DnsModule.isEnabled();
         await AsyncStorage.setItem('dns_enabled', active ? 'true' : 'false');
-      } catch {}
+      } catch (error) {
+        void error;
+      }
     };
     const subscription = AppState.addEventListener('change', nextState => {
       if (nextState === 'active') {

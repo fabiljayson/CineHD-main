@@ -99,11 +99,18 @@ function injectedJavaScriptFor(journalConsoleEnabled: boolean): string {
   return built;
 }
 
+function containsUnsafeUrlCharacters(value: string): boolean {
+  return [...value].some(character => {
+    const code = character.charCodeAt(0);
+    return code <= 0x20 || character === '\\';
+  });
+}
+
 function isUsableHttpUrl(value: unknown): value is string {
   return (
     typeof value === 'string'
     && value.length > 0
-    && !/[\u0000-\u0020\\]/.test(value)
+    && !containsUnsafeUrlCharacters(value)
     && /^https?:\/\/[^/?#]+(?:[/?#]|$)/i.test(value)
   );
 }
@@ -216,7 +223,9 @@ const WebViewBrowser = forwardRef<WebViewBrowserRef, WebViewBrowserProps>(
     }, []);
 
     const onHttpError = useCallback(
-      (event: any) => {
+      (event: {
+        nativeEvent: { statusCode: number; url?: string };
+      }) => {
         // Seul un serveur en panne justifie de passer au miroir suivant. Un 403
         // ou un 503 est souvent le défi Cloudflare servi aux IP de VPN : la page
         // doit s'afficher pour que le défi se résolve.

@@ -132,10 +132,13 @@ test('un changement d’en-tête dans la même requête refait la validation', a
   assert.equal(await f.auth.getAuthIfValid(req), null);
 });
 
-test('le comportement existant en panne SQL conserve la vérification du compte', async t => {
+// Les E2E du dépôt ne simulent pas une panne MySQL au moment précis où une
+// session révoquée est validée ; cette régression de contrôle d'accès doit
+// donc rester couverte au niveau du vérificateur réel.
+test('une panne SQL refuse le jeton au lieu de contourner la révocation de session', async t => {
   const f = await fixture(t);
   f.failSql();
-  assert.ok(await f.auth.getAuthIfValid(f.req()));
+  assert.equal(await f.auth.getAuthIfValid(f.req()), null);
   await fs.unlink(f.accountPath);
   assert.equal(await f.auth.getAuthIfValid(f.req()), null);
 });

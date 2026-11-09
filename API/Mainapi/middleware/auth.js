@@ -219,16 +219,13 @@ async function validateAuthRequest(req) {
 
     if (!hasSession) {
       if (!dbAnswered) {
-        // MySQL n'a jamais répondu (restart, queue limit…) : fail-open sur le
-        // JWT (signature déjà vérifiée) plutôt que 401 — un 401 déconnecte
-        // l'utilisateur côté front. Seul le contrôle de révocation de session
-        // est sauté, le temps de l'indisponibilité. Le compte est encore
-        // validé sur disque juste en dessous (validateBackingAccount).
-        console.warn(`[AUTH] MySQL indisponible, fail-open JWT pour userType=${userType}, userId=${userId}, sessionId=${sessionId}`);
+        // Une session révoquée ne doit pas redevenir valide pendant une panne
+        // MySQL. Refuser l'authentification jusqu'au rétablissement de la base.
+        console.warn(`[AUTH] MySQL indisponible, authentification refusée pour userType=${userType}, userId=${userId}, sessionId=${sessionId}`);
       } else {
         console.warn(`[AUTH] Session manquante après 3 tentatives pour userType=${userType}, userId=${userId}, sessionId=${sessionId}`);
-        return null;
       }
+      return null;
     }
 
     const hasBackingAccount = await validateBackingAccount(userType, userId);

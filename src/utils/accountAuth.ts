@@ -366,6 +366,7 @@ export function clearStoredAuthSession() {
 export function clearLegacyGoogleAuthSession() {
   const discordAuth = readLocalStorage('discord_auth') === 'true';
   const bip39Auth = readLocalStorage('bip39_auth') === 'true';
+  const storedMethod = readLocalStorage('auth_method');
   const storedAuth = readLocalStorage('auth');
   let storedProvider: string | null = null;
 
@@ -378,11 +379,18 @@ export function clearLegacyGoogleAuthSession() {
     }
   }
 
-  const hasGoogleSession = readLocalStorage('google_auth') === 'true'
-    || readLocalStorage('auth_method') === 'google'
-    || (!discordAuth && !bip39Auth && (
-      storedProvider === 'google' || Boolean(readLocalStorage('google_user'))
-    ));
+  const hasSupportedSession = discordAuth
+    || bip39Auth
+    || storedMethod === 'discord'
+    || storedMethod === 'bip39'
+    || storedProvider === 'discord'
+    || storedProvider === 'bip39';
+  const hasGoogleSession = !hasSupportedSession && (
+    readLocalStorage('google_auth') === 'true'
+    || storedMethod === 'google'
+    || storedProvider === 'google'
+    || Boolean(readLocalStorage('google_user'))
+  );
 
   const googleKeys = ['google_auth', 'google_user', 'google_token'] as const;
   if (hasGoogleSession) {

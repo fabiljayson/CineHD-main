@@ -492,10 +492,6 @@ export function useAppUpdate(githubUrl: string | null) {
     setState(s => (s.manifest?.mandatory ? s : { ...initialState }));
   }, []);
 
-  // beginDownload is intentionally referenced for the install action and is stable
-  // across this hook lifetime; the helper is defined below and must not trigger a
-  // dependency churn when the UI re-renders.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const accept = useCallback(async () => {
     if (!state.manifest) return;
     const manifest = state.manifest;

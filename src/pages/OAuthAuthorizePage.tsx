@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Bell, BellPlus, BookmarkMinus, BookmarkPlus, ChevronDown, Crown, ExternalLink, Eye, EyeOff, FilePenLine, FolderPlus, FolderX, Heart, HeartHandshake, HeartOff, History, Library, List, ListChecks, ListMinus, ListPlus, PlayCircle, ShieldCheck, Star, StarOff, UserRound, UserRoundCog } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { googleAuth } from '../services/googleAuth';
 import { broadcastAuthChange, clearPendingAuthAction, clearStoredAuthSession, setPendingAuthAuthorize } from '../utils/accountAuth';
 import { useProfile } from '../context/ProfileContext';
 import movixIcon from '@/assets/brand/movix.svg';
@@ -66,19 +65,6 @@ function getStoredIdentity(): StoredIdentity | null {
           avatar: String(userProfile.avatar || DEFAULT_AVATAR),
         };
       }
-    } catch {
-      // Ignore malformed local auth cache.
-    }
-  }
-
-  const googleRaw = localStorage.getItem('google_user');
-  if (googleRaw) {
-    try {
-      const parsed = JSON.parse(googleRaw);
-      return {
-        username: String(parsed?.name || 'CineHD'),
-        avatar: String(parsed?.picture || DEFAULT_AVATAR),
-      };
     } catch {
       // Ignore malformed local auth cache.
     }
@@ -421,14 +407,6 @@ const OAuthAuthorizePage: React.FC = () => {
     });
   }, [preview?.request.scopes, t]);
 
-  const handleGoogleLogin = () => {
-    googleAuth.login({
-      mode: 'authorize',
-      returnTo,
-      clientId: preview?.client.clientId,
-    });
-  };
-
   const handleBip39Route = (targetPath: '/login-bip39' | '/create-account') => {
     setPendingAuthAuthorize(returnTo, preview?.client.clientId);
     window.location.replace(targetPath);
@@ -709,13 +687,6 @@ const OAuthAuthorizePage: React.FC = () => {
                 </p>
 
                 <div className="mt-5 space-y-2.5">
-                  <Button
-                    onClick={handleGoogleLogin}
-                    disabled={!preview}
-                    className="w-full justify-center bg-white py-2.5 text-gray-900 hover:bg-gray-100"
-                  >
-                    {t('auth.loginWithGoogle')}
-                  </Button>
                   <Button
                     onClick={() => handleBip39Route('/login-bip39')}
                     disabled={!preview}

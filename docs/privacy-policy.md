@@ -30,7 +30,7 @@ Elle couvre à la fois ce qui reste sur votre appareil, ce qui peut être synchr
 **En résumé :**
 
 - CineHD conserve une grande partie de votre état d'usage localement dans le navigateur.
-- Une partie de cet état est synchronisée côté serveur pour les comptes connectés Discord, Google ou BIP39.
+- Une partie de cet état est synchronisée côté serveur pour les comptes connectés Discord ou BIP39.
 - WatchParty, les fonctions communautaires et les flux VIP ajoutent leurs propres journaux, messages et données techniques.
 - Vous pouvez déjà couper la collecte future de Wrapped et gérer plusieurs éléments depuis les paramètres du compte.
 
@@ -45,10 +45,10 @@ Une part importante de l'expérience CineHD fonctionne d'abord dans votre naviga
 
 ### 2. Comptes, profils et synchronisation
 
-- Lorsque vous vous connectez via Discord, Google ou BIP39, CineHD traite le contexte de compte correspondant : identifiant fournisseur, pseudo, avatar, type de compte, sessions et profil actif.
+- Lorsque vous vous connectez via Discord ou BIP39, CineHD traite le contexte de compte correspondant : identifiant fournisseur, pseudo, avatar, type de compte, sessions et profil actif.
 - La gestion de session conserve notamment un identifiant de session, le user-agent, des dates d'accès et une empreinte d'appareil dérivée et chiffrée à partir du user-agent et de l'adresse IP.
 - Les comptes connectés peuvent gérer plusieurs profils avec nom, avatar, restriction d'âge et profil par défaut ; certaines interactions communautaires sont rattachées à un profil précis.
-- Pour les comptes Discord, Google et BIP39 connectés, une partie de l'état local est synchronisée côté serveur par deltas dans des données persistantes liées au compte et au profil.
+- Pour les comptes Discord et BIP39 connectés, une partie de l'état local est synchronisée côté serveur par deltas dans des données persistantes liées au compte et au profil.
 - Les secrets de session comme session_id, guest_uuid, auth_token et access_token sont explicitement exclus de cette synchronisation automatique.
 
 > Le code actuel désactive la synchronisation serveur pour les invités. Les utilisateurs VIP sont également ignorés par la route de sync automatique.
@@ -81,7 +81,6 @@ Une part importante de l'expérience CineHD fonctionne d'abord dans votre naviga
 ### 6. Services tiers impliqués
 
 - Discord OAuth pour l'identité et certaines informations de serveurs ou membres nécessaires aux flux Discord du site.
-- Google OAuth pour l'authentification basée sur l'email et le profil.
 - TMDB pour les métadonnées, affiches, logos et autres éléments de catalogue.
 - Cloudflare Turnstile pour la vérification anti-bot.
 - Vercel Analytics pour des mesures de fréquentation et d'usage du site.
@@ -117,7 +116,7 @@ It covers what stays on your device, what can be synchronized server-side, what 
 **In short:**
 
 - CineHD keeps a large part of your usage state locally in the browser.
-- Part of that state is synchronized server-side for connected Discord, Google or BIP39 accounts.
+- Part of that state is synchronized server-side for connected Discord or BIP39 accounts.
 - WatchParty, community features and VIP flows add their own logs, messages and technical data.
 - You can already disable future Wrapped collection and manage several items from the account settings.
 
@@ -132,10 +131,10 @@ A significant part of the CineHD experience runs directly in your browser. The s
 
 ### 2. Accounts, profiles and synchronization
 
-- When you sign in through Discord, Google or BIP39, CineHD processes the matching account context: provider identifier, username, avatar, account type, sessions and active profile.
+- When you sign in through Discord or BIP39, CineHD processes the matching account context: provider identifier, username, avatar, account type, sessions and active profile.
 - Session management notably stores a session identifier, the user agent, access dates and a derived encrypted device fingerprint built from the user agent and IP address.
 - Connected accounts can manage multiple profiles with name, avatar, age restriction and default profile; some community interactions are attached to a specific profile.
-- For connected Discord, Google and BIP39 accounts, part of the local state is synchronized server-side through deltas into persistent data tied to the account and profile.
+- For connected Discord and BIP39 accounts, part of the local state is synchronized server-side through deltas into persistent data tied to the account and profile.
 - Session secrets such as session_id, guest_uuid, auth_token and access_token are explicitly excluded from this automatic synchronization.
 
 > The current code disables server sync for guests. VIP users are also ignored by the automatic sync route.
@@ -168,7 +167,6 @@ A significant part of the CineHD experience runs directly in your browser. The s
 ### 6. Third-party services involved
 
 - Discord OAuth for identity and some server or member information needed by the site's Discord flows.
-- Google OAuth for email- and profile-based authentication.
 - TMDB for metadata, posters, logos and other catalog assets.
 - Cloudflare Turnstile for anti-bot verification.
 - Vercel Analytics for traffic and usage measurements on the site.

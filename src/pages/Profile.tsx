@@ -499,13 +499,13 @@ const Profile: React.FC = () => {
     const checkAuth = () => {
       const authStr = localStorage.getItem('auth');
       const discordAuth = localStorage.getItem('discord_auth') === 'true';
-      const googleAuth = localStorage.getItem('google_auth') === 'true';
       const bip39Auth = localStorage.getItem('bip39_auth') === 'true';
 
       let found = false;
 
       const processAuth = (authData: any) => {
-        if (authData && authData.userProfile) {
+        const provider = authData?.userProfile?.provider || authData?.provider;
+        if (authData?.userProfile && provider !== 'google') {
           setIsAuthenticated(true);
           setUserProfile(authData.userProfile);
           found = true;
@@ -570,54 +570,6 @@ const Profile: React.FC = () => {
         if (discordProfile) {
           setIsAuthenticated(true);
           setUserProfile(discordProfile);
-          found = true;
-        }
-      }
-
-      // Check for Google auth - prioritize auth object if it exists and has Google data
-      if (!found && googleAuth) {
-        let googleProfile = null;
-
-        // First check if auth object has Google profile data
-        if (authStr) {
-          try {
-            const auth = JSON.parse(authStr);
-            if (auth.userProfile && !auth.userProfile.provider) {
-              // This might be a Google profile stored in auth object
-              const googleUserRaw = localStorage.getItem('google_user');
-              if (googleUserRaw) {
-                const googleUser = JSON.parse(googleUserRaw);
-                // Verify this auth profile corresponds to the Google user
-                if (googleUser.id && auth.userProfile.username) {
-                  googleProfile = auth.userProfile;
-                }
-              }
-            }
-          } catch (error) {
-            console.error('Erreur lors de la vérification de l\'auth Google:', error);
-          }
-        }
-
-        // If no profile from auth object, use google_user directly
-        if (!googleProfile) {
-          const googleUserRaw = localStorage.getItem('google_user');
-          if (googleUserRaw) {
-            try {
-              const googleUser = JSON.parse(googleUserRaw);
-              googleProfile = {
-                username: googleUser.name,
-                avatar: googleUser.picture
-              };
-            } catch (error) {
-              setIsAuthenticated(false);
-              return;
-            }
-          }
-        }
-
-        if (googleProfile) {
-          setIsAuthenticated(true);
-          setUserProfile(googleProfile);
           found = true;
         }
       }
@@ -2242,14 +2194,6 @@ const Profile: React.FC = () => {
       localStorage.setItem('discord_user', JSON.stringify(discordUser));
     }
 
-    // Update google_user if it exists
-    const googleAuth = localStorage.getItem('google_auth');
-    if (googleAuth === 'true') {
-      const googleUser = JSON.parse(localStorage.getItem('google_user') || '{}');
-      googleUser.picture = directUrl;
-      localStorage.setItem('google_user', JSON.stringify(googleUser));
-    }
-
     setUserProfile({
       ...userProfile,
       avatar: directUrl
@@ -2293,14 +2237,6 @@ const Profile: React.FC = () => {
         localStorage.setItem('discord_user', JSON.stringify(discordUser));
       }
 
-      // Update google_user if it exists
-      const googleAuth = localStorage.getItem('google_auth');
-      if (googleAuth === 'true') {
-        const googleUser = JSON.parse(localStorage.getItem('google_user') || '{}');
-        googleUser.name = newUsername.trim();
-        localStorage.setItem('google_user', JSON.stringify(googleUser));
-      }
-
       setUserProfile({
         ...userProfile,
         username: newUsername.trim()
@@ -2336,10 +2272,9 @@ const Profile: React.FC = () => {
     setVipKeyError(null);
 
     try {
-      // Vérifier si l'utilisateur est déjà connecté via Discord ou Google
+      // Vérifier si l'utilisateur est déjà connecté via Discord
       const discordAuth = localStorage.getItem('discord_auth') === 'true';
-      const googleAuth = localStorage.getItem('google_auth') === 'true';
-      const alreadyAuthenticated = discordAuth || googleAuth;
+      const alreadyAuthenticated = discordAuth;
 
       // Utiliser la fonction checkAccessCode du contexte d'authentification
       const success = await checkAccessCode(premiumKey.trim(), alreadyAuthenticated);

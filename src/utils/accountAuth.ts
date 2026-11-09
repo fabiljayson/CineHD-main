@@ -1,4 +1,6 @@
-export type AuthMethod = 'discord' | 'google' | 'bip39';
+import { readLocalStorage, removeLocalStorage } from './browserStorage';
+
+export type AuthMethod = 'discord' | 'bip39';
 export type ResolvedUserType = 'oauth' | 'bip39';
 
 interface StoredUserProfile extends Record<string, unknown> {
@@ -7,10 +9,6 @@ interface StoredUserProfile extends Record<string, unknown> {
   username?: string;
   provider?: string;
   avatar?: string;
-  name?: string;
-  email?: string;
-  picture?: string;
-  sub?: string | number;
   discriminator?: string;
   roles?: unknown[];
   isAdmin?: boolean;
@@ -100,7 +98,7 @@ const AUTH_KEYS = [
 ] as const;
 
 function isAuthMethod(value: string | null): value is AuthMethod {
-  return value === 'discord' || value === 'google' || value === 'bip39';
+  return value === 'discord' || value === 'bip39';
 }
 
 function isResolvedUserType(value: string | null): value is ResolvedUserType {
@@ -236,15 +234,6 @@ function getFallbackAuthProfile(method: AuthMethod, resolvedUserId: string, rawU
     };
   }
 
-  if (method === 'google') {
-    return {
-      id: resolvedUserId,
-      username: rawUser?.name || rawUser?.email || `Google-${resolvedUserId}`,
-      avatar: rawUser?.picture || DEFAULT_AVATAR,
-      provider: 'google',
-    };
-  }
-
   return {
     id: resolvedUserId,
     username: rawUser?.username || `Utilisateur-${resolvedUserId.slice(0, 8)}`,
@@ -262,7 +251,6 @@ export function getCurrentAuthMethod(): AuthMethod | null {
   if (isAuthMethod(tokenAuthMethod)) return tokenAuthMethod;
 
   if (localStorage.getItem('discord_auth') === 'true') return 'discord';
-  if (localStorage.getItem('google_auth') === 'true') return 'google';
   if (localStorage.getItem('bip39_auth') === 'true') return 'bip39';
   if (tokenPayload?.userType === 'bip39') return 'bip39';
   return null;
@@ -300,15 +288,6 @@ export function getResolvedUserId(): string | null {
   if (method === 'discord') {
     try {
       const user = JSON.parse(localStorage.getItem('discord_user') || '{}');
-      return user?.id ? String(user.id) : null;
-    } catch {
-      return null;
-    }
-  }
-
-  if (method === 'google') {
-    try {
-      const user = JSON.parse(localStorage.getItem('google_user') || '{}');
       return user?.id ? String(user.id) : null;
     } catch {
       return null;
@@ -384,6 +363,36 @@ export function clearStoredAuthSession() {
   AUTH_KEYS.forEach((key) => localStorage.removeItem(key));
 }
 
+export function clearLegacyGoogleAuthSession() {
+  const discordAuth = readLocalStorage('discord_auth') === 'true';
+  const bip39Auth = readLocalStorage('bip39_auth') === 'true';
+  const storedAuth = readLocalStorage('auth');
+  let storedProvider: string | null = null;
+
+  if (storedAuth) {
+    try {
+      const parsed = JSON.parse(storedAuth);
+      storedProvider = parsed?.userProfile?.provider || parsed?.provider || null;
+    } catch {
+      // Ignore malformed legacy auth data.
+    }
+  }
+
+  const hasGoogleSession = readLocalStorage('google_auth') === 'true'
+    || readLocalStorage('auth_method') === 'google'
+    || (!discordAuth && !bip39Auth && (
+      storedProvider === 'google' || Boolean(readLocalStorage('google_user'))
+    ));
+
+  const googleKeys = ['google_auth', 'google_user', 'google_token'] as const;
+  if (hasGoogleSession) {
+    AUTH_KEYS.forEach((key) => removeLocalStorage(key));
+    return;
+  }
+
+  googleKeys.forEach((key) => removeLocalStorage(key));
+}
+
 export function broadcastAuthChange() {
   window.dispatchEvent(new Event('storage'));
   window.dispatchEvent(new Event('auth_changed'));
@@ -400,7 +409,6 @@ export function persistResolvedSession(
     payload.account?.userId ||
     payload.authData?.userProfile?.id ||
     rawUser?.id ||
-    rawUser?.sub ||
     ''
   );
 
@@ -432,20 +440,6 @@ export function persistResolvedSession(
       linked: Boolean(payload.account?.linked),
     }));
     if (options.accessToken) localStorage.setItem('discord_token', options.accessToken);
-  }
-
-  if (method === 'google') {
-    const providerId = String(rawUser?.sub || rawUser?.id || resolvedUserId);
-    localStorage.setItem('google_auth', 'true');
-    localStorage.setItem('google_user', JSON.stringify({
-      id: resolvedUserId,
-      providerId,
-      email: rawUser?.email || '',
-      name: rawUser?.name || payload.authData?.userProfile?.username || `Google-${providerId}`,
-      picture: rawUser?.picture || DEFAULT_AVATAR,
-      linked: Boolean(payload.account?.linked),
-    }));
-    if (options.accessToken) localStorage.setItem('google_token', options.accessToken);
   }
 
   if (method === 'bip39') {

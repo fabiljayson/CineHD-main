@@ -2102,7 +2102,6 @@
     "username": "Username",
     "forgotPassword": "Forgot password?",
     "loginWithDiscord": "Log in with Discord",
-    "loginWithGoogle": "Log in with Google",
     "loginWithBip39": "Log in with BIP39",
     "createAccount": "Create account",
     "alreadyHaveAccount": "Already have an account?",
@@ -2121,7 +2120,6 @@
     "registerError": "Registration error",
     "waitBeforeRetry": "Please wait {{seconds}} seconds before trying again",
     "discordAuth": "Discord Authentication",
-    "googleAuth": "Google Authentication",
     "bip39": {
       "title": "Connexion BIP39",
       "description": "Connectez-vous avec votre phrase secrète BIP39",
@@ -2186,10 +2184,6 @@
       "finalizing": "Finalizing...",
       "authError": "Error during Discord authentication"
     },
-    "google": {
-      "authFailed": "Google authentication failed",
-      "authError": "An error occurred during authentication"
-    },
     "loginPrompt": "Log in to access your profile, watchlist and favorites.",
     "iHaveACode": "have a code",
     "or": "or",
@@ -2218,10 +2212,8 @@
     "secretPhraseMismatch": "The secret phrase doesn't match. Please try again.",
     "captchaRequired": "Please complete the security verification",
     "generateNewPhrase": "Generate a new phrase",
-    "fetchingGoogleProfile": "Fetching Google profile",
     "userBip39": "BIP39 User",
-    "userDiscord": "Discord User",
-    "userGoogle": "Google User"
+    "userDiscord": "Discord User"
   },
   "profile": {
     "title": "Profile",
@@ -2545,7 +2537,7 @@
     "removeVipKey": "Remove my VIP key",
     "noAds": "No ads",
     "sessionsNotAvailable": "Sessions not available",
-    "sessionsNotAvailableDesc": "Available only for Discord, Google or BIP39.",
+    "sessionsNotAvailableDesc": "Available only for Discord or BIP39.",
     "noActiveSessions": "No active sessions",
     "noActiveSessionsDesc": "No sessions on other devices.",
     "currentSession": "Current session",
@@ -4211,7 +4203,6 @@
     "joinCommunity": "Join the community",
     "loginPrompt": "Log in to influence tomorrow's content.",
     "continueWithDiscord": "Continue with Discord",
-    "continueWithGoogle": "Continue with Google",
     "secretPhrase": "Secret phrase",
     "newProject": "New Project",
     "newProjectQuestion": "What type of content would you like to see on CineHD?",
@@ -4364,8 +4355,7 @@
     "statusNotFoundDesc": "Mission impossible for now.",
     "tipLabel": "💡 Tip",
     "tipText": "Invite your friends to vote. The more votes a project has, the higher it climbs in the queue!",
-    "continueDiscord": "Continue with Discord",
-    "continueGoogle": "Continue with Google"
+    "continueDiscord": "Continue with Discord"
   },
   "top10": {
     "title": "Top 10",
@@ -6122,7 +6112,7 @@
     },
     "sessions_ui": {
       "notAvailable": "Sessions not available",
-      "notAvailableDesc": "Session management is only available for users logged in via Discord, Google or BIP39.",
+      "notAvailableDesc":       "Session management is only available for users logged in via Discord or BIP39.",
       "noActiveSessions": "No active sessions",
       "noActiveSessionsDesc": "You currently have no active sessions on other devices."
     },
@@ -6506,7 +6496,7 @@
   "privacyPolicyPage": {
     "title": "Privacy policy",
     "eyebrow": "Data processing actually present in CineHD",
-    "lastUpdated": "November 7, 2026",
+    "lastUpdated": "November 9, 2026",
     "seoTitle": "Privacy policy - CineHD",
     "seoDescription": "CineHD privacy policy: local storage, accounts, profiles, server sync, WatchParty, community features, security, third-party services and VIP.",
     "intro": [
@@ -6515,7 +6505,7 @@
     ],
     "summaryItems": [
       "CineHD keeps a large part of your usage state locally in the browser.",
-      "Part of that state is synchronized server-side for connected Discord, Google or BIP39 accounts.",
+      "Part of that state is synchronized server-side for connected Discord or BIP39 accounts.",
       "WatchParty, community features and VIP flows add their own logs, messages and technical data.",
       "You can already disable future Wrapped collection and manage several items from the account settings."
     ],
@@ -6536,10 +6526,10 @@
       "accountsSync": {
         "title": "Accounts, profiles and synchronization",
         "bullets": [
-          "When you sign in through Discord, Google or BIP39, CineHD processes the matching account context: provider identifier, username, avatar, account type, sessions and active profile.",
+          "When you sign in through Discord or BIP39, CineHD processes the matching account context: provider identifier, username, avatar, account type, sessions and active profile.",
           "Session management notably stores a session identifier, the user agent, access dates and a derived encrypted device fingerprint built from the user agent and IP address.",
           "Connected accounts can manage multiple profiles with name, avatar, age restriction and default profile; some community interactions are attached to a specific profile.",
-          "For connected Discord, Google and BIP39 accounts, part of the local state is synchronized server-side through deltas into persistent data tied to the account and profile.",
+          "For connected Discord and BIP39 accounts, part of the local state is synchronized server-side through deltas into persistent data tied to the account and profile.",
           "Session secrets such as session_id, guest_uuid, auth_token and access_token are explicitly excluded from this automatic synchronization."
         ],
         "note": "The current code disables server sync for guests. VIP users are also ignored by the automatic sync route."
@@ -6579,7 +6569,6 @@
         "title": "Third-party services involved",
         "bullets": [
           "Discord OAuth for identity and some server or member information needed by the site's Discord flows.",
-          "Google OAuth for email- and profile-based authentication.",
           "TMDB for metadata, posters, logos and other catalog assets.",
           "Cloudflare Turnstile for anti-bot verification.",
           "An optional usage measurement via Google Analytics 4 or Plausible depending on the deployment configuration: nothing is loaded by default, and a local setting plus the Do Not Track signal disable it when it is active.",
@@ -6648,7 +6637,7 @@
       "accounts": {
         "title": "Account, profiles and security",
         "bullets": [
-          "Access may use Discord, Google or BIP39. You remain responsible for the confidentiality of your BIP39 secret phrase, your linked accounts, your session tokens and the devices on which you sign in.",
+          "Access may use Discord or BIP39. You remain responsible for the confidentiality of your BIP39 secret phrase, your linked accounts, your session tokens and the devices on which you sign in.",
           "You are responsible for the actions performed through your sessions, selected profiles and WatchParty rooms until you have closed or revoked them.",
           "You must not impersonate a third party, bypass authentication safeguards or use accounts, profiles or VIP access obtained fraudulently.",
           "CineHD may limit, close or reset sessions and account links when a security risk, abuse pattern or technical inconsistency is detected."
@@ -7124,7 +7113,7 @@
   },
   "requireUsernameChange": {
     "title": "Choose a new nickname",
-    "description": "Your Discord/Google nickname doesn't meet our criteria ({{max}} characters max, no invisible special characters). Pick a new one to continue.",
+    "description": "Your Discord nickname doesn't meet our criteria ({{max}} characters max, no invisible special characters). Pick a new one to continue.",
     "currentLabel": "Current nickname",
     "currentLength": "{{count}} characters",
     "inputLabel": "New nickname",
@@ -7474,7 +7463,7 @@
       "cardCompteSub": "12 words, no email, no password. How to create your account.",
       "cardRecupererCompteTitle": "Recover a lost account",
       "cardRecupererCompteSub": "Without the seed it's impossible — here's why and how to prevent it.",
-      "cardLierCompteTitle": "Link Discord / Google",
+      "cardLierCompteTitle": "Link Discord",
       "cardLierCompteSub": "Add a second door to your BIP39 account.",
       "cardProfilsTitle": "Profiles & parental controls",
       "cardProfilsSub": "Multiple profiles per account, manage age restrictions.",
@@ -7599,8 +7588,8 @@
       "step4": "Confirm by retyping the words. Your account is created, you're logged in.",
       "warningTitle": "Save your seed before closing the screen",
       "warningBody": "The 12 words are NEVER shown a second time. If you didn't save them and you lose access to your browser, the account is permanently lost (no recovery possible — see the dedicated tutorial).",
-      "oauthTitle": "Alternative: Discord / Google",
-      "oauthBody": "You can also create an account via Discord or Google (OAuth). Simpler, but you depend on those platforms. Nothing prevents you from doing both and linking your BIP39 account to an OAuth via the 'Link Discord / Google' tutorial."
+      "oauthTitle": "Alternative: Discord",
+      "oauthBody": "You can also create an account via Discord (OAuth). It's simpler, but you depend on that platform. You can also link your BIP39 account to Discord using the 'Link Discord' tutorial."
     },
     "recupererCompte": {
       "title": "Recover a lost account",
@@ -7610,25 +7599,25 @@
       "whyTitle": "Why no recovery?",
       "whyBody": "Any recovery system (email, security question, support-assisted reset) would require storing server-side an element capable of regenerating or replacing your key. That breaks the entire security model: a leak or a social-engineered support agent could cost you the account. Crypto platforms (MetaMask, Ledger, Trust Wallet) work exactly the same — lose the seed, lose access, by design.",
       "ifLostTitle": "If you've already lost your seed",
-      "ifLostBody": "If you linked a Discord or Google account to your BIP39 account BEFORE losing the seed, you can reconnect via OAuth on the same browser. Otherwise, the account is permanently lost — create a new one and save the seed this time.",
+      "ifLostBody": "If you linked a Discord account to your BIP39 account BEFORE losing the seed, you can reconnect through Discord on the same browser. Otherwise, the account is permanently lost — create a new one and save the seed this time.",
       "preventTitle": "Prevent, now",
       "preventBody": "If you still have your seed: copy it into a password manager (Bitwarden, 1Password, Proton Pass) and also print it on paper. Never share with anyone — not even CineHD support (we will NEVER ask).",
       "supportTitle": "Support",
       "supportBody": "WhatsApp support can help with session issues, login, OAuth, but can do NOTHING about a lost seed. That's not a strict policy, it's a technical impossibility."
     },
     "lierCompte": {
-      "title": "Link Discord / Google to your BIP39 account",
+      "title": "Link Discord to your BIP39 account",
       "heroSub": "Dual auth to recover your account more easily.",
-      "introBody": "By default, a BIP39 account has only the seed as access method. By linking Discord or Google, you add a second entry door — useful if you lose the seed.",
+      "introBody": "By default, a BIP39 account has only the seed as access method. By linking Discord, you add a second entry door — useful if you lose the seed.",
       "howTitle": "How to link",
       "step1": "Log in with your seed on CineHD.",
       "step2": "Go to Profile → Settings → Connections.",
-      "step3": "Click 'Link Discord' or 'Link Google', approve the OAuth.",
-      "step4": "Done. You can now log in with either.",
+      "step3": "Click 'Link Discord' and approve the OAuth.",
+      "step4": "Done. You can now log in with your seed or Discord.",
       "limitsTitle": "Important limits",
-      "limitsBody": "Linking = a SECOND key, not a replacement. If you lose the seed AND you're signed out of Discord/Google on your browser, the account can still be lost (it depends on OAuth session persistence). The seed stays the anchor.",
+      "limitsBody": "Linking = a SECOND key, not a replacement. If you lose the seed AND you're signed out of Discord in your browser, the account can still be lost (it depends on OAuth session persistence). The seed stays the anchor.",
       "securityTitle": "Security",
-      "securityBody": "If someone hacks your Discord or Google, they also access your CineHD account. Enable 2FA on Discord/Google before linking. CineHD stores no OAuth token server-side — just a verified identifier."
+      "securityBody": "If someone hacks your Discord account, they also access your CineHD account. Enable 2FA on Discord before linking. CineHD stores no OAuth token server-side — just a verified identifier."
     },
     "watchparty": {
       "title": "WatchParty",
@@ -7696,7 +7685,7 @@
       "whyTitle": "Why open-source?",
       "whyBody": "Transparency first: you can verify what your browser runs and what the server stores. Your BIP39 account (12-word seed) is handled client-side — the server never sees your seed, and you can go read the code to prove it. Resilience next: if the main domain goes down or if CineHD disappears, anyone can clone, build, and host. The project doesn't depend on any proprietary service to run. Trust last: many streaming platforms are closed and opaque — here everything is auditable, and every commit is public.",
       "selfhostTitle": "Self-host your own instance",
-      "selfhostBody": "You can clone the <1>repo</1> and run CineHD locally or on your own server. The README and CLAUDE.md at the root document the stack, env vars (~100 for the main API), commands (npm run dev for the frontend on :3000, node server.js for the main API on :25565, python server.py for the embed proxies on :25569, etc.) and the service architecture. You'll need MySQL, Redis, and TMDB / Turnstile / Discord&Google OAuth keys depending on what you enable. The instance you spin up is fully independent of {{currentDomain}} — your users, your database, your control.",
+      "selfhostBody": "You can clone the <1>repo</1> and run CineHD locally or on your own server. The README and CLAUDE.md at the root document the stack, env vars (~100 for the main API), commands (npm run dev for the frontend on :3000, node server.js for the main API on :25565, python server.py for the embed proxies on :25569, etc.) and the service architecture. You'll need MySQL, Redis, and TMDB / Turnstile / Discord OAuth keys depending on what you enable. The instance you spin up is fully independent of {{currentDomain}} — your users, your database, your control.",
       "contribTitle": "Contribute",
       "contribBody": "PRs are welcome on the <1>GitHub repo</1>. Bugs, translations (especially English — French is the primary language, many EN strings still need polish), new sources, UX improvements, new tutorials to add to the hub: all helpful. For small fixes, PR directly. For big architecture changes, open an issue first so we can talk it through before you spend three days on it.",
       "limitsTitle": "What the license does NOT allow",

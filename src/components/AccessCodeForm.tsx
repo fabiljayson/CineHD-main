@@ -34,10 +34,9 @@ const AccessCodeForm: React.FC<AccessCodeFormProps> = ({ isModal = false, hideNo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Vérifier si l'utilisateur est déjà connecté via Discord ou Google
+    // Vérifier si l'utilisateur est déjà connecté via Discord
     const discordAuth = localStorage.getItem('discord_auth') === 'true';
-    const googleAuth = localStorage.getItem('google_auth') === 'true';
-    const alreadyAuthenticated = discordAuth || googleAuth;
+    const alreadyAuthenticated = discordAuth;
     
     try {
       const success = await checkAccessCode(code, alreadyAuthenticated);

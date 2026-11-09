@@ -19,9 +19,11 @@ import '@fontsource/inter/latin-500.css'
 import '@fontsource/inter/latin-600.css'
 import { initErrorTracking } from './utils/errorTracking'
 import { initFlexGapSupport } from './utils/flexGapSupport'
+import { clearLegacyGoogleAuthSession } from './utils/accountAuth'
 
 // Suivi des crashs (GlitchTip) : posé avant tout le reste, les handlers globaux
 // ne voient que ce qui se passe après eux. Inactif en dev et sans DSN.
+clearLegacyGoogleAuthSession();
 initErrorTracking();
 
 // Détection avant React ; le repli commun suit ensuite les éléments rendus

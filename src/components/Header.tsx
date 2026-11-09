@@ -152,10 +152,9 @@ const Header: React.FC = () => {
       try {
         const auth = localStorage.getItem('auth');
         const discordAuth = localStorage.getItem('discord_auth');
-        const googleAuth = localStorage.getItem('google_auth');
         const bip39Auth = localStorage.getItem('bip39_auth');
         const isVipUser = isUserVip();
-        const isAuth = discordAuth === 'true' || googleAuth === 'true' || bip39Auth === 'true' || !!auth;
+        const isAuth = discordAuth === 'true' || bip39Auth === 'true' || !!auth;
         setIsAuthenticated(isAuth);
         setIsVip(isVipUser);
       } catch {

@@ -33,7 +33,7 @@ function getRequestErrorMessage(error: unknown): string {
 }
 
 /**
- * Modale BLOQUANTE qui apparaît si le pseudo OAuth (Discord/Google) stocké
+ * Modale BLOQUANTE qui apparaît si le pseudo OAuth stocké
  * viole la policy serveur (trop long, caractères de contrôle, zero-width).
  *
  *  - Lit le flag `requires_username_change` posé en localStorage par

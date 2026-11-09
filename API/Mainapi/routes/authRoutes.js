@@ -1,6 +1,6 @@
 /**
  * Authentication routes.
- * Extracted from server.js -- BIP39, Discord, and Google authentication.
+ * Extracted from server.js -- BIP39 and Discord authentication.
  * Mount point: app.use('/api/auth', router)
  */
 
@@ -173,16 +173,6 @@ function buildDiscordProfile(user) {
   };
 }
 
-function buildGoogleProfile(user) {
-  return {
-    id: String(user.sub),
-    username: user.name || user.email || `Google-${user.sub}`,
-    avatar: user.picture || DEFAULT_AVATAR,
-    provider: 'google',
-    createdAt: new Date().toISOString(),
-  };
-}
-
 function parseStoredAuth(userData) {
   if (!userData?.auth || typeof userData.auth !== 'string') return null;
   try {
@@ -334,20 +324,6 @@ async function verifyDiscordAccessToken(accessToken) {
   return user;
 }
 
-async function verifyGoogleAccessToken(accessToken) {
-  const resp = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    timeout: 10000,
-  });
-
-  const user = resp.data;
-  if (!user || !user.sub) {
-    throw new Error('Token Google invalide');
-  }
-
-  return user;
-}
-
 async function finalizeResolvedSession(req, {
   provider,
   providerUserId,
@@ -385,7 +361,7 @@ async function finalizeResolvedSession(req, {
     fallbackResolvedProvider
   );
 
-  // Si le pseudo provider (Discord/Google) viole la policy (trop long, contient
+  // Si le pseudo du provider OAuth viole la policy (trop long, contient
   // des caractères de contrôle/zero-width), on remonte un flag pour que le
   // frontend force l'user à le changer via POST /api/auth/username.
   const { isProfileNameValid } = require('../utils/syncPolicy');
@@ -421,20 +397,6 @@ async function resolveProviderIdentity(provider, body) {
         provider,
         providerUserId: String(user.id),
         authData: { userProfile: buildDiscordProfile(user), provider: 'discord' },
-        externalUser: user,
-      };
-    }
-    case 'google': {
-      const accessToken = body?.access_token;
-      if (!accessToken) {
-        return { success: false, status: 400, error: 'access_token requis' };
-      }
-      const user = await verifyGoogleAccessToken(accessToken);
-      return {
-        success: true,
-        provider,
-        providerUserId: String(user.sub),
-        authData: { userProfile: buildGoogleProfile(user), provider: 'google' },
         externalUser: user,
       };
     }
@@ -780,30 +742,6 @@ router.post('/discord/verify', authRateLimit, ...authBodyParsers, async (req, re
   }
 });
 
-// POST /google/verify
-router.post('/google/verify', authRateLimit, ...authBodyParsers, async (req, res) => {
-  try {
-    const { access_token: accessToken } = req.body || {};
-    if (!accessToken) {
-      return res.status(400).json({ success: false, error: 'access_token requis' });
-    }
-
-    const user = await verifyGoogleAccessToken(accessToken);
-    const payload = await finalizeResolvedSession(req, {
-      provider: 'google',
-      providerUserId: String(user.sub),
-      fallbackUserType: 'oauth',
-      sourceAuthData: { userProfile: buildGoogleProfile(user), provider: 'google' },
-      externalUser: user,
-    });
-
-    return res.status(200).json(payload);
-  } catch (error) {
-    console.error('Google verify error:', error.response?.status || error.message);
-    return res.status(401).json({ success: false, error: 'Échec de la vérification Google' });
-  }
-});
-
 // GET /links
 router.get('/links', async (req, res) => {
   try {
@@ -873,7 +811,7 @@ router.post('/links/:provider', authRateLimit, authorizeAuthWrite, ...authBodyPa
     }
 
     const isSelfLink =
-      ((provider === 'google' || provider === 'discord') && auth.userType === 'oauth' && String(auth.userId) === String(resolved.providerUserId)) ||
+      (provider === 'discord' && auth.userType === 'oauth' && String(auth.userId) === String(resolved.providerUserId)) ||
       (provider === 'bip39' && auth.userType === 'bip39' && String(auth.userId) === String(resolved.providerUserId));
 
     if (isSelfLink) {
@@ -952,7 +890,7 @@ router.delete('/links/:provider', async (req, res) => {
 });
 
 // POST /username — l'user met à jour son pseudo (auth.userProfile.username)
-// quand le pseudo provider (Discord/Google) dépasse 32 caractères ou contient
+// quand le pseudo du provider OAuth dépasse 32 caractères ou contient
 // des caractères dangereux. Le frontend appelle ça après affichage de la
 // modale bloquante. Met aussi à jour le profil par défaut si son nom matchait
 // l'ancien username (pour garder la cohérence visuelle).

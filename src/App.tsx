@@ -623,9 +623,7 @@ const PersistenceManager = () => {
       const isAuthChange = e === null || // null means manual trigger
         e.key === 'auth' ||
         e.key === 'discord_auth' ||
-        e.key === 'google_auth' ||
         e.key === 'discord_user' ||
-        e.key === 'google_user' ||
         e.key === 'is_vip' ||
         e.key === 'access_code' ||
         e.key === 'access_code_expires' ||
@@ -1671,7 +1669,6 @@ const ProfileGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // Check if user is authenticated
   const isDiscordAuth = readLocalStorage('discord_auth') === 'true';
-  const isGoogleAuth = readLocalStorage('google_auth') === 'true';
   const isBip39Auth = readLocalStorage('bip39_auth') === 'true';
   const isVipUser = readLocalStorage('is_vip') === 'true';
 
@@ -1687,7 +1684,7 @@ const ProfileGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     } catch { }
   }
 
-  const isAuthenticated = isDiscordAuth || isGoogleAuth || isBip39Auth || isVipAuth || isVipUser;
+  const isAuthenticated = isDiscordAuth || isBip39Auth || isVipAuth || isVipUser;
 
   // Timeout mechanism: if loading takes more than 5 seconds, continue without profiles
   React.useEffect(() => {

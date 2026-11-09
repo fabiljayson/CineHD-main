@@ -76,7 +76,6 @@ export const ROUTES: RouteEntry[] = [
 
   // Auth & profile
   { path: '/auth',                    loader: lz(() => import('../components/DiscordAuth')) },
-  { path: '/auth/google',             loader: lz(() => import('../components/GoogleAuth')) },
   { path: '/oauth/authorize',         loader: lz(() => import('../pages/OAuthAuthorizePage')) },
   { path: '/login',                   loader: lz(() => import('../pages/Login')) },
   { path: '/profile',                 loader: lz(() => import('../pages/Profile')), guard: 'private' },

@@ -8,7 +8,7 @@ export interface UserInfo {
   id: string;
   name: string;
   avatar: string | null;
-  type: 'google' | 'discord' | 'bip39';
+  type: 'discord' | 'bip39';
   is_vip: boolean;
   is_admin: boolean;
 }
@@ -28,16 +28,15 @@ export function getAuthToken(): string | null {
 
 /**
  * Get current user information from localStorage
- * Supports Discord, Google, and BIP39 authentication
+ * Supports Discord and BIP39 authentication
  */
 export function getCurrentUser(): UserInfo | null {
   // Check if user is authenticated
   const discordAuth = localStorage.getItem('discord_auth') === 'true';
-  const googleAuth = localStorage.getItem('google_auth') === 'true';
   const bip39Auth = localStorage.getItem('bip39_auth') === 'true';
   const auth = localStorage.getItem('auth');
 
-  const isAuthenticated = discordAuth || googleAuth || bip39Auth || !!auth;
+  const isAuthenticated = discordAuth || bip39Auth || !!auth;
 
   if (!isAuthenticated) {
     return null;
@@ -50,7 +49,7 @@ export function getCurrentUser(): UserInfo | null {
   let userId: string | null = null;
   let userName: string | null = null;
   let userAvatar: string | null = null;
-  let userType: 'google' | 'discord' | 'bip39' | null = null;
+  let userType: 'discord' | 'bip39' | null = null;
 
   // 1. Check BIP39 auth first
   if (bip39Auth && auth) {
@@ -101,47 +100,13 @@ export function getCurrentUser(): UserInfo | null {
     }
   }
 
-  // 3. Check Google auth
-  if (!userId && googleAuth) {
-    try {
-      // Try to get from auth object first
-      if (auth) {
-        const { userProfile } = JSON.parse(auth);
-        if (userProfile) {
-          const googleUserData = localStorage.getItem('google_user');
-          if (googleUserData) {
-            const googleUser = JSON.parse(googleUserData);
-            userId = googleUser.id || localStorage.getItem('user_id') || 'google_user';
-            userName = userProfile.username || googleUser.name || localStorage.getItem('user_name') || i18n.t('auth.userGoogle');
-            userAvatar = userProfile.avatar || googleUser.picture || localStorage.getItem('avatar_url');
-            userType = 'google';
-          }
-        }
-      }
-
-      // Fallback to google_user
-      if (!userId) {
-        const googleUserData = localStorage.getItem('google_user');
-        if (googleUserData) {
-          const googleUser = JSON.parse(googleUserData);
-          userId = googleUser.id || localStorage.getItem('user_id') || 'google_user';
-          userName = googleUser.name || localStorage.getItem('user_name') || i18n.t('auth.userGoogle');
-          userAvatar = googleUser.picture || localStorage.getItem('avatar_url');
-          userType = 'google';
-        }
-      }
-    } catch (error) {
-      console.error('Error parsing Google auth:', error);
-    }
-  }
-
   // Fallback to localStorage keys
   if (!userId) {
     userId = localStorage.getItem('user_id');
     userName = localStorage.getItem('user_name');
     userAvatar = localStorage.getItem('avatar_url');
-    const storedUserType = localStorage.getItem('user_type') as 'google' | 'discord' | 'bip39' | null;
-    userType = storedUserType;
+    const storedUserType = localStorage.getItem('user_type');
+    userType = storedUserType === 'discord' || storedUserType === 'bip39' ? storedUserType : null;
   }
 
   // If we still don't have required info, return null
@@ -165,11 +130,10 @@ export function getCurrentUser(): UserInfo | null {
  */
 export function isUserAuthenticated(): boolean {
   const discordAuth = localStorage.getItem('discord_auth') === 'true';
-  const googleAuth = localStorage.getItem('google_auth') === 'true';
   const bip39Auth = localStorage.getItem('bip39_auth') === 'true';
   const auth = localStorage.getItem('auth');
 
-  return discordAuth || googleAuth || bip39Auth || !!auth;
+  return discordAuth || bip39Auth || !!auth;
 }
 
 /**

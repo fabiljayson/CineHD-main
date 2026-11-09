@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, User, List, Star, Check, ChevronDown, Crown, Shield, UserPlus, KeyRound } from 'lucide-react';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
-import { googleAuth } from '../services/googleAuth';
 import { useVipModal } from '../context/VipModalContext';
 import ProfileSwitcher from './ProfileSwitcher';
 import { isUserVip } from '../utils/authUtils';
@@ -47,11 +46,10 @@ const ProfileMenu: React.FC = () => {
       try {
         const auth = localStorage.getItem('auth');
         const discordAuth = localStorage.getItem('discord_auth');
-        const googleAuth = localStorage.getItem('google_auth');
         const bip39Auth = localStorage.getItem('bip39_auth');
         const isVipUser = isUserVip();
 
-        const isAuth = discordAuth === 'true' || googleAuth === 'true' || bip39Auth === 'true' || !!auth;
+        const isAuth = discordAuth === 'true' || bip39Auth === 'true' || !!auth;
 
         setIsAuthenticated(isAuth);
         setIsVip(isVipUser);
@@ -148,10 +146,6 @@ const ProfileMenu: React.FC = () => {
     setIsOpen(false);
     // Redirection simple (pas besoin de reload explicite)
     window.location.href = '/';
-  };
-
-  const handleGoogleLogin = () => {
-    googleAuth.login();
   };
 
   // Fonction pour ouvrir la modal VIP
@@ -340,22 +334,6 @@ const ProfileMenu: React.FC = () => {
                   </div>
                   
                   <div className="space-y-3 max-md:space-y-4">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleGoogleLogin}
-                      className="flex items-center justify-center gap-3 w-full px-4 py-3 max-md:py-4 bg-white hover:bg-gray-100 text-gray-800 rounded-lg transition-colors shadow-md"
-                    >
-                      <div className="flex items-center justify-center w-7 h-7 max-md:w-8 max-md:h-8 bg-white rounded-full shadow-sm border border-gray-200 p-0.5">
-                        <img
-                          src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
-                          alt="Google"
-                          className="w-5 h-5 max-md:w-6 max-md:h-6 object-contain"
-                        />
-                      </div>
-                      <span className="font-medium max-md:text-base">{t('auth.loginWithGoogle')}</span>
-                    </motion.button>
-
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}

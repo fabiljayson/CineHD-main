@@ -41,7 +41,7 @@ CineHD (formerly Movix) is an open-source French streaming platform monorepo. It
 | WASM | Rust (watchparty sync engine) |
 | Extensions | Chrome (MV3) + Firefox (MV3) + Tampermonkey |
 | Edge | Cloudflare Workers |
-| Auth | BIP39 seed phrases, Discord OAuth, Google OAuth, VIP access code |
+| Auth | BIP39 seed phrases, Discord OAuth, VIP access code |
 | Payments | BTC/LTC (BlockCypher), PayGate |
 
 ## Repository Structure
@@ -174,7 +174,7 @@ Main API  -> MySQL, Redis, TMDB, 30+ scraping sources
 ```
 
 ### Authentication Flow
-1. User creates account with BIP39 seed phrase (12 words) or OAuth (Discord/Google)
+1. User creates account with BIP39 seed phrase (12 words) or Discord OAuth
 2. JWT issued on login, stored in localStorage
 3. Axios 401 interceptor triggers full logout + redirect to `/`
 4. Multi-profile system (profiles per account, age restrictions)

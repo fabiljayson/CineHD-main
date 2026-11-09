@@ -6,7 +6,7 @@ import { readLocalStorage } from './browserStorage';
  *
  * C'est LA définition de « connecté » côté client, partagée par la racine
  * (`/`), les routes protégées et la lecture. Elle lit les mêmes drapeaux que
- * le reste de l'app : les trois méthodes (Discord, Google, phrase secrète) plus
+ * le reste de l'app : Discord, la phrase secrète plus
  * l'ancien couplet VIP par code d'accès, conservé pour les comptes hérités.
  *
  * Ce n'est PAS une autorisation : le serveur revalide chaque requête protégée
@@ -16,7 +16,6 @@ import { readLocalStorage } from './browserStorage';
  */
 export const isSessionAuthenticated = (): boolean => {
   if (readLocalStorage('discord_auth') === 'true') return true;
-  if (readLocalStorage('google_auth') === 'true') return true;
   if (readLocalStorage('bip39_auth') === 'true') return true;
   if (readLocalStorage('is_vip') === 'true') return true;
 

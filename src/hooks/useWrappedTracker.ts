@@ -70,7 +70,7 @@ export function useWrappedTracker(options: UseWrappedTrackerOptions) {
 
     // Get user and profile IDs
     // IMPORTANT: Priority must match the JWT token generation order in the server
-    // The JWT 'sub' claim is set from OAuth provider IDs (Google/Discord), so we must prioritize those
+    // The JWT 'sub' claim is set from the OAuth provider ID, so prioritize it
     const getUserInfo = useCallback(() => {
         try {
             const authToken = localStorage.getItem('auth_token');

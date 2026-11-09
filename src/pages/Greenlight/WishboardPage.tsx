@@ -9,7 +9,6 @@ import WishboardDetailsModal, { WishboardRequest } from '../../components/Greenl
 import { Button } from '../../components/ui/button';
 import AnimatedBorderCard from '../../components/ui/animated-border-card';
 import ReusableModal from '../../components/ui/reusable-modal';
-import { googleAuth } from '../../services/googleAuth';
 
 import { WishboardStats } from '../../components/Greenlight/WishboardStats';
 import ShinyText from '../../components/ui/shiny-text';
@@ -95,18 +94,13 @@ const WishboardPage: React.FC = () => {
         isActive: true,
     });
 
-    const handleGoogleLogin = () => {
-        googleAuth.login();
-    };
-
     useEffect(() => {
         const checkAuth = () => {
             const auth = localStorage.getItem('auth');
             const discordAuth = localStorage.getItem('discord_auth');
-            const googleAuth = localStorage.getItem('google_auth');
             const bip39Auth = localStorage.getItem('bip39_auth');
 
-            setIsAuthenticated(!!auth || discordAuth === 'true' || googleAuth === 'true' || bip39Auth === 'true');
+            setIsAuthenticated(!!auth || discordAuth === 'true' || bip39Auth === 'true');
         };
 
         checkAuth();
@@ -615,18 +609,6 @@ const WishboardPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-3">
-                        <button
-                            onClick={handleGoogleLogin}
-                            className="relative flex items-center justify-center gap-3 w-full px-4 py-3.5 bg-white hover:bg-gray-100 text-gray-900 rounded-xl transition-all shadow-lg hover:shadow-xl font-medium overflow-hidden"
-                        >
-                            <img
-                                src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
-                                alt="Google"
-                                className="w-5 h-5 object-contain"
-                            />
-                            <span>{t('greenlight.continueGoogle')}</span>
-                        </button>
-
                         <button
                             onClick={() => window.location.href = '/login-bip39'}
                             className="relative flex items-center justify-center gap-3 w-full px-4 py-3.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl transition-all font-medium"

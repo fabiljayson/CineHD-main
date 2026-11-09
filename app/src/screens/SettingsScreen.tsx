@@ -110,7 +110,9 @@ export default function SettingsScreen() {
     if (DnsModule) {
       try {
         active = await DnsModule.isEnabled();
-      } catch {}
+      } catch (error) {
+        void error;
+      }
     }
     if (active) {
       setDnsEnabled(true);
@@ -193,18 +195,20 @@ export default function SettingsScreen() {
         }
         setDnsStatus('active');
         await AsyncStorage.setItem('dns_enabled', 'true');
-      } catch (err: any) {
+      } catch (err: unknown) {
         setDnsStatus('error');
         setDnsEnabled(false);
-        Alert.alert('Erreur DNS', err?.message || 'Impossible d\'activer le DNS');
+        const message = err instanceof Error ? err.message : 'Impossible d\'activer le DNS';
+        Alert.alert('Erreur DNS', message);
       }
     } else {
       try {
         await DnsModule.disable();
         setDnsStatus('off');
         await AsyncStorage.setItem('dns_enabled', 'false');
-      } catch (err: any) {
-        Alert.alert('Erreur DNS', err?.message || 'Impossible de désactiver le DNS');
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Impossible de désactiver le DNS';
+        Alert.alert('Erreur DNS', message);
       }
     }
   }, []);

@@ -162,7 +162,12 @@ type ParsedHttpsUpdateUrl = Readonly<{
 
 const HTTPS_PREFIX = 'https://';
 const MAX_UPDATE_URL_LENGTH = 2048;
-const RAW_CONTROL_RE = /[\u0000-\u001f\u007f-\u009f]/;
+function containsRawControlCharacter(value: string): boolean {
+  return [...value].some(character => {
+    const code = character.charCodeAt(0);
+    return code < 0x20 || (code >= 0x7f && code <= 0x9f);
+  });
+}
 const ENCODED_CONTROL_RE = /%(?:0[0-9a-f]|1[0-9a-f]|7f|8[0-9a-f]|9[0-9a-f])/i;
 const MALFORMED_PERCENT_RE = /%(?![0-9a-f]{2})/i;
 const DNS_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
@@ -198,7 +203,7 @@ function parseHttpsUpdateUrl(
     !value.startsWith(HTTPS_PREFIX) ||
     /\s/u.test(value) ||
     value.includes('\\') ||
-    RAW_CONTROL_RE.test(value) ||
+    containsRawControlCharacter(value) ||
     ENCODED_CONTROL_RE.test(value) ||
     MALFORMED_PERCENT_RE.test(value)
   ) {
@@ -325,7 +330,9 @@ export function useAppUpdate(githubUrl: string | null) {
         let localCode = 0;
         try {
           localCode = await getLocalVersionCode();
-        } catch {}
+        } catch (error) {
+          void error;
+        }
 
         const raw = await AsyncStorage.getItem(UPDATE_CHECK.PENDING_DOWNLOAD_KEY);
         let pending: PendingDownload | null = null;
@@ -333,7 +340,8 @@ export function useAppUpdate(githubUrl: string | null) {
           try {
             pending = JSON.parse(raw) as PendingDownload;
             pendingRef.current = pending;
-          } catch {
+          } catch (error) {
+            void error;
             await AsyncStorage.removeItem(UPDATE_CHECK.PENDING_DOWNLOAD_KEY);
             pendingRef.current = null;
           }
@@ -343,7 +351,9 @@ export function useAppUpdate(githubUrl: string | null) {
         if (pending && pending.targetBuildNumber <= localCode) {
           try {
             await cancelDownload(pending.downloadId);
-          } catch {}
+          } catch (error) {
+            void error;
+          }
           await AsyncStorage.removeItem(UPDATE_CHECK.PENDING_DOWNLOAD_KEY);
           pending = null;
           pendingRef.current = null;
@@ -360,7 +370,9 @@ export function useAppUpdate(githubUrl: string | null) {
           if (pending && pending.targetBuildNumber < manifest.buildNumber) {
             try {
               await cancelDownload(pending.downloadId);
-            } catch {}
+            } catch (error) {
+              void error;
+            }
             await AsyncStorage.removeItem(UPDATE_CHECK.PENDING_DOWNLOAD_KEY);
             pending = null;
             pendingRef.current = null;
@@ -439,7 +451,9 @@ export function useAppUpdate(githubUrl: string | null) {
               verifyAndInstall(pending);
               return;
             }
-          } catch {}
+          } catch (error) {
+            void error;
+          }
           await AsyncStorage.removeItem(UPDATE_CHECK.PENDING_DOWNLOAD_KEY);
           pendingRef.current = null;
         }
@@ -478,6 +492,10 @@ export function useAppUpdate(githubUrl: string | null) {
     setState(s => (s.manifest?.mandatory ? s : { ...initialState }));
   }, []);
 
+  // beginDownload is intentionally referenced for the install action and is stable
+  // across this hook lifetime; the helper is defined below and must not trigger a
+  // dependency churn when the UI re-renders.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const accept = useCallback(async () => {
     if (!state.manifest) return;
     const manifest = state.manifest;
@@ -505,7 +523,7 @@ export function useAppUpdate(githubUrl: string | null) {
     }
 
     await beginDownload(manifest);
-  }, [state.manifest]);
+  }, [beginDownload, state.manifest]);
 
   const cancel = useCallback(async () => {
     if (Platform.OS === 'ios') {

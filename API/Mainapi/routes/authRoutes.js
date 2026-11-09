@@ -35,8 +35,10 @@ const {
 const authRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,                   // 10 requêtes max par fenêtre
-  store: createRedisRateLimitStore({ prefix: 'rate-limit:auth:login:' }),
-  passOnStoreError: true,
+  store: createRedisRateLimitStore({ prefix: 'rate-limit:auth:login:', failClosed: true }),
+  // Si Redis tombe, échouer la requête plutôt que désactiver la protection
+  // anti-brute-force des endpoints d'authentification.
+  passOnStoreError: false,
   standardHeaders: true,     // Retourne les headers RateLimit-* standard
   legacyHeaders: false,      // Désactive X-RateLimit-*
   message: {

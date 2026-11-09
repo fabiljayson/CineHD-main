@@ -152,6 +152,14 @@ calculés côté serveur et lisent leurs propres variables au démarrage :
 - `TMDB_API_KEY` ou `VITE_TMDB_API_KEY` pour les métadonnées TMDB ;
 - `WATCHPARTY_API` ou `VITE_WATCHPARTY_API` pour les liens WatchParty.
 
+Le serveur applique aussi une CSP effective pour l'exécution des scripts.
+Turnstile, Google Cast et Google Analytics sont autorisés par défaut. Si le
+build charge un script d'analytics ou de publicité depuis une autre origine,
+ajouter ses origines HTTPS dans `CSP_SCRIPT_ORIGINS`, séparées par des virgules
+(par exemple `https://plausible.example,https://ads.example`). Les scripts
+inline du HTML compilé sont autorisés par empreinte ; `unsafe-inline` et
+`unsafe-eval` ne sont pas activés.
+
 Ces valeurs doivent être configurées comme variables d'exécution du conteneur,
 même si leurs variantes `VITE_*` ont aussi été fournies au build.
 

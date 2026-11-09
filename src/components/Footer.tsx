@@ -1,4 +1,4 @@
-import { Globe, Landmark, Scale, Shield, type LucideIcon } from 'lucide-react';
+import { Landmark, Scale, Shield, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
 import './Footer.css';
@@ -17,7 +17,6 @@ const informationLinks: FooterLink[] = [
   { label: 'nav.privacy', to: '/privacy', icon: Shield },
   { label: 'auth.termsOfService', to: '/terms-of-service', icon: Scale },
   { label: 'nav.legalNotice', to: '/mentions-legales', icon: Landmark },
-  { label: 'footer.ourUrls', href: 'https://movix.online', icon: Globe },
 ];
 
 const linkClassName = 'inline-flex min-h-11 items-center gap-2.5 rounded-sm py-2 text-sm text-ink-muted transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white motion-reduce:transition-none';

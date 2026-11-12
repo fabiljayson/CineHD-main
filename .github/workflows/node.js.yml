@@ -18,7 +18,12 @@ jobs:
       matrix:
         # vite@8 déclare `"node": "^20.19.0 || >=22.12.0"` : Node 18 ne peut
         # même pas charger la config, il est retiré de la matrice.
-        node-version: [20.x, 22.x]
+        # `npm test` exécute des fichiers .ts directement (tests/*.test.ts et
+        # imports de src/**/*.ts) grâce au type stripping natif de Node, actif
+        # par défaut depuis Node 22.18. Node 20 (en fin de vie depuis avril
+        # 2026) échoue avec ERR_UNKNOWN_FILE_EXTENSION : il est remplacé par
+        # Node 24 (LTS). La production tourne sur node:22 (Dockerfile).
+        node-version: [22.x, 24.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:

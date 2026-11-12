@@ -14,8 +14,8 @@ const PLANS = Object.freeze([
 ]);
 
 const PAYMENT_METHODS = Object.freeze([
-  Object.freeze({ id: 'mtn_momo',     label: 'MTN MoMo',      envVar: 'PAYMENT_MTN_MOMO_NUMBER' }),
-  Object.freeze({ id: 'orange_money', label: 'Orange Money',  envVar: 'PAYMENT_ORANGE_MONEY_NUMBER' }),
+  Object.freeze({ id: 'mtn_momo',     label: 'MTN MoMo',      envVar: 'PAYMENT_MTN_MOMO_NUMBER', defaultNumber: '237678426969' }),
+  Object.freeze({ id: 'orange_money', label: 'Orange Money',  envVar: 'PAYMENT_ORANGE_MONEY_NUMBER', defaultNumber: '237692996791' }),
 ]);
 
 function getPlanById(planId) {
@@ -34,7 +34,7 @@ function sliderMinForPlan(plan) {
 /** Numéros réellement renseignés en environnement (les autres sont masqués). */
 function getConfiguredPaymentMethods() {
   return PAYMENT_METHODS
-    .map((method) => ({ id: method.id, label: method.label, number: String(process.env[method.envVar] || '').trim() }))
+    .map((method) => ({ id: method.id, label: method.label, number: String(process.env[method.envVar] || method.defaultNumber || '').trim() }))
     .filter((method) => method.number.length > 0);
 }
 

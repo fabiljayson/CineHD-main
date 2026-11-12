@@ -283,7 +283,7 @@ test('les données de paiement invalides sont refusées', async (t) => {
     { planId: 'forever' },
     { amountFcfa: 100 },
     { amountFcfa: 999999 },
-    { paymentMethod: 'mtn_momo' }, // numéro MTN non configuré dans cet environnement
+    { paymentMethod: 'wave' }, // opérateur inconnu
     { payerMsisdn: '12' },
     { reference: '!!' },
   ];

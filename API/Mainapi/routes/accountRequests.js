@@ -44,6 +44,11 @@ const {
   generateAccountCode,
 } = require('../utils/accountCredentials');
 const { approveAccountRequest } = require('../utils/accountApproval');
+const {
+  REFERENCE_PATTERN,
+  normalizeMsisdn,
+  normalizeReference,
+} = require('../utils/mobileMoney');
 const { createSubscriptionReceipt } = require('../utils/accountSubscriptions');
 const {
   getTransactionStatus,
@@ -54,7 +59,6 @@ const {
 const router = express.Router();
 const authBodyParsers = createAuthBodyParsers();
 
-const REFERENCE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9 ._-]{3,127}$/;
 const USERNAME_MIN_LENGTH = 3;
 const USERNAME_MAX_LENGTH = 32;
 
@@ -103,19 +107,6 @@ const checkoutStatusRateLimit = rateLimit({
   validate: { xForwardedForHeader: false, ip: false },
 });
 
-/** 6XXXXXXXX → 2376XXXXXXXX, chiffres seuls, 9 à 15 caractères. */
-function normalizeMsisdn(raw) {
-  let digits = String(raw || '').replace(/\D+/g, '');
-  if (digits.startsWith('00')) digits = digits.slice(2);
-  if (digits.startsWith('237')) return digits;
-  if (digits.length === 10 && digits.startsWith('0')) return `237${digits.slice(1)}`;
-  return digits;
-}
-
-function normalizeReference(raw) {
-  return String(raw || '').trim().replace(/\s+/g, ' ');
-}
-
 /**
  * Format attendu par CamPay (ER101) : chiffres seuls commençant par 237.
  * normalizeMsisdn ne préfixe pas les numbers 9 chiffres saisis sans zéro.
@@ -141,6 +132,20 @@ function validateUsername(username) {
   if (username.length < USERNAME_MIN_LENGTH) return `Le pseudo doit faire au moins ${USERNAME_MIN_LENGTH} caractères.`;
   if (username.length > USERNAME_MAX_LENGTH) return `Le pseudo ne peut pas dépasser ${USERNAME_MAX_LENGTH} caractères.`;
   return null;
+}
+
+async function isReferenceUsedByVipPayment(pool, methodId, reference) {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT id FROM vip_payment_requests WHERE payment_method = ? AND reference = ? LIMIT 1',
+      [methodId, reference]
+    );
+    return rows.length > 0;
+  } catch (error) {
+    // Table pas encore créée (démarrage en cours) : rien n'a pu y être déclaré.
+    if (error && error.code === 'ER_NO_SUCH_TABLE') return false;
+    throw error;
+  }
 }
 
 function serializeRequest(row) {
@@ -232,6 +237,16 @@ router.post('/account-requests', setNoStore, createRequestRateLimit, ...authBody
     );
     if (takenRows.length > 0) {
       return res.status(409).json({ success: false, error: 'Ce pseudo est déjà utilisé.', code: 'USERNAME_TAKEN' });
+    }
+
+    // Une référence ne paie qu'une fois : elle ne doit pas déjà avoir servi à
+    // une déclaration de VIP manuel (routes/vipPaymentRequests.js).
+    if (await isReferenceUsedByVipPayment(pool, method.id, cleanReference)) {
+      return res.status(409).json({
+        success: false,
+        error: 'Cette référence de transaction a déjà été utilisée.',
+        code: 'DUPLICATE_REFERENCE',
+      });
     }
 
     let insertId;

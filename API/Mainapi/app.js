@@ -507,6 +507,7 @@ app.use('/api', vipDonationsRouter);
 app.use('/api', vipPayblisRouter);
 app.use('/api', require('./routes/accountRequests'));
 app.use('/api', require('./routes/adminSubscriptions'));
+app.use('/api', require('./routes/vipPaymentRequests'));
 // Annuaire utilisateurs (tous fournisseurs) + préférences de compte.
 app.use('/api', require('./routes/adminUsers'));
 app.use('/api/darkiworld', darkiworldRouter);
@@ -693,10 +694,11 @@ const appReady = (async () => {
       await ensureColumn('account_requests', 'campay_status', "campay_status ENUM('PENDING', 'SUCCESSFUL', 'FAILED') DEFAULT NULL");
       await ensureColumn('account_requests', 'campay_operator', 'campay_operator VARCHAR(16) DEFAULT NULL');
       await ensureColumn('account_requests', 'paid_at', 'paid_at DATETIME DEFAULT NULL');
-      // Reçus d'abonnement + offres de renouvellement (rendues depuis le
-      // schéma déclaratif pour garder une seule source de vérité).
+      // Reçus d'abonnement, offres de renouvellement et déclarations de
+      // paiement VIP manuel (rendues depuis le schéma déclaratif pour garder
+      // une seule source de vérité).
       const { getTablesByGroup, renderCreateTable } = require('./db/schema');
-      const subscriptionTables = new Set(['subscription_receipts', 'subscription_bargains']);
+      const subscriptionTables = new Set(['subscription_receipts', 'subscription_bargains', 'vip_payment_requests']);
       for (const table of getTablesByGroup('core')) {
         if (subscriptionTables.has(table.name)) {
           await pool.execute(renderCreateTable(table));

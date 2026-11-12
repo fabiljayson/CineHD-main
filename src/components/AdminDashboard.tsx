@@ -35,6 +35,7 @@ import VipInvoicesManager from './VipInvoicesManager';
 import AccountRequestsManager from './AccountRequestsManager';
 import SubscriptionsConsole from './SubscriptionsConsole';
 import VipKeysManager from './VipKeysManager';
+import VipPaymentRequestsManager from './VipPaymentRequestsManager';
 import AnimatedBorderCard from './ui/animated-border-card';
 import ShinyText from './ui/shiny-text';
 
@@ -350,6 +351,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ role }) => {
                 <KeyRound className="h-6 w-6 text-emerald-300" />
                 {t('admin.manageVipKeys')}
               </h2>
+              {/* Paiements mobile money déclarés : la validation génère la clé. */}
+              <VipPaymentRequestsManager />
               <VipKeysManager />
             </div>
           )}

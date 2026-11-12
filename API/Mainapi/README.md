@@ -66,7 +66,7 @@ Le fichier `API/Mainapi/.env.example` est la référence complète. En pratique,
 - cache et coordination : `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `NUM_WORKERS`
 - scraping / proxy : `PROXY_SERVER_URL`, `IPTV_STREAM_PROXY`, `SOCKS5_PROXIES`, `HTTP_PROXIES`
 - anti-abuse / forms : `TURNSTILE_SECRET_KEY`, `TURNSTILE_INVISIBLE_SECRETKEY`, puis `TURNSTILE_DOMAINS_n`, `TURNSTILE_SECRET_KEY_n` et `TURNSTILE_INVISIBLE_SECRETKEY_n` (n de 2 à 10) au-delà de 10 domaines : la clé suit l'`Origin` de la requête (`utils/turnstile.js`)
-- paiement / VIP : variables `VIP_*`, `BLOCKCYPHER_TOKEN`
+- paiement / VIP : variables `VIP_*`, `BLOCKCYPHER_TOKEN`, numéros de collecte mobile money `PAYMENT_ORANGE_MONEY_NUMBER` / `PAYMENT_MTN_MOMO_NUMBER`
 
 Certaines intégrations sont très spécifiques à des sources données, par exemple les cookies `DARKIWORLD_*`, `FSTREAM_LOGIN_*` ou `XTREAM_*`.
 
@@ -106,6 +106,7 @@ Démarrer ou redémarrer Main API après l’installation des fichiers. Sans ces
 - scraping / lecture : `routes/cpasmal.js`, `routes/fstream.js`, `routes/wiflix.js`, `liveTvRoutes.js`
 - communautaire : `commentsRoutes.js`, `likesRoutes.js`, `sharedListsRoutes.js`, `wishboardRoutes.js`, `linkSubmissionsRoutes.js`
 - VIP / paiements : `utils/vipDonations.js`, `routes/vipDonations.js`
+- VIP par mobile money confirmé à la main (sans API opérateur) : `routes/vipPaymentRequests.js`, `utils/manualVipPayments.js` — l'utilisateur connecté déclare sa transaction Orange Money / MTN MoMo sur `/vip`, l'admin valide depuis « Gérer les clés VIP » : une clé `access_keys` de la durée de l'offre est générée et écrite dans les profils du compte (`access_code`). Numéros : `PAYMENT_ORANGE_MONEY_NUMBER`, `PAYMENT_MTN_MOMO_NUMBER`
 - sources annexes / providers : `routes/darkiworld.js`, `routes/swiftflow.js`, `routes/animeSama.js`, `routes/purstream.js`, `routes/kisskh.js`, `routes/voirdrama.js`, `routes/francetv.js`, `routes/j1f.js`, `routes/mediaExtract.js`
 - debrid et OAuth : `routes/debrid.js`, `routes/oauth.js`, `routes/adminOauthApps.js`
 - administration : `routes/admin.js`, `routes/accountRequests.js`, `routes/helpFeedback.js`, `routes/downloadLinksLeaderboard.js`

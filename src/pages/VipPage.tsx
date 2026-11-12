@@ -19,6 +19,7 @@ import { SquareBackground } from "../components/ui/square-background";
 import BlurText from "../components/ui/blur-text";
 import ShinyText from "../components/ui/shiny-text";
 import AnimatedBorderCard from "../components/ui/animated-border-card";
+import VipManualPayment from "../components/VipManualPayment";
 import { SUPPORT_WHATSAPP_DISPLAY, SUPPORT_WHATSAPP_URL } from '../config/support';
 
 const VipPage: React.FC = () => {
@@ -215,6 +216,16 @@ const VipPage: React.FC = () => {
                 </p>
               </div>
             </AnimatedBorderCard>
+          </motion.div>
+
+          {/* Paiement Orange Money / MTN MoMo confirmé par un admin */}
+          <motion.div
+            id="paiement-mobile-money"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <VipManualPayment />
           </motion.div>
 
           {/* Support Card */}

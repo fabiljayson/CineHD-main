@@ -467,7 +467,8 @@ francetvRouter.configure({
 
 const {
   router: vipDonationsRouter,
-  ensureVipDonationsTables
+  ensureVipDonationsTables,
+  cancelUnfinishedGiftInvoices
 } = vipDonationsRoutes;
 const { router: vipPayblisRouter } = require('./routes/vipPayblis');
 const oauthRouter = require('./routes/oauth');
@@ -587,6 +588,8 @@ const appReady = (async () => {
 
     await ensureVipDonationsTables(pool);
     console.log('VIP donations tables initialized successfully');
+    await cancelUnfinishedGiftInvoices(pool);
+    console.log('Unfinished VIP gift invoices cancelled');
 
     await ensureOAuthStorage(pool);
     console.log('OAuth tables initialized successfully');

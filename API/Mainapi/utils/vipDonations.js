@@ -32,6 +32,12 @@ const VIP_PAYMENT_METHOD_ENUM_SQL = "ENUM('btc', 'ltc', 'cryptogate', 'paygate_h
 
 const DEFAULT_SUPPORT_WHATSAPP_URL = 'https://wa.me/237678426969?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20CineHD.';
 const FINAL_STATUSES = new Set(['delivered', 'cancelled']);
+const UNFINISHED_INVOICE_STATUSES = new Set([
+  'awaiting_payment',
+  'partial_payment',
+  'confirming',
+  'expired'
+]);
 const DEFAULT_EXPIRATION_MINUTES = 210;
 const DEFAULT_PAYGATE_MIN_PAID_RATIO = 0.60;
 const DEFAULT_PAYGATE_MIN_AMOUNT_EUR = 6.25;
@@ -803,11 +809,14 @@ function safeJsonParse(value) {
   }
 }
 
-function serializePublicInvoice(invoice) {
+function serializePublicInvoice(invoice, { includeCancelledGiftPaymentDetails = false } = {}) {
   if (!invoice) return null;
 
   const paymentMethod = getInvoicePaymentMethod(invoice);
   const isCryptoInvoice = isCryptoPaymentMethod(paymentMethod);
+  const redactCancelledGiftPaymentDetails = invoice.recipient_mode === 'gift'
+    && invoice.status === 'cancelled'
+    && !includeCancelledGiftPaymentDetails;
   const invoicePath = getInvoicePath(invoice.public_id);
   const giftPath = invoice.gift_token ? getGiftPath(invoice.gift_token) : null;
   const isGiftDelivered = invoice.recipient_mode === 'gift' && invoice.status === 'delivered' && invoice.gift_token;
@@ -826,11 +835,13 @@ function serializePublicInvoice(invoice) {
     vipYears: parseNumber(invoice.vip_years),
     durationLabel: buildDurationLabel(parseNumber(invoice.vip_years)),
     recipientMode: invoice.recipient_mode,
-    paymentAddress: isCryptoInvoice ? invoice.payment_address : null,
-    trackingAddress: isPaygatePaymentMethod(paymentMethod)
+    paymentAddress: !redactCancelledGiftPaymentDetails && isCryptoInvoice ? invoice.payment_address : null,
+    trackingAddress: !redactCancelledGiftPaymentDetails && isPaygatePaymentMethod(paymentMethod)
       ? (invoice.paygate_tracking_address || invoice.payment_address || null)
       : null,
-    checkoutUrl: isCryptoGatePaymentMethod(paymentMethod)
+    checkoutUrl: redactCancelledGiftPaymentDetails
+      ? null
+      : isCryptoGatePaymentMethod(paymentMethod)
       ? (invoice.cryptogate_checkout_url || null)
       : isPaygatePaymentMethod(paymentMethod)
         ? resolvePaygateCheckoutUrl(invoice)
@@ -844,7 +855,7 @@ function serializePublicInvoice(invoice) {
     paidAt: fromSqlDateTime(invoice.paid_at)?.toISOString() || null,
     deliveredAt: fromSqlDateTime(invoice.delivered_at)?.toISOString() || null,
     createdAt: fromSqlDateTime(invoice.created_at)?.toISOString() || null,
-    qrPayload: isCryptoInvoice ? invoice.qr_payload : null,
+    qrPayload: !redactCancelledGiftPaymentDetails && isCryptoInvoice ? invoice.qr_payload : null,
     invoicePath,
     invoiceUrl: buildFrontendUrl(invoicePath),
     giftPath: isGiftDelivered ? giftPath : null,
@@ -862,7 +873,7 @@ function serializeAdminInvoice(invoice) {
   if (!invoice) return null;
 
   return {
-    ...serializePublicInvoice(invoice),
+    ...serializePublicInvoice(invoice, { includeCancelledGiftPaymentDetails: true }),
     id: parseNumber(invoice.id),
     callbackUrl: null,
     derivationIndex: parseNumber(invoice.derivation_index, -1) >= 0
@@ -2763,6 +2774,72 @@ async function cancelInvoice(pool, invoiceId, admin) {
   return fetchInvoiceById(pool, invoiceId);
 }
 
+async function cancelUnfinishedGiftInvoices(pool) {
+  const [invoices] = await pool.execute(
+    `SELECT id FROM vip_invoices
+      WHERE recipient_mode = 'gift'
+        AND status IN ('awaiting_payment', 'partial_payment', 'confirming', 'expired')
+      ORDER BY id ASC`
+  );
+  let cancelledCount = 0;
+
+  for (const candidate of invoices) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      const [rows] = await connection.execute(
+        'SELECT * FROM vip_invoices WHERE id = ? FOR UPDATE',
+        [candidate.id]
+      );
+      const invoice = rows[0];
+      if (
+        !invoice
+        || invoice.recipient_mode !== 'gift'
+        || !UNFINISHED_INVOICE_STATUSES.has(invoice.status)
+      ) {
+        await connection.commit();
+        continue;
+      }
+
+      const [result] = await connection.execute(
+        `UPDATE vip_invoices
+          SET status = 'cancelled',
+              updated_at = NOW()
+          WHERE id = ?
+            AND recipient_mode = 'gift'
+            AND status IN ('awaiting_payment', 'partial_payment', 'confirming', 'expired')`,
+        [candidate.id]
+      );
+      if (parseNumber(result?.affectedRows, 0) !== 1) {
+        await connection.commit();
+        continue;
+      }
+
+      await logVipInvoiceEvent(
+        connection,
+        invoice.id,
+        'invoice_cancelled',
+        'Invoice cadeau annulée lors du retrait du VIP.',
+        {
+          previousStatus: invoice.status,
+          reason: 'public_vip_retirement'
+        },
+        'system',
+        'vip-retirement'
+      );
+      await connection.commit();
+      cancelledCount += 1;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
+  return cancelledCount;
+}
+
 async function unsealGift(pool, giftToken, ipAddress) {
   const connection = await pool.getConnection();
   try {
@@ -3518,6 +3595,7 @@ module.exports = {
   refreshInvoiceStatus,
   forceValidateInvoice,
   cancelInvoice,
+  cancelUnfinishedGiftInvoices,
   getVipInvoiceDetails,
   listUserVipInvoices,
   listVipInvoices,

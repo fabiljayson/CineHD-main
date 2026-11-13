@@ -1,20 +1,10 @@
 /**
- * VIP par paiement mobile money confirmé manuellement (sans API opérateur).
- *
- * Parcours : un utilisateur connecté choisit une offre, envoie lui-même
- * l'argent sur le numéro Orange Money / MTN MoMo affiché (numéros issus de
- * l'environnement : PAYMENT_ORANGE_MONEY_NUMBER, PAYMENT_MTN_MOMO_NUMBER),
- * puis déclare sa transaction. Un admin vérifie sur son relevé et valide :
- * une clé `access_keys` est générée avec la durée de l'offre et rattachée au
- * compte (voir utils/manualVipPayments.js). Le refus est motivé et visible
- * par l'utilisateur.
- *
- * Les demandes de création de compte (routes/accountRequests.js) restent le
- * parcours des visiteurs sans compte ; celui-ci sert aux comptes existants
- * (OAuth ou BIP39) qui veulent débloquer ou prolonger leur VIP.
+ * Historique et administration des anciens paiements VIP manuels.
+ * La création de nouvelles demandes est désactivée ; les demandes existantes
+ * restent consultables et les admins peuvent terminer leur traitement.
  *
  * Mount point: app.use('/api', require('./routes/vipPaymentRequests'))
- *   POST /api/vip-payments                       dépôt d'une preuve de paiement (connecté)
+ *   POST /api/vip-payments                       désactivé (410)
  *   GET  /api/vip-payments/mine                  demandes du compte connecté (+ clé si validée)
  *   GET  /api/admin/vip-payments                 liste admin (filtre status, recherche)
  *   POST /api/admin/vip-payments/:id/confirm     validation : clé générée + rattachée
@@ -32,18 +22,7 @@ const { getTrustedClientIp } = require('../utils/clientIp');
 const { createAuthBodyParsers } = require('../middleware/bodyParsing');
 const { jsonParseErrorHandler } = require('../middleware/security');
 const { invalidateVipCache } = require('../checkVip');
-const {
-  getPlanById,
-  getPaymentMethodById,
-  getConfiguredPaymentMethods,
-  validatePlanSelection,
-} = require('../utils/accountPlans');
-const {
-  REFERENCE_PATTERN,
-  isValidMsisdn,
-  normalizeMsisdn,
-  normalizeReference,
-} = require('../utils/mobileMoney');
+const { getPlanById } = require('../utils/accountPlans');
 const {
   computeKeyExpiry,
   generateVipKeyValue,
@@ -68,30 +47,6 @@ const clientIpKey = (req) => getTrustedClientIp(req) || ipKeyGenerator(req.ip);
 
 // Clé par compte ET par IP : un compte ne peut pas contourner la limite en
 // changeant d'IP, ni une IP en changeant de compte.
-const submitRateLimitByAccount = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 5,
-  store: createRedisRateLimitStore({ prefix: 'rate-limit:vip-payments:create:account:' }),
-  passOnStoreError: true,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, error: 'Trop de déclarations envoyées. Réessayez dans une heure.', code: 'RATE_LIMITED' },
-  keyGenerator: (req) => `${req.vipPaymentAuth?.userType || 'anon'}:${req.vipPaymentAuth?.userId || clientIpKey(req)}`,
-  validate: { xForwardedForHeader: false, ip: false },
-});
-
-const submitRateLimitByIp = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 10,
-  store: createRedisRateLimitStore({ prefix: 'rate-limit:vip-payments:create:ip:' }),
-  passOnStoreError: true,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, error: 'Trop de déclarations envoyées. Réessayez dans une heure.', code: 'RATE_LIMITED' },
-  keyGenerator: clientIpKey,
-  validate: { xForwardedForHeader: false, ip: false },
-});
-
 const readRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 120,
@@ -126,122 +81,12 @@ function getSyncModule() {
   return require('./sync');
 }
 
-async function readDisplayName(userType, userId) {
-  try {
-    const userData = await getSyncModule().readUserData(userType, userId) || {};
-    const auth = typeof userData.auth === 'string' ? JSON.parse(userData.auth) : userData.auth;
-    const username = auth?.userProfile?.username;
-    return typeof username === 'string' && username.trim() ? username.trim().slice(0, 64) : null;
-  } catch {
-    return null;
-  }
-}
+// === Actions publiques désactivées ===
 
-async function isReferenceUsedByAccountRequest(pool, methodId, reference) {
-  try {
-    const [rows] = await pool.execute(
-      'SELECT id FROM account_requests WHERE payment_method = ? AND reference = ? LIMIT 1',
-      [methodId, reference]
-    );
-    return rows.length > 0;
-  } catch (error) {
-    if (error && error.code === 'ER_NO_SUCH_TABLE') return false;
-    throw error;
-  }
-}
-
-function duplicateReferenceResponse(res) {
-  return res.status(409).json({
-    success: false,
-    error: 'Cette référence de transaction a déjà été utilisée.',
-    code: 'DUPLICATE_REFERENCE',
-  });
-}
-
-// === Dépôt d'une preuve de paiement (utilisateur connecté) ===
-
-router.post(
-  '/vip-payments',
-  setNoStore,
-  requireAccount,
-  submitRateLimitByIp,
-  submitRateLimitByAccount,
-  ...authBodyParsers,
-  async (req, res) => {
-    try {
-      const pool = getPool();
-      if (!pool) {
-        return res.status(503).json({ success: false, error: 'Service temporairement indisponible.' });
-      }
-
-      const { userType, userId } = req.vipPaymentAuth;
-      const { planId, amountFcfa, paymentMethod, payerMsisdn, reference } = req.body || {};
-
-      const plan = getPlanById(String(planId || ''));
-      const method = getPaymentMethodById(String(paymentMethod || ''));
-      const amount = Number(amountFcfa);
-      const selectionError = validatePlanSelection(plan, amount, method);
-      if (selectionError) {
-        return res.status(400).json({ success: false, error: selectionError, code: 'INVALID_SELECTION' });
-      }
-
-      if (!getConfiguredPaymentMethods().some((entry) => entry.id === method.id)) {
-        return res.status(400).json({ success: false, error: 'Moyen de paiement indisponible.', code: 'METHOD_NOT_CONFIGURED' });
-      }
-
-      const msisdn = normalizeMsisdn(payerMsisdn);
-      if (!isValidMsisdn(msisdn)) {
-        return res.status(400).json({ success: false, error: 'Numéro mobile money invalide.', code: 'INVALID_MSISDN' });
-      }
-
-      const cleanReference = normalizeReference(reference);
-      if (!REFERENCE_PATTERN.test(cleanReference)) {
-        return res.status(400).json({ success: false, error: 'Référence de transaction invalide.', code: 'INVALID_REFERENCE' });
-      }
-
-      const [pendingRows] = await pool.execute(
-        "SELECT id FROM vip_payment_requests WHERE user_type = ? AND user_id = ? AND status = 'pending' LIMIT 1",
-        [userType, userId]
-      );
-      if (pendingRows.length > 0) {
-        return res.status(409).json({
-          success: false,
-          error: 'Une demande est déjà en cours de vérification pour ce compte.',
-          code: 'PENDING_EXISTS',
-        });
-      }
-
-      // Une référence ne paie qu'une fois, tous parcours confondus.
-      if (await isReferenceUsedByAccountRequest(pool, method.id, cleanReference)) {
-        return duplicateReferenceResponse(res);
-      }
-
-      const username = await readDisplayName(userType, userId);
-
-      let insertId;
-      try {
-        const [result] = await pool.execute(
-          `INSERT INTO vip_payment_requests
-             (user_id, user_type, username, plan_id, plan_days, amount_fcfa, payment_method, payer_msisdn, reference, status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-          [userId, userType, username, plan.id, plan.days, amount, method.id, msisdn, cleanReference]
-        );
-        insertId = result.insertId;
-      } catch (error) {
-        if (error && error.code === 'ER_DUP_ENTRY') {
-          return duplicateReferenceResponse(res);
-        }
-        throw error;
-      }
-
-      const [rows] = await pool.execute('SELECT * FROM vip_payment_requests WHERE id = ?', [insertId]);
-      return res.status(201).json({ success: true, request: serializeVipPaymentRequest(rows[0], { includeKey: true }) });
-    } catch (error) {
-      console.error('VIP payment request creation error:', error);
-      return res.status(500).json({ success: false, error: 'Impossible d\'enregistrer la déclaration.' });
-    }
-  }
-);
+router.post('/vip-payments', setNoStore, (_req, res) => res.status(410).json({
+  success: false,
+  code: 'VIP_DISABLED',
+}));
 
 // === Suivi par l'utilisateur ===
 

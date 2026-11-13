@@ -5,13 +5,10 @@ const { ipKeyGenerator } = require('express-rate-limit');
 const { getPool } = require('../mysqlPool');
 const { isAdmin, getAuthIfValid } = require('../middleware/auth');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
-const { verifyTurnstileFromRequest } = require('../utils/turnstile');
 const {
-  createVipInvoice,
   handleCryptoGateWebhook,
   handlePaygateCallback,
   fetchInvoiceByPublicId,
-  fetchInvoiceByGiftToken,
   getVipInvoiceDetails,
   listUserVipInvoices,
   listVipInvoices,
@@ -20,10 +17,8 @@ const {
   cancelInvoice,
   serializePublicInvoice,
   serializeAdminInvoice,
-  serializeGift,
-  unsealGift,
+  cancelUnfinishedGiftInvoices,
   ensureVipDonationsTables,
-  getClientIp
 } = require('../utils/vipDonations');
 
 const router = express.Router();
@@ -53,21 +48,6 @@ const getRequestBaseUrl = (req) => {
 
   return host ? `${protocol}://${host}`.replace(/\/+$/, '') : '';
 };
-
-const createInvoiceRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 15,
-  store: createRedisRateLimitStore({ prefix: 'rate-limit:vip:create-invoice:' }),
-  passOnStoreError: true,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: getRateLimitKey,
-  validate: { xForwardedForHeader: false, ip: false },
-  message: {
-    success: false,
-    error: 'Trop de créations d\'invoice. Réessayez plus tard.'
-  }
-});
 
 const invoiceCheckRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -109,61 +89,10 @@ const cryptoGateWebhookIngress = [
   cryptoGateWebhookBodyParser
 ];
 
-const giftUnsealRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  store: createRedisRateLimitStore({ prefix: 'rate-limit:vip:gift-unseal:' }),
-  passOnStoreError: true,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: getRateLimitKey,
-  validate: { xForwardedForHeader: false, ip: false },
-  message: {
-    success: false,
-    error: 'Trop de tentatives de descellement. Réessayez plus tard.'
-  }
-});
-
-router.post('/vip/invoices', setNoStore, createInvoiceRateLimit, async (req, res) => {
-  try {
-    const pool = getPool();
-    const turnstileResult = await verifyTurnstileFromRequest(req, req.body?.turnstileToken);
-    if (!turnstileResult.valid) {
-      return res.status(turnstileResult.status).json({
-        success: false,
-        error: turnstileResult.error
-      });
-    }
-
-    const auth = await getAuthIfValid(req);
-    const invoice = await createVipInvoice(
-      pool,
-      {
-        packEur: req.body?.pack_eur,
-        paymentMethod: req.body?.payment_method,
-        coin: req.body?.coin,
-        recipientMode: req.body?.recipient_mode,
-        payerEmail: req.body?.payer_email
-      },
-      {
-        auth,
-        ipAddress: getClientIp(req),
-        callbackBaseUrl: getRequestBaseUrl(req)
-      }
-    );
-
-    return res.status(201).json({
-      success: true,
-      invoice: serializePublicInvoice(invoice)
-    });
-  } catch (error) {
-    console.error('VIP invoice create error:', error);
-    return res.status(error.statusCode || 400).json({
-      success: false,
-      error: Number.isInteger(error?.statusCode) && error.message ? error.message : 'Impossible de créer l\'invoice VIP'
-    });
-  }
-});
+router.post('/vip/invoices', setNoStore, (_req, res) => res.status(410).json({
+  success: false,
+  code: 'VIP_DISABLED'
+}));
 
 router.post('/vip/cryptogate/webhook', setNoStore, async (req, res) => {
   try {
@@ -294,67 +223,15 @@ router.post('/vip/invoices/:publicId/check', setNoStore, invoiceCheckRateLimit, 
   }
 });
 
-router.get('/vip/gifts/:giftToken', async (req, res) => {
-  try {
-    const pool = getPool();
-    const invoice = await fetchInvoiceByGiftToken(pool, req.params.giftToken);
-    if (!invoice) {
-      return res.status(404).json({
-        success: false,
-        error: 'Cadeau introuvable'
-      });
-    }
+router.get('/vip/gifts/:giftToken', setNoStore, (_req, res) => res.status(410).json({
+  success: false,
+  code: 'VIP_DISABLED'
+}));
 
-    return res.json({
-      success: true,
-      gift: serializeGift(invoice)
-    });
-  } catch (error) {
-    console.error('VIP gift fetch error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Impossible de récupérer le cadeau'
-    });
-  }
-});
-
-router.post('/vip/gifts/:giftToken/unseal', giftUnsealRateLimit, async (req, res) => {
-  try {
-    const pool = getPool();
-    const turnstileResult = await verifyTurnstileFromRequest(req, req.body?.turnstileToken);
-    if (!turnstileResult.valid) {
-      return res.status(turnstileResult.status).json({
-        success: false,
-        error: turnstileResult.error
-      });
-    }
-
-    const invoice = await fetchInvoiceByGiftToken(pool, req.params.giftToken);
-    if (!invoice) {
-      return res.status(404).json({
-        success: false,
-        error: 'Cadeau introuvable'
-      });
-    }
-
-    const unsealedInvoice = await unsealGift(
-      pool,
-      req.params.giftToken,
-      getClientIp(req)
-    );
-
-    return res.json({
-      success: true,
-      gift: serializeGift(unsealedInvoice)
-    });
-  } catch (error) {
-    console.error('VIP gift unseal error:', error);
-    return res.status(409).json({
-      success: false,
-      error: Number.isInteger(error?.statusCode) && error.message ? error.message : 'Impossible de desceller ce cadeau'
-    });
-  }
-});
+router.post('/vip/gifts/:giftToken/unseal', setNoStore, (_req, res) => res.status(410).json({
+  success: false,
+  code: 'VIP_DISABLED'
+}));
 
 router.get('/admin/vip-invoices', isAdmin, async (req, res) => {
   try {
@@ -474,5 +351,6 @@ router.post('/admin/vip-invoices/:id/cancel', isAdmin, async (req, res) => {
 module.exports = {
   router,
   ensureVipDonationsTables,
+  cancelUnfinishedGiftInvoices,
   cryptoGateWebhookIngress
 };

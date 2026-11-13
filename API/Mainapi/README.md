@@ -11,7 +11,7 @@ Le service tourne en mode cluster via `server.js` : un master lance plusieurs wo
 - sync frontend <-> backend pour une partie de l'état utilisateur
 - commentaires, likes, listes partagées, Wishboard et soumission de liens
 - Live TV, proxies, debrid et intégrations de scraping
-- VIP, invoices, wrapped et features communautaires
+- historique et administration des factures VIP, wrapped et features communautaires
 
 ## Démarrage
 
@@ -105,8 +105,8 @@ Démarrer ou redémarrer Main API après l’installation des fichiers. Sans ces
 - recherche et catalogues : `routes/search.js`, `routes/tmdb.js`
 - scraping / lecture : `routes/cpasmal.js`, `routes/fstream.js`, `routes/wiflix.js`, `liveTvRoutes.js`
 - communautaire : `commentsRoutes.js`, `likesRoutes.js`, `sharedListsRoutes.js`, `wishboardRoutes.js`, `linkSubmissionsRoutes.js`
-- VIP / paiements : `utils/vipDonations.js`, `routes/vipDonations.js`
-- VIP par mobile money confirmé à la main (sans API opérateur) : `routes/vipPaymentRequests.js`, `utils/manualVipPayments.js` — l'utilisateur connecté déclare sa transaction Orange Money / MTN MoMo sur `/vip`, l'admin valide depuis « Gérer les clés VIP » : une clé `access_keys` de la durée de l'offre est générée et écrite dans les profils du compte (`access_code`). Numéros : `PAYMENT_ORANGE_MONEY_NUMBER`, `PAYMENT_MTN_MOMO_NUMBER`
+- VIP / paiements historiques : `utils/vipDonations.js`, `routes/vipDonations.js`, `routes/vipPaymentRequests.js` — les nouvelles créations et réclamations publiques sont désactivées ; les factures engagées restent consultables/traitables et l'administration conserve l'historique.
+- Les anciens paiements mobile money restent administrables depuis « Gérer les clés VIP » ; la création utilisateur de demandes sur `/vip-payments` est désactivée.
 - sources annexes / providers : `routes/darkiworld.js`, `routes/swiftflow.js`, `routes/animeSama.js`, `routes/purstream.js`, `routes/kisskh.js`, `routes/voirdrama.js`, `routes/francetv.js`, `routes/j1f.js`, `routes/mediaExtract.js`
 - debrid et OAuth : `routes/debrid.js`, `routes/oauth.js`, `routes/adminOauthApps.js`
 - administration : `routes/admin.js`, `routes/accountRequests.js`, `routes/helpFeedback.js`, `routes/downloadLinksLeaderboard.js`

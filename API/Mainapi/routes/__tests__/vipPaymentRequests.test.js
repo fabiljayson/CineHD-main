@@ -238,11 +238,44 @@ function fixture(t, { methods = { PAYMENT_ORANGE_MONEY_NUMBER: '237600000000' } 
     ...overrides,
   });
 
+  function seedRequest(userType = 'oauth', userId = 'user1', overrides = {}) {
+    const request = {
+      username: userId,
+      planId: 'month',
+      planDays: 30,
+      amountFcfa: 5000,
+      paymentMethod: 'orange_money',
+      payerMsisdn: '690000000',
+      reference: `HISTORY-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+      status: 'pending',
+      ...overrides,
+    };
+    const result = db.prepare(`
+      INSERT INTO vip_payment_requests
+        (user_id, user_type, username, plan_id, plan_days, amount_fcfa, payment_method,
+         payer_msisdn, reference, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      userId,
+      userType,
+      request.username,
+      request.planId,
+      request.planDays,
+      request.amountFcfa,
+      request.paymentMethod,
+      request.payerMsisdn,
+      request.reference,
+      request.status
+    );
+    return Number(result.lastInsertRowid);
+  }
+
   return {
     db,
     sync,
     invalidated,
     validPayment,
+    seedRequest,
     submit: (as, body) => request('post', '/vip-payments', { as, body }),
     mine: (as) => request('get', '/vip-payments/mine', { as }),
     list: (as, query = {}) => request('get', '/admin/vip-payments', { as, query }),
@@ -255,75 +288,22 @@ const USER = 'oauth:user1';
 const OTHER = 'bip39:user2';
 const ADMIN = 'oauth:admin';
 
-test('un visiteur non connecté ne peut pas déposer de preuve de paiement', async (t) => {
+test('la création publique est désactivée sans toucher aux demandes historiques', async (t) => {
   const f = fixture(t);
+  f.seedRequest();
   const res = await f.submit(null, f.validPayment());
-  assert.equal(res.statusCode, 401);
-  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM vip_payment_requests').get().n, 0);
-});
-
-test('une preuve valide est enregistrée en attente pour le compte connecté', async (t) => {
-  const f = fixture(t);
-  const res = await f.submit(USER, f.validPayment({ reference: 'MP261112.0001.A12345' }));
-  assert.equal(res.statusCode, 201);
-  assert.equal(res.body.request.status, 'pending');
-  assert.equal(res.body.request.planId, 'month');
-  assert.equal(res.body.request.accessKey, null);
-
-  const row = f.db.prepare('SELECT * FROM vip_payment_requests').get();
-  assert.equal(row.user_id, 'user1');
-  assert.equal(row.user_type, 'oauth');
-  assert.equal(row.payer_msisdn, '690000000');
-  assert.equal(row.reference, 'MP261112.0001.A12345');
-});
-
-test('les données de paiement invalides sont refusées', async (t) => {
-  const f = fixture(t);
-  const cases = [
-    { planId: 'forever' },
-    { amountFcfa: 100 },
-    { amountFcfa: 999999 },
-    { paymentMethod: 'wave' }, // opérateur inconnu
-    { payerMsisdn: '12' },
-    { reference: '!!' },
-  ];
-  for (const override of cases) {
-    const res = await f.submit(USER, f.validPayment(override));
-    assert.equal(res.statusCode, 400, `attendu 400 pour ${JSON.stringify(override)}`);
-  }
-  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM vip_payment_requests').get().n, 0);
-});
-
-test('une référence de transaction déjà utilisée est refusée, y compris par un autre compte', async (t) => {
-  const f = fixture(t);
-  const first = await f.submit(USER, f.validPayment({ reference: 'REF-DUPLICATE-1' }));
-  assert.equal(first.statusCode, 201);
-  await f.reject(ADMIN, first.body.request.id, { note: 'test' });
-
-  const replay = await f.submit(OTHER, f.validPayment({ reference: 'REF-DUPLICATE-1' }));
-  assert.equal(replay.statusCode, 409);
-  assert.equal(replay.body.code, 'DUPLICATE_REFERENCE');
-
-  // Référence déjà consommée par une demande de création de compte.
-  f.db.prepare('INSERT INTO account_requests (reference, payment_method) VALUES (?, ?)')
-    .run('REF-ACCOUNT-1', 'orange_money');
-  const crossReplay = await f.submit(OTHER, f.validPayment({ reference: 'REF-ACCOUNT-1' }));
-  assert.equal(crossReplay.statusCode, 409);
-  assert.equal(crossReplay.body.code, 'DUPLICATE_REFERENCE');
-});
-
-test('un compte ne peut pas empiler plusieurs demandes en attente', async (t) => {
-  const f = fixture(t);
-  assert.equal((await f.submit(USER, f.validPayment())).statusCode, 201);
-  const second = await f.submit(USER, f.validPayment());
-  assert.equal(second.statusCode, 409);
-  assert.equal(second.body.code, 'PENDING_EXISTS');
+  assert.equal(res.statusCode, 410);
+  assert.equal(res.body.code, 'VIP_DISABLED');
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM vip_payment_requests').get().n, 1);
+  const mine = await f.mine(USER);
+  assert.equal(mine.statusCode, 200);
+  assert.equal(mine.body.requests.length, 1);
+  assert.equal(mine.body.requests[0].status, 'pending');
 });
 
 test('seul un admin peut lister, valider ou refuser', async (t) => {
   const f = fixture(t);
-  const created = await f.submit(USER, f.validPayment());
-  const id = created.body.request.id;
+  const id = f.seedRequest();
 
   assert.equal((await f.list(null)).statusCode, 401);
   assert.equal((await f.list(USER)).statusCode, 403);
@@ -341,9 +321,9 @@ test('seul un admin peut lister, valider ou refuser', async (t) => {
 test('la validation crée une clé VIP de la durée de l\'offre et la rattache au compte', async (t) => {
   const f = fixture(t);
   await f.sync.writeUserData('oauth', 'user1', { profiles: [{ id: 'p1', isDefault: true }, { id: 'p2' }] });
-  const created = await f.submit(USER, f.validPayment({ planId: 'week', amountFcfa: 1500 }));
+  const id = f.seedRequest('oauth', 'user1', { planId: 'week', planDays: 7, amountFcfa: 1500 });
   const before = Date.now();
-  const res = await f.confirm(ADMIN, created.body.request.id, { note: 'Paiement vu sur le relevé' });
+  const res = await f.confirm(ADMIN, id, { note: 'Paiement vu sur le relevé' });
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.request.status, 'approved');
 
@@ -373,12 +353,12 @@ test('la validation crée une clé VIP de la durée de l\'offre et la rattache a
 
 test('une prolongation démarre à la fin du VIP encore actif', async (t) => {
   const f = fixture(t);
-  const first = await f.submit(USER, f.validPayment({ planId: 'month', amountFcfa: 5000 }));
-  await f.confirm(ADMIN, first.body.request.id);
+  const firstId = f.seedRequest('oauth', 'user1', { planId: 'month', planDays: 30, amountFcfa: 5000 });
+  await f.confirm(ADMIN, firstId);
   const firstExpiry = Number(f.db.prepare('SELECT expires_at FROM access_keys').get().expires_at);
 
-  const second = await f.submit(USER, f.validPayment({ planId: 'week', amountFcfa: 1500 }));
-  const res = await f.confirm(ADMIN, second.body.request.id);
+  const secondId = f.seedRequest('oauth', 'user1', { planId: 'week', planDays: 7, amountFcfa: 1500 });
+  const res = await f.confirm(ADMIN, secondId);
   assert.equal(res.statusCode, 200);
   const newKey = f.db.prepare('SELECT * FROM access_keys WHERE key_value = ?').get(res.body.accessKey);
   assert.ok(Math.abs(Number(newKey.expires_at) - (firstExpiry + 7 * DAY_MS)) < 60_000);
@@ -386,16 +366,16 @@ test('une prolongation démarre à la fin du VIP encore actif', async (t) => {
 
 test('une demande ne peut être validée qu\'une fois, et jamais après un refus', async (t) => {
   const f = fixture(t);
-  const a = await f.submit(USER, f.validPayment());
-  assert.equal((await f.confirm(ADMIN, a.body.request.id)).statusCode, 200);
-  assert.equal((await f.confirm(ADMIN, a.body.request.id)).statusCode, 409);
-  assert.equal((await f.reject(ADMIN, a.body.request.id)).statusCode, 409);
+  const firstId = f.seedRequest();
+  assert.equal((await f.confirm(ADMIN, firstId)).statusCode, 200);
+  assert.equal((await f.confirm(ADMIN, firstId)).statusCode, 409);
+  assert.equal((await f.reject(ADMIN, firstId)).statusCode, 409);
   assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM access_keys').get().n, 1);
 
-  const b = await f.submit(OTHER, f.validPayment());
-  const rejected = await f.reject(ADMIN, b.body.request.id, { note: 'Référence introuvable chez Orange' });
+  const rejectedId = f.seedRequest('bip39', 'user2');
+  const rejected = await f.reject(ADMIN, rejectedId, { note: 'Référence introuvable chez Orange' });
   assert.equal(rejected.statusCode, 200);
-  assert.equal((await f.confirm(ADMIN, b.body.request.id)).statusCode, 409);
+  assert.equal((await f.confirm(ADMIN, rejectedId)).statusCode, 409);
   assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM access_keys').get().n, 1);
 
   assert.equal((await f.confirm(ADMIN, 9999)).statusCode, 404);
@@ -403,21 +383,23 @@ test('une demande ne peut être validée qu\'une fois, et jamais après un refus
 
 test('le refus est visible par l\'utilisateur avec le motif, sans clé', async (t) => {
   const f = fixture(t);
-  const created = await f.submit(OTHER, f.validPayment());
-  await f.reject(ADMIN, created.body.request.id, { note: 'Montant non reçu' });
+  const id = f.seedRequest('bip39', 'user2');
+  await f.reject(ADMIN, id, { note: 'Montant non reçu' });
   const mine = await f.mine(OTHER);
   assert.equal(mine.body.requests[0].status, 'rejected');
   assert.equal(mine.body.requests[0].adminNote, 'Montant non reçu');
   assert.equal(mine.body.requests[0].accessKey, null);
 
-  // Après un refus, une nouvelle demande est possible.
-  assert.equal((await f.submit(OTHER, f.validPayment())).statusCode, 201);
+  // Les anciennes demandes restent lisibles ; les nouvelles sont désactivées.
+  const newRequest = await f.submit(OTHER, f.validPayment());
+  assert.equal(newRequest.statusCode, 410);
+  assert.equal(newRequest.body.code, 'VIP_DISABLED');
 });
 
 test('un utilisateur ne voit que ses propres demandes', async (t) => {
   const f = fixture(t);
-  const created = await f.submit(USER, f.validPayment());
-  await f.confirm(ADMIN, created.body.request.id);
+  const id = f.seedRequest();
+  await f.confirm(ADMIN, id);
   const other = await f.mine(OTHER);
   assert.equal(other.statusCode, 200);
   assert.deepEqual(other.body.requests, []);

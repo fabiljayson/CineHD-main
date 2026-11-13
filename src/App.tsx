@@ -7,6 +7,7 @@ import Header from './components/Header';
 import Home from './pages/Home';
 import LandingPage from './pages/LandingPage';
 import DnsBlockBanner from './components/DnsBlockBanner';
+import CookieConsentBanner from './components/CookieConsentBanner';
 import { AdFreePopupProvider } from './context/AdFreePopupContext';
 import { SearchProvider } from './context/SearchContext';
 import { AuthProvider } from './context/AuthContext';
@@ -2049,6 +2050,7 @@ function App() {
                       <TopProgressBar />
                       <Toaster position="bottom-right" richColors />
                       <DnsBlockBanner />
+                      <CookieConsentBanner />
                       <RequireUsernameChange />
                     </IntroProvider>
                   </TurnstileProvider>

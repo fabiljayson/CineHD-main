@@ -247,8 +247,9 @@ if (typeof Node === 'function' && Node.prototype) {
 }
 
 // Analytics (Google Analytics ou Plausible, au choix via VITE_ANALYTICS_PROVIDER).
-// Ne charge rien si le fournisseur est "none", si sa config est incomplète, ou
-// si l'utilisateur a coupé la mesure (Do Not Track / opt-out local).
+// Ne charge rien si le fournisseur est "none", si sa config est incomplète, si
+// l'utilisateur n'a pas accepté les cookies (bannière de consentement), ou s'il
+// a coupé la mesure (Do Not Track / opt-out local).
 initAnalytics();
 
 const mountApp = () => {

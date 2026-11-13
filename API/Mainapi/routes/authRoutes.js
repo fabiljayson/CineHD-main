@@ -287,7 +287,7 @@ async function ensureLinkManagementAccess(auth) {
   return { allowed: true, accountProvider };
 }
 
-async function getOrCreateBip39Account({ mnemonic, username = null, avatar = null, overwriteProfile = false }) {
+async function getOrCreateBip39Account({ mnemonic, username = null, avatar = null, overwriteProfile = false, termsAcceptedAt = null }) {
   const normalizedMnemonic = normalizeMnemonic(mnemonic);
   if (!validateBip39Mnemonic(normalizedMnemonic)) {
     return { success: false, error: 'Phrase secrète invalide' };
@@ -301,10 +301,18 @@ async function getOrCreateBip39Account({ mnemonic, username = null, avatar = nul
 
   const shouldWriteProfile = overwriteProfile || !existingProfile;
   const userProfile = buildBip39Profile(userId, username, avatar, existingProfile);
+  // Preuve RGPD du consentement aux CGU : enregistrée une seule fois, puis
+  // jamais réécrite (la valeur d'origine fait foi).
+  const shouldRecordTerms = Boolean(termsAcceptedAt) && userData.terms_accepted_at == null;
 
-  if (shouldWriteProfile) {
-    userData.auth = JSON.stringify({ userProfile, provider: 'bip39' });
-    userData.bip39_auth = 'true';
+  if (shouldWriteProfile || shouldRecordTerms) {
+    if (shouldWriteProfile) {
+      userData.auth = JSON.stringify({ userProfile, provider: 'bip39' });
+      userData.bip39_auth = 'true';
+    }
+    if (shouldRecordTerms) {
+      userData.terms_accepted_at = termsAcceptedAt;
+    }
     userData.lastUpdated = Date.now();
     await writeUserData('bip39', userId, userData);
   }
@@ -462,9 +470,19 @@ router.get('/bip39/generate', (req, res) => {
 // POST /bip39/create
 router.post('/bip39/create', authRateLimit, ...authBodyParsers, async (req, res) => {
   try {
-    const { mnemonic, username, avatar, turnstileToken } = req.body;
+    const { mnemonic, username, avatar, turnstileToken, acceptedTerms } = req.body;
     if (!mnemonic || !username) {
       return res.status(400).json({ success: false, error: 'Phrase secrète et nom d\'utilisateur requis' });
+    }
+
+    // Consentement RGPD : aucune création de compte sans acceptation explicite
+    // des CGU ; l'horodatage sert de preuve (voir getOrCreateBip39Account).
+    if (acceptedTerms !== true) {
+      return res.status(400).json({
+        success: false,
+        error: "Vous devez accepter les Conditions d'utilisation pour créer un compte.",
+        code: 'TERMS_REQUIRED',
+      });
     }
 
     const turnstileResult = await verifyTurnstileFromRequest(req, turnstileToken);
@@ -477,6 +495,7 @@ router.post('/bip39/create', authRateLimit, ...authBodyParsers, async (req, res)
       username,
       avatar,
       overwriteProfile: true,
+      termsAcceptedAt: Date.now(),
     });
 
     if (!account.success) {

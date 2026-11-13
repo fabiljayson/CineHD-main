@@ -55,6 +55,8 @@ export interface CreateAccountRequestInput {
   payerMsisdn: string;
   reference: string;
   username: string;
+  /** Consentement aux CGU exigé par l'API (code TERMS_REQUIRED). */
+  acceptedTerms: boolean;
   turnstileToken?: string;
 }
 
@@ -211,6 +213,8 @@ export interface CamPayCheckoutInput {
   paymentMethod: AccountPaymentMethodId;
   payerMsisdn: string;
   username: string;
+  /** Consentement aux CGU exigé par l'API (code TERMS_REQUIRED). */
+  acceptedTerms: boolean;
   turnstileToken?: string;
 }
 

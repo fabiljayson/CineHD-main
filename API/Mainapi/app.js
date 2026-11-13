@@ -694,6 +694,8 @@ const appReady = (async () => {
       await ensureColumn('account_requests', 'campay_status', "campay_status ENUM('PENDING', 'SUCCESSFUL', 'FAILED') DEFAULT NULL");
       await ensureColumn('account_requests', 'campay_operator', 'campay_operator VARCHAR(16) DEFAULT NULL');
       await ensureColumn('account_requests', 'paid_at', 'paid_at DATETIME DEFAULT NULL');
+      // Consentement RGPD : preuve horodatée des CGU acceptées à la demande.
+      await ensureColumn('account_requests', 'terms_accepted_at', 'terms_accepted_at TIMESTAMP DEFAULT NULL');
       // Reçus d'abonnement, offres de renouvellement et déclarations de
       // paiement VIP manuel (rendues depuis le schéma déclaratif pour garder
       // une seule source de vérité).

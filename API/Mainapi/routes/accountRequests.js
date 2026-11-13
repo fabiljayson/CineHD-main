@@ -196,7 +196,18 @@ router.post('/account-requests', setNoStore, createRequestRateLimit, ...authBody
       reference,
       username,
       turnstileToken,
+      acceptedTerms,
     } = req.body || {};
+
+    // Consentement RGPD : aucune demande de compte sans acceptation explicite
+    // des CGU (preuve horodatée enregistrée dans terms_accepted_at).
+    if (acceptedTerms !== true) {
+      return res.status(400).json({
+        success: false,
+        error: "Vous devez accepter les Conditions d'utilisation pour créer un compte.",
+        code: 'TERMS_REQUIRED',
+      });
+    }
 
     const turnstileResult = await verifyTurnstileFromRequest(req, turnstileToken);
     if (!turnstileResult.valid) {
@@ -252,8 +263,8 @@ router.post('/account-requests', setNoStore, createRequestRateLimit, ...authBody
     let insertId;
     try {
       const [result] = await pool.execute(
-        `INSERT INTO account_requests (reference, plan_id, amount_fcfa, payment_method, payer_msisdn, username, status)
-         VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
+        `INSERT INTO account_requests (reference, plan_id, amount_fcfa, payment_method, payer_msisdn, username, status, terms_accepted_at)
+         VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW())`,
         [cleanReference, plan.id, amountFcfa, method.id, msisdn, cleanUsername]
       );
       insertId = result.insertId;
@@ -401,7 +412,17 @@ router.post('/account-requests/checkout', setNoStore, createRequestRateLimit, ..
       return res.status(409).json({ success: false, error: 'Paiement en ligne indisponible.', code: 'CAMPAY_NOT_CONFIGURED' });
     }
 
-    const { planId, amountFcfa, paymentMethod, payerMsisdn, username, turnstileToken } = req.body || {};
+    const { planId, amountFcfa, paymentMethod, payerMsisdn, username, turnstileToken, acceptedTerms } = req.body || {};
+
+    // Même exigence que la demande manuelle : le consentement des CGU conditionne
+    // toute création de demande, paiement en ligne compris.
+    if (acceptedTerms !== true) {
+      return res.status(400).json({
+        success: false,
+        error: "Vous devez accepter les Conditions d'utilisation pour créer un compte.",
+        code: 'TERMS_REQUIRED',
+      });
+    }
 
     const turnstileResult = await verifyTurnstileFromRequest(req, turnstileToken);
     if (!turnstileResult.valid) {
@@ -438,8 +459,8 @@ router.post('/account-requests/checkout', setNoStore, createRequestRateLimit, ..
     let insertId;
     try {
       const [result] = await pool.execute(
-        `INSERT INTO account_requests (reference, plan_id, amount_fcfa, payment_method, payer_msisdn, username, status, campay_status)
-         VALUES (?, ?, ?, ?, ?, ?, 'pending', 'PENDING')`,
+        `INSERT INTO account_requests (reference, plan_id, amount_fcfa, payment_method, payer_msisdn, username, status, campay_status, terms_accepted_at)
+         VALUES (?, ?, ?, ?, ?, ?, 'pending', 'PENDING', NOW())`,
         [reference, plan.id, amountFcfa, method.id, msisdn, cleanUsername]
       );
       insertId = result.insertId;

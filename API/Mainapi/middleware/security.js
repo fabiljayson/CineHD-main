@@ -4,6 +4,8 @@
  * and JSON parse error handler.
  */
 
+const { isAllowedBrowserUrl } = require('../config/allowedOrigins');
+
 // Security headers (minimal set -- replaces Helmet)
 function securityHeaders(req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -49,29 +51,6 @@ function domainRestriction(req, res, next) {
     return next();
   }
 
-  const allowedDomains = [
-    'localhost:3000',
-    'movix.blog',
-    'movix.rodeo',
-    'movix.club',
-    'movix.site',
-    'movix11.pages.dev',
-    'nakios.site',
-    'cinezo.site',
-    'cinezo.online',
-    'filmib.cc',
-    'movix.llc',
-    'movix.cash',
-    'movix.tax',
-    'movix.cloud',
-    'movix.golf',
-    'movix.chat',
-    'movix.date',
-    'movix.show',
-    'movix.fun',
-    'movix.men'
-  ];
-
   const origin = req.get('origin');
   const referer = req.get('referer');
 
@@ -85,27 +64,11 @@ function domainRestriction(req, res, next) {
 
   let isAllowed = false;
 
-  // Strict domain verification
-  const checkDomain = (url) => {
-    try {
-      if (!url) return false;
-      const parsed = new URL(url);
-      const hostname = parsed.hostname;
-      // Allow exact matches or subdomains if needed (here we list full domains)
-      return allowedDomains.some(domain => {
-        // "localhost:3000" : comparer host+port, jamais la sous-chaîne brute de
-        // l'URL (un Referer du type https://evil.com/?x=localhost:3000 passait
-        // le test d'inclusion).
-        if (domain.includes(':')) {
-          const [host, port] = domain.split(':');
-          return hostname === host && parsed.port === port;
-        }
-        return hostname === domain || hostname.endsWith('.' + domain);
-      });
-    } catch (e) {
-      return false;
-    }
-  };
+  // Vérification stricte du domaine : liste unique dans config/allowedOrigins.js.
+  // `isAllowedBrowserUrl` compare le nom d'hôte, et exige host+port pour
+  // localhost — jamais une sous-chaîne brute de l'URL (un Referer du type
+  // https://evil.com/?x=localhost:3000 ne doit pas passer).
+  const checkDomain = (url) => isAllowedBrowserUrl(url);
 
   if (origin) {
     if (checkDomain(origin)) isAllowed = true;

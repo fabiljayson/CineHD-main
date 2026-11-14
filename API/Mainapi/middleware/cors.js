@@ -5,42 +5,9 @@
 
 const cors = require("cors");
 const { isOAuthCorsOriginAllowed } = require('../utils/oauthClients');
-
-const STATIC_ALLOWED_DOMAINS = [
-    'localhost:3000',
-    'movix.blog',
-    'movix.rodeo',
-    'movix.club',
-    'movix.site',
-    'movix11.pages.dev',
-    'nakios.site',
-    'cinezo.site',
-    'cinezo.online',
-    'filmib.cc',
-    'movix.llc',
-    'movix.cash',
-    'movix.tax',
-    'movix.cloud',
-    'movix.golf',
-    'movix.chat',
-    'movix.date',
-    'movix.show',
-    'movix.fun',
-    'movix.men'
-];
-
-function isAllowedStaticOrigin(origin) {
-  try {
-    const parsedOrigin = new URL(origin);
-    const hostname = parsedOrigin.hostname;
-
-    return STATIC_ALLOWED_DOMAINS.some((domain) => (
-      hostname === domain || hostname.endsWith(`.${domain}`)
-    ));
-  } catch {
-    return false;
-  }
-}
+// Liste unique des domaines : voir config/allowedOrigins.js. La règle de
+// localhost en développement reste ci-dessous, conditionnée à NODE_ENV.
+const { isAllowedUrl: isAllowedStaticOrigin } = require('../config/allowedOrigins');
 
 function isAllowedOAuthOrigin(origin) {
   return isOAuthCorsOriginAllowed(origin);

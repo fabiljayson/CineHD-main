@@ -38,7 +38,6 @@ import { getCoverImageWidth, getTmdbImageProps, getTmdbImageUrl } from '../utils
 import { Ring } from '@/components/ui/loading/ring';
 import { readLocalStorage, writeLocalStorage } from '../utils/browserStorage';
 
-const MAIN_API = import.meta.env.VITE_MAIN_API;
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || '';
 
 const parseStoredMediaList = (stored: string | null): any[] | null => {
@@ -262,7 +261,7 @@ const ImagesSection = ({ movieId, images, loading }: { movieId: string; images: 
   const imageDpr = Math.min(dpr, effectiveImageQuality === 'high' ? 3 : 2);
   const [selectedCategory, setSelectedCategory] = useState<'backdrops' | 'posters' | 'logos'>('backdrops');
   const [showImages, setShowImages] = useState(true);
-  const [loadedImagesCount, setLoadedImagesCount] = useState(0);
+  const [, setLoadedImagesCount] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const mobileLogoGridRef = useRef<HTMLDivElement | null>(null);
@@ -973,7 +972,6 @@ const MovieDetails = (): JSX.Element => {
   const [videoDuration, setVideoDuration] = useState(0);
   const [hasProgress, setHasProgress] = useState(false);
 
-  const [showVideo, setShowVideo] = useState(false);
   const [videos, setVideos] = useState<any[]>([]);
   const [loadingVideos, setLoadingVideos] = useState(false);
 
@@ -982,25 +980,19 @@ const MovieDetails = (): JSX.Element => {
   const [loadingMultiLangVideos, setLoadingMultiLangVideos] = useState(false);
   const [showMultiLangView, setShowMultiLangView] = useState(false);
 
-  const [customUrl, setCustomUrl] = useState<string | null>(null);
-
   const [watchStatus, setWatchStatus] = useState<WatchStatus>({
     watchlist: false,
     favorite: false,
     watched: false
   });
 
-  const [showAddToList, setShowAddToList] = useState(false);
-
-  const [isAvailable, setIsAvailable] = useState<boolean>(true);
+  const [isAvailable] = useState<boolean>(true);
 
   const [recommendations, setRecommendations] = useState<any[]>([]);
-  const [loadingSimilar, setLoadingSimilar] = useState(false);
-  const [showSimilarModal, setShowSimilarModal] = useState(false);
+  const [, setLoadingSimilar] = useState(false);
 
   // Nouvel état pour le film suivant recommandé (film disponible)
-  const [nextRecommendedMovie, setNextRecommendedMovie] = useState<NextMovieType | null>(null);
-  const [releaseYear, setReleaseYear] = useState<number | null>(null);
+  const [, setNextRecommendedMovie] = useState<NextMovieType | null>(null);
 
   const [collection, setCollection] = useState<Collection | null>(null);
   const [loadingCollection, setLoadingCollection] = useState(false);
@@ -1020,8 +1012,8 @@ const MovieDetails = (): JSX.Element => {
 
   // Ajouter un state pour le hover des cartes de la collection (juste après la déclaration des autres states)
   const [isCollectionCardHovered, setIsCollectionCardHovered] = useState(false);
-  const [showCollectionLeftButton, setShowCollectionLeftButton] = useState(false);
-  const [showCollectionRightButton, setShowCollectionRightButton] = useState(true);
+  const [, setShowCollectionLeftButton] = useState(false);
+  const [, setShowCollectionRightButton] = useState(true);
   const collectionRowRef = useRef<HTMLDivElement>(null);
   // Référence pour la section commentaires
   const commentsRef = useRef<HTMLDivElement>(null);
@@ -1178,15 +1170,6 @@ const MovieDetails = (): JSX.Element => {
       setLoading(false);
     }
   }, [id]);
-
-  // Use fetchData to call fetchMovieDetails
-  const fetchData = async () => {
-    const movieData = await fetchMovieDetails();
-    if (movieData && movieData.release_date) {
-      const releaseYear = new Date(movieData.release_date).getFullYear();
-      setReleaseYear(releaseYear);
-    }
-  };
 
   // Ajouter une fonction pour récupérer les détails de la collection
   const fetchCollection = async (collectionId: number) => {
@@ -1596,12 +1579,6 @@ const MovieDetails = (): JSX.Element => {
     }
   };
 
-  const handleShowSimilar = async () => {
-    if (recommendations.length === 0) {
-      await fetchRecommendations();
-    }
-  };
-
   useEffect(() => {
     if (id && movie && recommendations.length === 0) {
       fetchRecommendations();
@@ -1611,10 +1588,6 @@ const MovieDetails = (): JSX.Element => {
   useEffect(() => {
     // Setup SEO and movie data
     if (movie) {
-      const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '';
-      const rating = movie.vote_average?.toFixed(1);
-      const genres = movie.genres?.map(g => g.name).join(', ') || '';
-
       // Simple movie title
       document.title = `${movie.title} - CineHD`;
     } else {
@@ -1662,14 +1635,6 @@ const MovieDetails = (): JSX.Element => {
       const { scrollLeft, scrollWidth, clientWidth } = collectionRowRef.current;
       setShowCollectionLeftButton(scrollLeft > 0);
       setShowCollectionRightButton(scrollLeft < scrollWidth - clientWidth);
-    }
-  };
-
-  const scrollCollectionRow = (direction: 'left' | 'right') => {
-    if (collectionRowRef.current) {
-      const { clientWidth } = collectionRowRef.current;
-      const scrollAmount = direction === 'left' ? -clientWidth : clientWidth;
-      collectionRowRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
 

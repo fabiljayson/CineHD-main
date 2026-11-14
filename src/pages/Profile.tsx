@@ -311,10 +311,9 @@ const Profile: React.FC = () => {
   const [importData, setImportData] = useState<string>('');
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccess, setImportSuccess] = useState<string | null>(null);
-  const [isVipKeyHovered, setIsVipKeyHovered] = useState(false);
 
 
-  const [vipStatus, setVipStatus] = useState<VipStatus>({
+  const [, setVipStatus] = useState<VipStatus>({
     isVip: false,
     features: []
   });
@@ -329,10 +328,8 @@ const Profile: React.FC = () => {
   const [selectedDays, setSelectedDays] = useState<NotifyBeforeDays>(1);
   const [sessions, setSessions] = useState<UserSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [premiumKey, setPremiumKey] = useState('');
   const [vipKeyError, setVipKeyError] = useState<string | null>(null);
-  const [isActivatingKey, setIsActivatingKey] = useState(false);
-  const { checkAccessCode, error: authError, lastAttempt } = useAuth();
+  const { lastAttempt } = useAuth();
 
   // === Shared Lists ===
   const [sharedListsStatus, setSharedListsStatus] = useState<Record<string, { shareCode: string; sharedAt: number; isPublicInCatalog: boolean }>>({});
@@ -345,36 +342,6 @@ const Profile: React.FC = () => {
   // Dispense admin : pas de challenge du tout. Voir `utils/turnstileBypass.ts`.
   const shareTurnstileBypass = useTurnstileBypass();
 
-  // Paramètres utilisateur
-  const [disableAutoScroll, setDisableAutoScroll] = useState(() => {
-    return localStorage.getItem('settings_disable_auto_scroll') === 'true';
-  });
-
-  // State for Smooth Scroll (enabled by default)
-  const [smoothScrollEnabled, setSmoothScrollEnabled] = useState(() => {
-    return localStorage.getItem('settings_smooth_scroll') !== 'false';
-  });
-
-  // State for Snowfall
-  const [isSnowfallActive, setIsSnowfallActive] = useState(() => {
-    return sessionStorage.getItem('snowfall_active') === 'true';
-  });
-
-  // Screensaver settings
-  const [screensaverEnabled, setScreensaverEnabled] = useState(() => {
-    return localStorage.getItem('screensaver_enabled') === 'true';
-  });
-  const [screensaverTimeout, setScreensaverTimeout] = useState(() => {
-    return parseInt(localStorage.getItem('screensaver_timeout') || '60', 10);
-  });
-  const [screensaverMode, setScreensaverMode] = useState(() => {
-    return localStorage.getItem('screensaver_mode') || 'backdrop';
-  });
-
-  // Privacy Settings States
-  const [dataCollection, setDataCollection] = useState(() => {
-    return localStorage.getItem('privacy_data_collection') !== 'false'; // Default true
-  });
 
   // Hooks de filtrage optimisés pour chaque liste
   const watchlistFilter = useOptimizedFilter({ items: watchlist });
@@ -2255,154 +2222,10 @@ const Profile: React.FC = () => {
   };
 
   // Functions for VIP key management
-  const handleActivatePremiumKey = async () => {
-    if (!premiumKey.trim()) return;
-
-    // Vérifier le cooldown avant de procéder
-    if (lastAttempt) {
-      const elapsed = Date.now() - lastAttempt;
-      if (elapsed < 30000) {
-        const remaining = Math.ceil((30000 - elapsed) / 1000);
-        setVipKeyError(`Veuillez attendre ${remaining} secondes avant de réessayer`);
-        return;
-      }
-    }
-
-    setIsActivatingKey(true);
-    setVipKeyError(null);
-
-    try {
-      // Vérifier si l'utilisateur est déjà connecté via Discord
-      const discordAuth = localStorage.getItem('discord_auth') === 'true';
-      const alreadyAuthenticated = discordAuth;
-
-      // Utiliser la fonction checkAccessCode du contexte d'authentification
-      const success = await checkAccessCode(premiumKey.trim(), alreadyAuthenticated);
-
-      if (success) {
-        // La fonction checkAccessCode gère déjà la mise à jour du localStorage
-        // Mettre à jour le statut VIP local
-        const accessCodeExpires = localStorage.getItem('access_code_expires');
-        let expiration = undefined;
-        if (accessCodeExpires && accessCodeExpires !== 'never') {
-          expiration = accessCodeExpires;
-        }
-
-        setVipStatus({
-          isVip: true,
-          expiresAt: expiration,
-          features: [t('profilePage.vip.noAds')]
-        });
-
-        // Clear the input and error
-        setPremiumKey('');
-        setVipKeyError(null);
-
-        // Notify other components
-        window.dispatchEvent(new Event('storage'));
-        window.dispatchEvent(new CustomEvent('authStateChanged'));
-
-        console.log('Clé VIP activée avec succès');
-      } else {
-        // Utiliser l'erreur du contexte d'authentification ou un message par défaut
-        setVipKeyError(authError || t('profilePage.vip.invalidKey'));
-      }
-    } catch (error) {
-      console.error('Erreur lors de l\'activation de la clé VIP:', error);
-      setVipKeyError(t('profilePage.vip.activationError'));
-    } finally {
-      setIsActivatingKey(false);
-    }
-  };
-
-  const handleRemovePremiumKey = () => {
-    localStorage.removeItem('is_vip');
-    localStorage.removeItem('access_code');
-    localStorage.removeItem('access_code_expires');
-
-    // Update VIP status
-    setVipStatus({
-      isVip: false,
-      features: []
-    });
-
-    // Notify other components
-    window.dispatchEvent(new Event('storage'));
-
-    console.log('Clé premium supprimée');
-  };
-
-  const copyPremiumKey = () => {
-    const accessCode = localStorage.getItem('access_code');
-    if (accessCode) {
-      void copyText(accessCode).then((copied) => {
-        if (copied) console.log('Clé copiée dans le presse-papiers');
-      });
-    }
-  };
-
   // Fonction pour gérer le changement du paramètre de scroll automatique
-  const handleAutoScrollToggle = () => {
-    const newValue = !disableAutoScroll;
-    setDisableAutoScroll(newValue);
-    localStorage.setItem('settings_disable_auto_scroll', newValue.toString());
-    window.dispatchEvent(new CustomEvent('settings_auto_scroll_changed'));
-  };
-
   // Function to toggle Smooth Scroll
-  const handleSmoothScrollToggle = () => {
-    const newValue = !smoothScrollEnabled;
-    setSmoothScrollEnabled(newValue);
-    localStorage.setItem('settings_smooth_scroll', newValue.toString());
-    // Dispatch custom event to notify SmoothScroll component immediately
-    window.dispatchEvent(new CustomEvent('settings_smooth_scroll_changed'));
-  };
-
   // Function to toggle Snowfall
-  const handleSnowfallToggle = () => {
-    const newValue = !isSnowfallActive;
-    setIsSnowfallActive(newValue);
-    sessionStorage.setItem('snowfall_active', String(newValue));
-    window.dispatchEvent(new CustomEvent('snowfall_toggled'));
-  };
-
   // Screensaver handlers
-  const handleScreensaverToggle = () => {
-    const newValue = !screensaverEnabled;
-    setScreensaverEnabled(newValue);
-    localStorage.setItem('screensaver_enabled', String(newValue));
-    window.dispatchEvent(new CustomEvent('screensaver_settings_changed'));
-  };
-
-  const handleScreensaverTimeoutChange = (seconds: number) => {
-    setScreensaverTimeout(seconds);
-    localStorage.setItem('screensaver_timeout', String(seconds));
-    window.dispatchEvent(new CustomEvent('screensaver_settings_changed'));
-  };
-
-  const handleScreensaverModeChange = (mode: string) => {
-    setScreensaverMode(mode);
-    localStorage.setItem('screensaver_mode', mode);
-    window.dispatchEvent(new CustomEvent('screensaver_settings_changed'));
-  };
-
-  const copyLocalStorage = () => {
-    try {
-      const localStorageObj: { [key: string]: string } = {};
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key) {
-          localStorageObj[key] = localStorage.getItem(key) || '';
-        }
-      }
-      const localStorageString = JSON.stringify(localStorageObj, null, 2);
-      setLocalStorageData(localStorageString);
-      setShowLocalStoragePopup(true);
-    } catch (error) {
-      console.error('Erreur lors de la copie du localStorage:', error);
-    }
-  };
-
   const handleCloseIdPopup = () => {
     setIsClosingIdPopup(true);
     setTimeout(() => {
@@ -2525,12 +2348,6 @@ const Profile: React.FC = () => {
 
 
 
-
-  const handleDataCollectionToggle = () => {
-    const newValue = !dataCollection;
-    setDataCollection(newValue);
-    localStorage.setItem('privacy_data_collection', String(newValue));
-  };
 
   const renderProfileHeader = () => (
     <div className="relative mb-12 overflow-hidden rounded-3xl shadow-2xl shadow-black/30">

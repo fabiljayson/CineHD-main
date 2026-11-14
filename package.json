@@ -13,7 +13,7 @@
     "build:cf": "vite build",
     "build:coolify": "vite build",
     "build:report": "ANALYZE=true vite build",
-    "lint": "eslint . --max-warnings 245",
+    "lint": "eslint . --max-warnings 207",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test": "node --test tests/*.test.mjs tests/*.test.ts",
     "preview": "vite preview",

@@ -15,6 +15,7 @@ from utils.constants.macros import INF_MSG, ERR_MSG, USER_ERROR, APP_ERROR, CMD_
     DEFAULT_OUTPUT_CMD, DEFAULT_OUTPUT_CMD_FAIL, TMP_TOOLS_PATH, APP_VERSION
 from utils.constants.portable import TERMINAL_CLOSE, CMD_JOIN_ADJUST, CMD_JOIN, TERMINAL_LAUNCH, CURRENT_OS, \
     CURRENT_ARCHITECTURE
+from utils.shell_safety import quote_for_shell
 from utils.structs import CustomException, BaseElement
 from utils.tools.cdm import init_cdm, close_cdm
 
@@ -203,14 +204,16 @@ class main_service:
                 ))
                 return None, None
 
-            dwn_cmd = dwn_cmd.replace("[!manifest!]", manifest_url)
+            # Valeurs issues des fournisseurs amont : échappées avant d'entrer
+            # dans un gabarit exécuté par un shell (voir utils/shell_safety.py).
+            dwn_cmd = dwn_cmd.replace("[!manifest!]", quote_for_shell(manifest_url))
             if not is_hls_aes:
                 use_shaka = len(keys) > 0 and is_livestream and additional.get("USE_SHAKA", True) is True
                 if len(keys) > 0 and additional.get("FORCE_SHAKA", False) is True:
                     use_shaka = True
 
                 dwn_cmd = dwn_cmd.replace("[!keys!]", " ".join([
-                    template_cmd["OTHERS"]["KEY"]["PARAM"].format(value=k)
+                    template_cmd["OTHERS"]["KEY"]["PARAM"].format(value=quote_for_shell(k))
                     for k in keys
                 ]) + (f' {template_cmd["OTHERS"]["KEY"]["EXTRA"]}' if use_shaka else ""))
             else:
@@ -218,12 +221,12 @@ class main_service:
                 for param in ["KEY", "IV"]:
                     if additional["AES"].get(param, None) is not None:
                         aes_params.append(template_cmd["OTHERS"]["AES"][param].format(
-                            value=additional["AES"][param]
+                            value=quote_for_shell(additional["AES"][param])
                         ))
                 dwn_cmd = dwn_cmd.replace("[!keys!]", " ".join(aes_params))
 
-            dwn_cmd = dwn_cmd.replace("[!collection!]", collection_path)
-            dwn_cmd = dwn_cmd.replace("[!element!]", element_path)
+            dwn_cmd = dwn_cmd.replace("[!collection!]", quote_for_shell(collection_path))
+            dwn_cmd = dwn_cmd.replace("[!element!]", quote_for_shell(element_path))
             dwn_cmd = dwn_cmd.replace("[!TMP_PATH!]", join(
                 join(str(builtins.CONFIG["DOWNLOAD_COMMANDS"]["OUTPUT_MEDIA_PATH"]), TMP_TOOLS_PATH),
                 common_tools.rand_str()
@@ -238,8 +241,8 @@ class main_service:
             try:
                 proc_cmd = builtins.CONFIG["DOWNLOAD_COMMANDS"]["TOOL_PARAMETERS"]
                 proc_cmd = proc_cmd["PROCESS_CMDS"].get("CONCAT", "")
-                proc_cmd = proc_cmd.replace("[!collection!]", source_element.collection)
-                proc_cmd = proc_cmd.replace("[!element!]", source_element.element)
+                proc_cmd = proc_cmd.replace("[!collection!]", quote_for_shell(source_element.collection))
+                proc_cmd = proc_cmd.replace("[!element!]", quote_for_shell(source_element.element))
                 proc_cmds.append(proc_cmd)
             except Exception as e:
                 if builtins.CONFIG["DEBUG_MODE"]:

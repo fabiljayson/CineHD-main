@@ -38,6 +38,13 @@ jobs:
       # Vite ne type-check pas : sans cette étape, une régression de types
       # n'apparaît qu'à l'ouverture du fichier dans un éditeur.
       run: npm run typecheck
+    - name: Lint
+      # La dette actuelle est figée dans eslint-suppressions.json (erreurs) et
+      # plafonnée à 292 avertissements : une nouvelle violation échoue, une
+      # ancienne ne bloque pas. Régénérer la baseline avec
+      # `npx eslint . --suppress-all` quand la dette baisse, et baisser le
+      # plafond en même temps.
+      run: npm run lint
     - name: Build
       run: npm run build --if-present
       env:

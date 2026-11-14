@@ -1,0 +1,458 @@
+{
+  "app/src/services/bridge.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    },
+    "no-control-regex": {
+      "count": 2
+    }
+  },
+  "app/src/services/nativePlayback.ts": {
+    "no-control-regex": {
+      "count": 1
+    }
+  },
+  "src/App.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 47
+    },
+    "no-empty": {
+      "count": 8
+    }
+  },
+  "src/components/AddToListMenu.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/components/AdminComments.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/components/AdminReports.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/components/AdminStats.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/components/AntiSpoilerSettings.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/components/AvatarSelector.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/components/ChangeMediaModal.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/components/CommentsSection.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 17
+    }
+  },
+  "src/components/CustomDropdown.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/components/EmblaCarouselGenres.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/components/EmblaCarouselPlatforms.tsx": {
+    "no-empty": {
+      "count": 2
+    }
+  },
+  "src/components/EmojiAutocomplete.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "src/components/FilterSystem.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/components/Greenlight/AdminWishboard.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 12
+    }
+  },
+  "src/components/HLSPlayer.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 108
+    },
+    "@typescript-eslint/no-namespace": {
+      "count": 1
+    },
+    "no-dupe-else-if": {
+      "count": 1
+    },
+    "no-empty": {
+      "count": 7
+    },
+    "no-prototype-builtins": {
+      "count": 2
+    },
+    "react-hooks/rules-of-hooks": {
+      "count": 2
+    }
+  },
+  "src/components/HLSPlayerSettingsPanel.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 41
+    }
+  },
+  "src/components/Header.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
+    }
+  },
+  "src/components/HeroSlider.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/components/LikeDislikeButton.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/components/LiveTVPlayer.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 32
+    }
+  },
+  "src/components/MarkdownToolbar.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 17
+    }
+  },
+  "src/components/ProfileMenu.tsx": {
+    "no-empty": {
+      "count": 1
+    }
+  },
+  "src/components/ScreenSaver.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    },
+    "no-empty": {
+      "count": 1
+    }
+  },
+  "src/components/ScrollStack.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/components/SmoothScroll.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/components/Snow.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/components/StreamingLinksManager.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "src/components/VideoPlayer.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/components/WatchPartyTutorialModal.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/components/subtitles/SubtitlePreview.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/components/subtitles/SubtitleStyleControls.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/components/ui/input.tsx": {
+    "@typescript-eslint/no-empty-object-type": {
+      "count": 1
+    }
+  },
+  "src/components/ui/select.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/components/ui/textarea.tsx": {
+    "@typescript-eslint/no-empty-object-type": {
+      "count": 1
+    }
+  },
+  "src/context/AdFreePopupContext.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    },
+    "no-empty": {
+      "count": 1
+    }
+  },
+  "src/context/SearchContext.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 35
+    }
+  },
+  "src/hooks/useLazyLoad.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/pages/AprilFoolsAdminPage.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/pages/CineGraph.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 22
+    },
+    "no-empty": {
+      "count": 2
+    }
+  },
+  "src/pages/CollectionDetails.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "src/pages/Collections.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 19
+    }
+  },
+  "src/pages/DebridPage.tsx": {
+    "unused-imports/no-unused-imports": {
+      "count": 1
+    }
+  },
+  "src/pages/DownloadPage.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "src/pages/FranceTV/FranceTVBrowse.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/pages/FranceTV/FranceTVInfo.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/pages/FranceTV/FranceTVPlayer.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 27
+    }
+  },
+  "src/pages/Greenlight/SubmitLinkPage.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    }
+  },
+  "src/pages/Home.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 38
+    },
+    "no-empty": {
+      "count": 1
+    },
+    "unused-imports/no-unused-imports": {
+      "count": 1
+    }
+  },
+  "src/pages/MovieDetails.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 29
+    }
+  },
+  "src/pages/Movies.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 15
+    }
+  },
+  "src/pages/PersonDetails.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/pages/Profile.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 22
+    },
+    "@typescript-eslint/no-unsafe-function-type": {
+      "count": 1
+    },
+    "no-empty": {
+      "count": 3
+    }
+  },
+  "src/pages/ProviderContent.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 26
+    }
+  },
+  "src/pages/RoulettePage.tsx": {
+    "@typescript-eslint/ban-ts-comment": {
+      "count": 1
+    },
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "src/pages/Search.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "src/pages/SharedListPage.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "src/pages/SuggestionPage.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    },
+    "no-control-regex": {
+      "count": 1
+    }
+  },
+  "src/pages/TVDetails.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 69
+    }
+  },
+  "src/pages/TVShows.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "src/pages/VipInvoicePage.tsx": {
+    "@typescript-eslint/ban-ts-comment": {
+      "count": 1
+    },
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/pages/Watch/WatchAnime.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/pages/Watch/WatchMovie.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 33
+    },
+    "no-empty": {
+      "count": 1
+    }
+  },
+  "src/pages/Watch/WatchTv.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 42
+    },
+    "no-case-declarations": {
+      "count": 2
+    }
+  },
+  "src/pages/WatchPartyJoin.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/services/blockDetection.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/services/cineGraphService.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 13
+    }
+  },
+  "src/types/d3-force-3d.d.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 7
+    }
+  },
+  "src/types/pako.d.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "src/utils/castUtils.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 40
+    },
+    "no-useless-escape": {
+      "count": 3
+    }
+  },
+  "src/utils/discord.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/utils/extractM3u8.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    },
+    "no-case-declarations": {
+      "count": 2
+    }
+  },
+  "src/utils/searchUtils.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    },
+    "no-useless-escape": {
+      "count": 1
+    }
+  },
+  "src/utils/vipUtils.ts": {
+    "no-irregular-whitespace": {
+      "count": 1
+    }
+  },
+  "src/vite-env.d.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "tests/subtitleProviders.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  }
+}

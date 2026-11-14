@@ -380,7 +380,7 @@
   },
   "src/pages/Watch/WatchTv.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 42
+      "count": 41
     },
     "no-case-declarations": {
       "count": 2

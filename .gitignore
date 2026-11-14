@@ -85,6 +85,12 @@ Poulpix.png
 Poulpix.svg
 docs/*
 !docs/*.md
+!docs/superpowers/
+docs/superpowers/*
+!docs/superpowers/specs/
+!docs/superpowers/specs/*.md
+!docs/superpowers/plans/
+!docs/superpowers/plans/*.md
 extension/Chrome/Chrome.zip
 movix-mcp/
 movix-mcp-http/

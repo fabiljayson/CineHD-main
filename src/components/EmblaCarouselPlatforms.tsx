@@ -40,7 +40,7 @@ const EmblaCarouselPlatforms: React.FC<EmblaCarouselPlatformsProps> = ({ title, 
       try {
         setCanScrollPrev(emblaApi.canScrollPrev());
         setCanScrollNext(emblaApi.canScrollNext());
-      } catch (_) {
+      } catch {
         // noop
       }
     };
@@ -69,7 +69,7 @@ const EmblaCarouselPlatforms: React.FC<EmblaCarouselPlatformsProps> = ({ title, 
       const current = emblaApi.selectedScrollSnap();
       const target = Math.max(0, current - getStep());
       emblaApi.scrollTo(target, !effectivePrefs.transitions);
-    } catch (_) {
+    } catch {
       emblaApi.scrollPrev(!effectivePrefs.transitions);
     }
   }, [emblaApi, getStep, effectivePrefs.transitions]);
@@ -82,7 +82,7 @@ const EmblaCarouselPlatforms: React.FC<EmblaCarouselPlatformsProps> = ({ title, 
       const snaps = emblaApi.scrollSnapList().length;
       const target = Math.min(snaps - 1, current + getStep());
       emblaApi.scrollTo(target, !effectivePrefs.transitions);
-    } catch (_) {
+    } catch {
       emblaApi.scrollNext(!effectivePrefs.transitions);
     }
   }, [emblaApi, getStep, effectivePrefs.transitions]);
@@ -118,7 +118,7 @@ const EmblaCarouselPlatforms: React.FC<EmblaCarouselPlatformsProps> = ({ title, 
                             }
                             video.currentTime = 0;
                             video.play().catch(() => {});
-                          } catch (_) {}
+                          } catch {}
                         }
                       }
                     }}
@@ -126,7 +126,7 @@ const EmblaCarouselPlatforms: React.FC<EmblaCarouselPlatformsProps> = ({ title, 
                       if (!platform.video?.endsWith('.gif')) {
                         const video = document.getElementById(`video-${platform.id}`) as HTMLVideoElement | null;
                         if (video) {
-                          try { video.pause(); video.currentTime = 0; } catch (_) {}
+                          try { video.pause(); video.currentTime = 0; } catch {}
                         }
                       }
                     }}

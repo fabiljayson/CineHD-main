@@ -222,7 +222,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
       setSelectedOption('');
       setReportReason('');
       setDiscordUsername('');
-    } catch (err) {
+    } catch {
       toast.error(t('report.sendError'));
     } finally {
       setIsSubmitting(false);

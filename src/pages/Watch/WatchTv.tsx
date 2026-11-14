@@ -348,7 +348,7 @@ const checkFrembedAvailability = async (showId: string, seasonNumber: number, ep
     return response.data?.status === 200
       && (result?.total ?? result?.totalItems ?? result?.items?.length ?? 0) > 0;
 
-  } catch (error: any) {
+  } catch {
     // console.error('Frembed Check Error:', error.message);
     // If the check endpoint fails (e.g., 404), assume unavailable
     return false;
@@ -988,7 +988,7 @@ const WatchTv: React.FC = () => {
       );
 
       return response.data;
-    } catch (error) {
+    } catch {
       return null;
     }
   };
@@ -1002,7 +1002,7 @@ const WatchTv: React.FC = () => {
       );
 
       return response.data;
-    } catch (error) {
+    } catch {
       return null;
     }
   };

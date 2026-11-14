@@ -2017,7 +2017,7 @@ function App() {
     try {
       return false; // Désactivé - ne bloque plus l'embed
       // return document.referrer && document.referrer.includes('embed.wavewatch.xyz');
-    } catch (error) {
+    } catch {
       return false;
     }
   }, []);

@@ -904,7 +904,7 @@ const DownloadPage: React.FC = () => {
         if (type === 'tv' && response.data.seasons) {
           setSeasons(response.data.seasons);
         }
-      } catch (err) {
+      } catch {
         setError(t('download.errorLoadingDetails'));
       } finally {
         setLoading(false);

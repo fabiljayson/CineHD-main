@@ -37,7 +37,7 @@ const EmblaCarouselGenres: React.FC<EmblaCarouselGenresProps> = ({ title, items 
     try {
       setCanScrollPrev(Boolean((emblaApi as any).canScrollPrev && emblaApi.canScrollPrev()));
       setCanScrollNext(Boolean((emblaApi as any).canScrollNext && emblaApi.canScrollNext()));
-    } catch (_) {
+    } catch {
       // noop
     }
   }, [emblaApi]);
@@ -69,7 +69,7 @@ const EmblaCarouselGenres: React.FC<EmblaCarouselGenresProps> = ({ title, items 
       const current = emblaApi.selectedScrollSnap();
       const target = Math.max(0, current - getStep());
       emblaApi.scrollTo(target, !effectivePrefs.transitions);
-    } catch (_) {
+    } catch {
       emblaApi.scrollPrev(!effectivePrefs.transitions);
     }
   }, [emblaApi, getStep, effectivePrefs.transitions]);
@@ -82,7 +82,7 @@ const EmblaCarouselGenres: React.FC<EmblaCarouselGenresProps> = ({ title, items 
       const snaps = emblaApi.scrollSnapList().length;
       const target = Math.min(snaps - 1, current + getStep());
       emblaApi.scrollTo(target, !effectivePrefs.transitions);
-    } catch (_) {
+    } catch {
       emblaApi.scrollNext(!effectivePrefs.transitions);
     }
   }, [emblaApi, getStep, effectivePrefs.transitions]);

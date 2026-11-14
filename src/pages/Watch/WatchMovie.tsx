@@ -745,7 +745,7 @@ const WatchMovie: React.FC = () => {
           await fetchVideoSources();
           // Fetch next movie after sources to avoid dependency issues
           await fetchNextMovie();
-        } catch (error) {
+        } catch {
           setIsLoading(false);
         }
       };
@@ -832,7 +832,7 @@ const WatchMovie: React.FC = () => {
             setIsLoading(false);
             return;
           }
-        } catch (e) {
+        } catch {
           console.log('Could not fetch certifications for age check');
         }
       }
@@ -2185,8 +2185,7 @@ const WatchMovie: React.FC = () => {
           runtime: 0 // Default value
         });
       }
-    } catch (error) {
-    } finally {
+    } catch {} finally {
       setLoadingNextMovie(false);
     }
   }, [id]);

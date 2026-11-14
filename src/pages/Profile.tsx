@@ -560,7 +560,7 @@ const Profile: React.FC = () => {
                 username: discordUser.username,
                 avatar: discordUser.avatar
               };
-            } catch (error) {
+            } catch {
               setIsAuthenticated(false);
               return;
             }
@@ -2489,7 +2489,7 @@ const Profile: React.FC = () => {
                 localStorage.setItem(key, JSON.stringify(parsedValue));
                 importedCount++;
               }
-            } catch (parseError) {
+            } catch {
               // If JSON.parse fails, it's a regular string value
               localStorage.setItem(key, value);
               importedCount++;

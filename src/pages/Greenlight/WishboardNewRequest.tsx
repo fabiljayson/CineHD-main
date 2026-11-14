@@ -264,7 +264,7 @@ const WishboardNewRequest: React.FC = () => {
                     media_type: mediaType,
                 })));
             }
-        } catch (err) {
+        } catch {
             setError(t('greenlight.searchError'));
         } finally {
             setLoading(false);
@@ -371,7 +371,7 @@ const WishboardNewRequest: React.FC = () => {
                     setError(data.error || data.message || t('greenlight.requestCreationError'));
                 }
             }
-        } catch (err) {
+        } catch {
             setError(t('greenlight.requestCreationError'));
         } finally {
             setSubmitting(false);

@@ -80,7 +80,7 @@ const AdminPanel: React.FC = () => {
         const updatedLinks = await response.json();
         setLinks(updatedLinks);
       }
-    } catch (err) {
+    } catch {
       setError(t('admin.errorDeletingLink'));
     }
   };

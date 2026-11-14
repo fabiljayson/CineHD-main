@@ -40,7 +40,7 @@ jobs:
       run: npm run typecheck
     - name: Lint
       # La dette actuelle est figée dans eslint-suppressions.json (erreurs) et
-      # plafonnée à 292 avertissements : une nouvelle violation échoue, une
+      # plafonnée à 245 avertissements : une nouvelle violation échoue, une
       # ancienne ne bloque pas. Régénérer la baseline avec
       # `npx eslint . --suppress-all` quand la dette baisse, et baisser le
       # plafond en même temps.

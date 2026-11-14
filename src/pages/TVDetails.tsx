@@ -1824,7 +1824,7 @@ const TVDetails: React.FC = () => {
               Number(progressData.position) || 0,
               Number(progressData.duration) || 0
             );
-          } catch (_) {
+          } catch {
             // ignore malformed entries
           }
         }
@@ -2752,7 +2752,7 @@ const TVDetails: React.FC = () => {
                         }
                       }
                     }
-                  } catch (err) {
+                  } catch {
                     // ignore localStorage/parsing errors
                   }
                   // If the episode is explicitly marked as watched in state, prefer that

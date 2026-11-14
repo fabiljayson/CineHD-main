@@ -129,7 +129,7 @@ const SuggestionModal: React.FC<SuggestionModalProps> = ({
       setSelectedOption('');
       setSuggestionText('');
       setDiscordUsername('');
-    } catch (err) {
+    } catch {
       toast.error(t('suggestions.sendError'));
     } finally {
       setIsSubmitting(false);

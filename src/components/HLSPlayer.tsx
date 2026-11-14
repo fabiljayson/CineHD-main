@@ -4981,7 +4981,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
       existingTracks.forEach(t => {
         try {
           if (t.src && t.src.startsWith('blob:')) URL.revokeObjectURL(t.src);
-        } catch (e) { }
+        } catch {}
         t.remove();
       });
 
@@ -5052,7 +5052,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
               try {
                 srtContent = new TextDecoder(detectedEncoding).decode(extractedData);
                 console.log(`Successfully decoded with detected encoding: ${detectedEncoding}`);
-              } catch (utf16Err) {
+              } catch {
                 // Si UTF-16 échoue, essayer UTF-8
                 srtContent = new TextDecoder('utf-8', { fatal: false }).decode(extractedData);
                 console.log(`UTF-16 failed, fallback to UTF-8 successful`);
@@ -5062,13 +5062,13 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
               srtContent = new TextDecoder(detectedEncoding).decode(extractedData);
               console.log(`Successfully decoded with detected encoding: ${detectedEncoding}`);
             }
-          } catch (err) {
+          } catch {
             console.warn(`Failed to decode with detected encoding ${detectedEncoding}, trying fallbacks like server.js`);
             try {
               // Premier fallback: Latin-1 (exactement comme dans server.js)
               srtContent = new TextDecoder('latin1').decode(extractedData);
               console.log('Fallback to Latin-1 successful');
-            } catch (e2) {
+            } catch {
               // Deuxième fallback: UTF-8 (exactement comme dans server.js)
               srtContent = new TextDecoder('utf-8', { fatal: false }).decode(extractedData);
               console.log('Fallback to UTF-8 successful');
@@ -5120,9 +5120,9 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
       const onLoad = () => {
         if (resolved) return;
         resolved = enableTrack();
-        try { trackEl.removeEventListener('load', onLoad); } catch (e) { }
+        try { trackEl.removeEventListener('load', onLoad); } catch {}
       };
-      try { trackEl.addEventListener('load', onLoad); } catch (e) { }
+      try { trackEl.addEventListener('load', onLoad); } catch {}
 
       // Fallback polling for cues
       let attempts = 0;
@@ -5133,13 +5133,13 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
         const ok = enableTrack();
         if (ok) {
           resolved = true;
-          try { trackEl.removeEventListener('load', onLoad); } catch (e) { }
+          try { trackEl.removeEventListener('load', onLoad); } catch {}
           return;
         }
         if (attempts < maxAttempts) {
           setTimeout(poll, 200);
         } else {
-          try { trackEl.removeEventListener('load', onLoad); } catch (e) { }
+          try { trackEl.removeEventListener('load', onLoad); } catch {}
         }
       };
       setTimeout(poll, 150);

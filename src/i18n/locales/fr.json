@@ -1016,6 +1016,7 @@
     "continueEpisode": "Continuer l'épisode {{episode}} de {{season}}",
     "startEpisode": "Commencer l'épisode 1 de {{season}}",
     "downloadBtn": "Télécharger",
+    "downloadUnavailable": "Pas encore disponible",
     "bandeAnnonce": "Bande-annonce",
     "watchlistBtn": "Watchlist",
     "favoritesBtn": "Favoris",

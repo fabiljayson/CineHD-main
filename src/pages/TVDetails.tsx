@@ -6,6 +6,7 @@ import { Video, Star, Calendar, List, Check, FolderPlus, ChevronRight, AlertTria
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
+import { toast } from 'sonner';
 import AddToListMenu from '../components/AddToListMenu';
 import DetailsSkeleton from '../components/skeletons/DetailsSkeleton';
 
@@ -1938,7 +1939,7 @@ const TVDetails: React.FC = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              onClick={() => navigate(`/download/tv/${tvShow?.id}`)}
+              onClick={() => toast.info(t('details.downloadUnavailable'))}
               className="flex items-center justify-center gap-2 px-5 sm:px-6 h-11 rounded-full border border-control text-white hover:bg-raised flex-1 min-w-0 text-sm font-medium transition-colors"
             >
               <Download className="w-5 h-5 flex-shrink-0" />

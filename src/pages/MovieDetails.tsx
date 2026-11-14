@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Video, Star, Calendar, List, Check, ChevronRight, Play, Film, X, Building, MapPin, Languages, Library, Info, ArrowLeft, Image, Download, MessageSquare, AlertTriangle, Archive, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
+import { toast } from 'sonner';
 import AddToListButton from '../components/AddToListButton';
 import DetailsSkeleton from '../components/skeletons/DetailsSkeleton';
 
@@ -1450,7 +1451,7 @@ const MovieDetails = (): JSX.Element => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              onClick={() => navigate(`/download/movie/${id}`)}
+              onClick={() => toast.info(t('details.downloadUnavailable'))}
               className="flex items-center justify-center gap-2 px-5 sm:px-6 h-11 rounded-full border border-control text-white hover:bg-raised flex-1 min-w-0 text-sm font-medium transition-colors"
             >
               <Download className="w-5 h-5 flex-shrink-0" />

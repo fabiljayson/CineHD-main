@@ -477,7 +477,7 @@ const WishboardPage: React.FC = () => {
                                         <p className="text-sm text-green-100/70 mb-4 relative z-10">
                                             {t('greenlight.vipPriorityDesc')}
                                         </p>
-                                        <Link to="/vip">
+                                        <Link to="/help/vip">
                                             <AnimatedBorderCard
                                                 highlightColor="34 197 94"
                                                 backgroundColor="23 23 23"
@@ -514,7 +514,7 @@ const WishboardPage: React.FC = () => {
                                 <p className="text-sm text-green-100/70 mb-4 relative z-10">
                                     {t('greenlight.vipPriorityDesc')}
                                 </p>
-                                <Link to="/vip">
+                                <Link to="/help/vip">
                                     <AnimatedBorderCard
                                         highlightColor="34 197 94"
                                         backgroundColor="23 23 23"

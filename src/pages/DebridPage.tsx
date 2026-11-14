@@ -434,7 +434,7 @@ const DebridPage: React.FC = () => {
               <Crown className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
               <h2 className="text-xl font-bold text-white mb-2">{t('debrid.vipRequired')}</h2>
               <p className="text-white/50 text-sm mb-6">{t('debrid.vipRequiredDesc')}</p>
-              <Link to="/vip">
+              <Link to="/help/vip">
                 <Button className="bg-yellow-600 hover:bg-yellow-700 text-white px-8 h-11 gap-2 rounded-full">
                   <Crown className="w-4 h-4" />
                   {t('debrid.becomeVip')}

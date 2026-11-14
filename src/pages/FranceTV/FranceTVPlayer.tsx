@@ -788,7 +788,7 @@ const FranceTVPlayer: React.FC = () => {
               className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-white transition-colors cursor-pointer">
               {t('common.back')}
             </button>
-            <button onClick={() => navigate('/vip')}
+            <button onClick={() => navigate('/help/vip')}
               className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 rounded-xl text-black font-semibold transition-colors cursor-pointer">
               {t('francetv.becomeVip')}
             </button>

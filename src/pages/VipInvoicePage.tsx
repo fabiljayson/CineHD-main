@@ -337,7 +337,7 @@ const VipInvoicePage: React.FC = () => {
                 <RefreshCcw className="mr-2 h-4 w-4" />
                 {t('vipDonations.history.refreshButton')}
               </Button>
-              <Link to="/vip/don" className="inline-flex items-center gap-2 text-sm font-semibold text-yellow-300 hover:text-yellow-200">
+              <Link to="/help/vip" className="inline-flex items-center gap-2 text-sm font-semibold text-yellow-300 hover:text-yellow-200">
                 <ArrowLeft className="h-4 w-4" />
                 {t('vipDonations.invoice.backVip')}
               </Link>
@@ -355,7 +355,7 @@ const VipInvoicePage: React.FC = () => {
           <AnimatedBorderCard highlightColor="234 179 8" backgroundColor="10 10 10" className="max-w-lg p-8 text-center">
             <h1 className="text-2xl font-bold text-white">{t('vipDonations.common.invoiceNotFound')}</h1>
             <p className="mt-3 text-sm leading-6 text-white/60">{t('vipDonations.invoice.notFoundDescription')}</p>
-            <Link to="/vip/don" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-yellow-300 hover:text-yellow-200">
+            <Link to="/help/vip" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-yellow-300 hover:text-yellow-200">
               <ArrowLeft className="h-4 w-4" />
               {t('vipDonations.invoice.backVip')}
             </Link>
@@ -376,7 +376,7 @@ const VipInvoicePage: React.FC = () => {
       className="min-h-screen bg-black text-white"
     >
       <div className="container mx-auto px-4 py-8 sm:px-6 sm:py-12 relative z-10">
-        <Link to="/vip/don" className="inline-flex items-center text-white/50 hover:text-white transition-colors mb-8 group/icon">
+        <Link to="/help/vip" className="inline-flex items-center text-white/50 hover:text-white transition-colors mb-8 group/icon">
           <ArrowLeft className="w-5 h-5 mr-2 text-white opacity-50 group-hover/icon:opacity-100 transition-[color,opacity]" />
           {t('vipDonations.invoice.backVip')}
         </Link>

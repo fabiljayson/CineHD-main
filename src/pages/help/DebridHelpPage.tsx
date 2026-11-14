@@ -25,7 +25,7 @@ const DebridHelpPage: React.FC = () => {
       bodyKey: 'help.debrid.vipBody',
       titleIcon: <AlertTriangle className="w-5 h-5 text-amber-400" />,
       components: {
-        1: <TutoLink to="/vip" />,
+        1: <TutoLink to="/help/vip" />,
       },
     },
     {

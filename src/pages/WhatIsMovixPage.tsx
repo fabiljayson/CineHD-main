@@ -193,7 +193,7 @@ const WhatIsMovixPage: React.FC = () => {
           viewport={{ once: true }}
           className="max-w-2xl mx-auto mb-20"
         >
-          <Link to="/vip" className="block group">
+          <Link to="/help/vip" className="block group">
             <AnimatedBorderCard
               highlightColor="234 179 8"
               backgroundColor="12 12 12"
@@ -358,7 +358,7 @@ const WhatIsMovixPage: React.FC = () => {
                   {t('whatIsMovix.exploreMovix')}
                 </Button>
               </Link>
-              <Link to="/vip">
+              <Link to="/help/vip">
                 <Button variant="secondary" className="px-6 h-11 gap-2 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10">
                   <Crown className="w-4 h-4" />
                   {t('whatIsMovix.becomeVip')}

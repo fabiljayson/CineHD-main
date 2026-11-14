@@ -151,7 +151,7 @@ const AccessCodeForm: React.FC<AccessCodeFormProps> = ({ isModal = false, hideNo
                     {t('vip.donateForKey')}
                   </p>
                   <Link
-                    to="/vip"
+                    to="/help/vip"
                     onClick={() => {
                       handleCloseVipInfo();
                       closeVipModal();
@@ -270,7 +270,7 @@ const AccessCodeForm: React.FC<AccessCodeFormProps> = ({ isModal = false, hideNo
                     {t('vip.donateForKey')}
                   </p>
                   <Link
-                    to="/vip"
+                    to="/help/vip"
                     onClick={handleCloseVipInfo}
                     className="flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black py-3 px-4 rounded-xl font-medium transition-colors duration-200"
                   >

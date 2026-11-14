@@ -520,7 +520,7 @@ const AdFreePlayerAds: React.FC<AdFreePlayerAdsProps> = ({
                 </p>
                 <div className={`grid gap-2 ${variant === "player" ? "grid-cols-2" : "grid-cols-1"}`}>
                   <Link
-                    to="/vip"
+                    to="/help/vip"
                     className="flex flex-col items-center justify-center gap-0.5 rounded-lg py-2 px-2 bg-amber-500/15 border border-amber-400/40 text-amber-300 hover:bg-amber-500/25 hover:text-amber-200 transition-colors"
                   >
                     <span data-ad-copy className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold">

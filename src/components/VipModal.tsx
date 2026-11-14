@@ -57,7 +57,7 @@ const VipModal: React.FC<VipModalProps> = ({ isOpen, onClose }) => {
 
               <div className="mt-6 pt-6 border-t border-white/10 text-center">
                 <Link
-                  to="/vip"
+                  to="/help/vip"
                   onClick={handleClose}
                   className="inline-flex items-center gap-2 text-sm text-yellow-500 hover:text-yellow-400 font-medium transition-colors"
                 >

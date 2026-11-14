@@ -9,4 +9,9 @@
 /sitemap.xml           /sitemap.xml                200
 /llms.txt              /llms.txt                   200
 /sw.js                 /sw.js                      200
-/*                     /__shell.html               200
+# Repli SPA des hébergements statiques (Cloudflare Pages, Netlify) : toute
+# URL profonde rend index.html avec un 200, sinon les liens directs vers
+# /movies, /profile ou une fiche renvoient une 404. Le serveur Docker/Hono de
+# `npm start` ne lit pas ce fichier : il applique son propre repli dans
+# `server/index.js`. Ne jamais viser un fichier absent du build ici.
+/*                     /index.html                 200

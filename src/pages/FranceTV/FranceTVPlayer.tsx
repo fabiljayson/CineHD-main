@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { ArrowLeft, AlertCircle, Crown, Settings, Volume2, VolumeX, Volume1, Play, Pause, Maximize, Minimize, Rewind, FastForward, PictureInPicture, X } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Settings, Volume2, VolumeX, Volume1, Play, Pause, Maximize, Minimize, Rewind, FastForward, PictureInPicture, X } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { isUserVip } from '../../utils/authUtils';
 import { getVipHeaders } from '../../utils/vipUtils';
 import { MAIN_API, PROXIES_EMBED_API } from '../../config/runtime';
 import { enterPlayerFullscreen, exitPlayerFullscreen, getFullscreenElement } from '../../utils/playerFullscreenPersistence';
@@ -115,8 +114,6 @@ const FranceTVPlayer: React.FC = () => {
   const [settingsTab, setSettingsTab] = useState<'quality' | 'audio' | 'subtitles' | 'speed'>('quality');
   const [isPipActive, setIsPipActive] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-
-  const isVip = isUserVip();
 
   useEffect(() => {
     if (videoRef.current) {
@@ -694,7 +691,7 @@ const FranceTVPlayer: React.FC = () => {
   // ─── Extract & Play ─────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (!encoded || !isVip) return;
+    if (!encoded) return;
 
     let cancelled = false;
 
@@ -757,7 +754,7 @@ const FranceTVPlayer: React.FC = () => {
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
       if (shakaRef.current) { shakaRef.current.destroy().catch(() => {}); shakaRef.current = null; }
     };
-  }, [encoded, isVip]);
+  }, [encoded]);
 
   // ─── HLS.js Player ─────────────────────────────────────────────────────
 
@@ -773,30 +770,6 @@ const FranceTVPlayer: React.FC = () => {
   };
 
   const VolumeIcon = isMuted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
-
-  // ─── VIP gate ─────────────────────────────────────────────────────────
-
-  if (!isVip) {
-    return (
-      <div className="fixed inset-0 bg-[#0a0a0f] flex items-center justify-center px-4 z-50">
-        <div className="text-center max-w-md">
-          <Crown className="w-16 h-16 text-amber-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">{t('francetv.vipRequiredTitle')}</h2>
-          <p className="text-zinc-400 mb-6">{t('francetv.vipRequiredDesc')}</p>
-          <div className="flex gap-3 justify-center">
-            <button onClick={() => navigate(-1)}
-              className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-white transition-colors cursor-pointer">
-              {t('common.back')}
-            </button>
-            <button onClick={() => navigate('/help/vip')}
-              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 rounded-xl text-black font-semibold transition-colors cursor-pointer">
-              {t('francetv.becomeVip')}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // ─── Render (fullscreen like WatchTv) ───────────────────────────────────
 

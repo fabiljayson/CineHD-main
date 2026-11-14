@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, Film, Tv2, Users, Award, Loader2, AlertCircle, Crown, Play } from 'lucide-react';
+import { ArrowLeft, Clock, Film, Tv2, Users, Award, Loader2, AlertCircle, Play } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { isUserVip } from '../../utils/authUtils';
 import { MAIN_API } from '../../config/runtime';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
 
@@ -117,8 +116,6 @@ const FranceTVInfo: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedSeason, setSelectedSeason] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
-
-  const isVip = isUserVip();
 
   useEffect(() => {
     if (!encoded) return;
@@ -420,14 +417,6 @@ const FranceTVInfo: React.FC = () => {
             </motion.div>
           )}
 
-          {/* VIP warning */}
-          {!isVip && (
-            <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-              <Crown className="w-4 h-4 text-amber-400" />
-              <span className="text-amber-400 text-sm font-medium">{t('francetv.vipRequiredEpisodes')}</span>
-            </div>
-          )}
-
           {/* Season selector */}
           {data.seasons.length > 1 && (
             <div className="mb-6 w-56">
@@ -510,11 +499,6 @@ const FranceTVInfo: React.FC = () => {
                     </div>
                     {ep.description && (
                       <p className="text-zinc-500 text-xs md:text-sm mt-1 line-clamp-2">{ep.description}</p>
-                    )}
-                    {!isVip && (
-                      <span className="inline-flex items-center gap-1 mt-2 text-amber-400 text-xs">
-                        <Crown className="w-3 h-3" /> VIP
-                      </span>
                     )}
                   </div>
                 </motion.div>

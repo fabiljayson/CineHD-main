@@ -25,7 +25,7 @@
           "buildVersion": "42",
           "date": "2026-10-08",
           "localizedDescription": "Version 2.6.5 (build 42). Notes de version : https://github.com/fabiljayson/CineHD-main/releases/tag/ios-v2.6.5",
-          "downloadURL": "https://raw.githubusercontent.com/fabiljayson/CineHD-main/main/app/movix-ios-unsigner.ipa",
+          "downloadURL": "https://github.com/fabiljayson/CineHD-main/releases/download/app-ios-latest/movix-ios-unsigner.ipa",
           "size": 7311451,
           "minOSVersion": "15.6"
         }
@@ -33,7 +33,7 @@
       "version": "2.6.5",
       "versionDate": "2026-10-08",
       "versionDescription": "Version 2.6.5 (build 42). Notes de version : https://github.com/fabiljayson/CineHD-main/releases/tag/ios-v2.6.5",
-      "downloadURL": "https://raw.githubusercontent.com/fabiljayson/CineHD-main/main/app/movix-ios-unsigner.ipa",
+      "downloadURL": "https://github.com/fabiljayson/CineHD-main/releases/download/app-ios-latest/movix-ios-unsigner.ipa",
       "size": 7311451,
       "beta": false
     }

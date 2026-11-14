@@ -16,11 +16,9 @@ xcuserdata
 *.moved-aside
 DerivedData
 *.hmap
+# Les binaires mobiles (*.ipa, *.apk) sont servis comme assets des releases
+# app-android-latest et app-ios-latest, jamais committés.
 *.ipa
-# Exception : l'IPA non signée publiée par le workflow ios-unsigned est
-# volontairement suivie, comme movix-android.apk, pour être téléchargeable
-# depuis raw.githubusercontent.
-!movix-ios-unsigner.ipa
 *.xcuserstate
 ios/.xcode.env.local
 **/.xcode.env.local

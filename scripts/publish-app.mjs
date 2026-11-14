@@ -24,7 +24,7 @@ const PATHS = {
 };
 
 const APK_URL =
-  'https://github.com/fabiljayson/CineHD-main/raw/refs/heads/main/app/movix-android.apk';
+  'https://github.com/fabiljayson/CineHD-main/releases/download/app-android-latest/movix-android.apk';
 
 function die(msg) {
   console.error(`\n[publish-app] ${msg}\n`);
@@ -185,9 +185,12 @@ async function main() {
     console.log(
       '\n─────────────────────────────────────────────\n' +
         '✓ Publish ready. Next steps:\n\n' +
-        '  git add app/version.json app/movix-android.apk app/android/app/build.gradle\n' +
+        '  git add app/version.json app/android/app/build.gradle\n' +
         `  git commit -m "release(app): v${versionName} (build ${versionCode})"\n` +
         '  git push\n' +
+        '\n' +
+        '  # L APK n est plus dans le depot : il remplace l asset de la release mobile.\n' +
+        '  gh release upload app-android-latest app/movix-android.apk --clobber\n' +
         '─────────────────────────────────────────────\n',
     );
   } finally {

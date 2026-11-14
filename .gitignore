@@ -70,6 +70,11 @@ API/Mainapi/darkino-backups
 # Vidage Redis écrit par le conteneur local cinehd-redis
 dump.rdb
 
+# Binaires mobiles : servis comme assets des releases app-android-latest et
+# app-ios-latest, jamais committés (62 Mo et 7 Mo par clone).
+app/*.apk
+app/*.ipa
+
 # Discord bot (private; published separately)
 API/BOT/
 

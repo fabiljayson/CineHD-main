@@ -103,13 +103,13 @@ shasum -a 256 -c Movix-unsigned.ipa.sha256
 
 Le téléchargement contient `Movix-unsigned.ipa` et `Movix-unsigned.ipa.sha256`. **L'IPA est non signée et son installation est impossible tant qu'un utilisateur ne l'a pas signée par ses propres moyens.**
 
-Sur un tag `ios-v*`, le job de publication commite en plus l'archive dans le dépôt sous `app/movix-ios-unsigner.ipa`, à côté de `app/movix-android.apk`. Elle y est donc téléchargeable en direct, sans passer par `gh` :
+Sur un tag `ios-v*`, le job de publication téléverse l'archive sur la release mobile `app-ios-latest` et n'y commite plus le binaire : seules les sources des stores (`app/movix-ios-source.json`, `app/movix-scarlet-source.json`) suivent. Le fichier reste téléchargeable directement, sans passer par `gh` :
 
 ```bash
-curl -LO https://raw.githubusercontent.com/fabiljayson/CineHD-main/main/app/movix-ios-unsigner.ipa
+curl -LO https://github.com/fabiljayson/CineHD-main/releases/download/app-ios-latest/movix-ios-unsigner.ipa
 ```
 
-C'est le même fichier que celui attaché à la release, vérifié par son empreinte SHA-256 avant d'être indexé.
+C'est le même fichier que celui attaché à la release du tag, vérifié par son empreinte SHA-256 avant d'être téléversé. L'APK Android suit le même chemin, via `app-android-latest`.
 
 ### SideStore / AltStore
 

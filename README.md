@@ -54,7 +54,7 @@
   <strong>Licence :</strong> MIT · <a href="./LICENSE">LICENSE</a> · <a href="./NOTICE">NOTICE (crédits tiers)</a>
 </p>
 
-CineHD (anciennement Movix) est un monorepo produit pour une plateforme de streaming communautaire. Le frontend, l'API principale, la WatchParty, les proxies, les outils navigateur et plusieurs briques d'infra vivent dans le même dépôt parce qu'ils évoluent ensemble.
+CineHD est un monorepo produit pour une plateforme de streaming communautaire. Le frontend, l'API principale, la WatchParty, les proxies, les outils navigateur et plusieurs briques d'infra vivent dans le même dépôt parce qu'ils évoluent ensemble.
 
 Ce n'est pas un simple duo "frontend + backend". Une feature peut très vite traverser plusieurs couches à la fois : interface React, persistance locale, sync backend, extraction vidéo, proxy Python et parfois extension navigateur.
 

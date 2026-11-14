@@ -67,6 +67,8 @@ API/Mainapi/data/
 API/Mainapi/diagnostics/
 API/Mainapi/darkino-backups
 .analyze/
+# Vidage Redis écrit par le conteneur local cinehd-redis
+dump.rdb
 
 # Discord bot (private; published separately)
 API/BOT/

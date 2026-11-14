@@ -472,6 +472,21 @@ const {
 } = vipDonationsRoutes;
 const { router: vipPayblisRouter } = require('./routes/vipPayblis');
 const oauthRouter = require('./routes/oauth');
+const {
+  searchReadLimit,
+  catalogReadLimit,
+  franceTvReadLimit,
+  debridReadLimit,
+} = require('./middleware/rateLimits');
+
+// Quotas des API de lecture publiques. Enregistrés AVANT les routeurs
+// concernés : Express applique les middlewares dans l'ordre de montage, et ces
+// chemins sont desservis plus bas par des routeurs montés sur '/api' ou '/'.
+app.use('/api/search', searchReadLimit);
+app.use('/api/tmdb', catalogReadLimit);
+app.use('/api/imdb', catalogReadLimit);
+app.use('/api/ftv', franceTvReadLimit);
+app.use('/api/debrid', debridReadLimit);
 
 // ==========================================================================
 // Mount all route modules

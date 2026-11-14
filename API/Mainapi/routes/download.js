@@ -12,6 +12,7 @@ const axios = require('axios');
 const { generateCacheKey } = require('../utils/cacheManager');
 const { createSingleFlight } = require('../utils/singleFlight');
 const { mapWithConcurrency, axiosGetWithDeadline } = require('../utils/downloadM3u8');
+const { downloadReadLimit } = require('../middleware/rateLimits');
 
 // TTL for empty download results ({"sources":[]}) to avoid repeated ~20s m3u8 re-extractions
 const EMPTY_RESULT_CACHE_TTL_MS = 2 * 60 * 60 * 1000;
@@ -282,7 +283,7 @@ const deduplicateSourcesWithPreference = (sources = []) => {
 // ---------------------------------------------------------------------------
 // GET /films/download/:id  -- retrieve download links for a film
 // ---------------------------------------------------------------------------
-router.get('/films/download/:id', async (req, res) => {
+router.get('/films/download/:id', downloadReadLimit, async (req, res) => {
   if (DARKINO_MAINTENANCE) {
     return res.status(200).json({ error: 'Service Darkino temporairement indisponible (maintenance)' });
   }
@@ -397,7 +398,7 @@ router.get('/films/download/:id', async (req, res) => {
 // ---------------------------------------------------------------------------
 // GET /series/download/:titleId/season/:seasonId/episode/:episodeId
 // ---------------------------------------------------------------------------
-router.get('/series/download/:titleId/season/:seasonId/episode/:episodeId', async (req, res) => {
+router.get('/series/download/:titleId/season/:seasonId/episode/:episodeId', downloadReadLimit, async (req, res) => {
   if (DARKINO_MAINTENANCE) {
     return res.status(200).json({ error: 'Service Darkino temporairement indisponible (maintenance)' });
   }

@@ -40,7 +40,7 @@ jobs:
       run: npm run typecheck
     - name: Lint
       # La dette actuelle est figée dans eslint-suppressions.json (erreurs) et
-      # plafonnée à 207 avertissements : une nouvelle violation échoue, une
+      # plafonnée à 219 avertissements : une nouvelle violation échoue, une
       # ancienne ne bloque pas. Régénérer la baseline avec
       # `npx eslint . --suppress-all` quand la dette baisse, et baisser le
       # plafond en même temps.
@@ -54,3 +54,40 @@ jobs:
         VITE_SITE_URL: https://cinehd.example
     - name: Test
       run: npm test
+
+  security:
+    # Contrôles hors matrice : ils ne dépendent pas de la version de Node, et le
+    # scan de secrets a besoin de l'historique complet (clone superficiel =
+    # aucun historique à inspecter).
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # Sans fetch-depth: 0, gitleaks ne voit que le dernier commit or un
+        # secret retiré d'un commit reste lisible dans les blobs précédents.
+        fetch-depth: 0
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: 'npm'
+    - run: npm ci
+    - name: Dépendances (audit)
+      # Échoue sur une vulnérabilité haute ou critique. --omit=dev vise ce qui
+      # est réellement exécuté en production : une faille dans un outil de build
+      # ne touche pas l'utilisateur, et la corriger ne doit pas bloquer une
+      # release.
+      run: |
+        npm audit --omit=dev --audit-level=high
+        npm --prefix API/Mainapi audit --omit=dev --audit-level=high
+    - name: Secrets (gitleaks)
+      # --redact : un secret trouvé n'apparaît jamais en clair dans les logs de
+      # CI. Les allowlists (fixtures de test, corpus de documentation, constantes
+      # publiques de l'extension) sont justifiées une à une dans .gitleaks.toml.
+      run: |
+        VERSION=8.28.0
+        curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" \
+          | tar -xz -C "$RUNNER_TEMP" gitleaks
+        "$RUNNER_TEMP/gitleaks" detect --source . --config .gitleaks.toml \
+          --redact --no-banner --exit-code 1

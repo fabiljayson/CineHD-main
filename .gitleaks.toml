@@ -1,0 +1,43 @@
+# Configuration gitleaks du dépôt.
+#
+# `useDefault = true` conserve toutes les règles par défaut (AWS, Stripe,
+# GitHub PAT, clés privées, JWT, etc.). On n'ajoute que des allowlists par
+# chemin, pour les endroits où un faux positif est structurel : fixtures de
+# test, corpus de documentation, constantes publiques embarquées côté client.
+#
+# Chaque allowlist est justifiée. Une allowlist par règle (`generic-api-key`
+# désactivée globalement) aurait masqué de vraies fuites : c'est précisément la
+# règle qui attrape une clé d'API collée dans du code.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Fixtures, doubles de test et tests : fausses clés par construction."
+paths = [
+  '''(^|/)__tests__/''',
+  '''(^|/)tests?/''',
+  '''(^|/)fixtures/''',
+  '''\.test\.[cm]?[jt]s$''',
+  '''\.browser\.py$''',
+]
+
+[[allowlists]]
+description = "Corpus de skills Cloudflare : documentation avec des jetons en placeholder (<token>, ${VAR})."
+paths = [
+  '''^\.agents/skills/''',
+]
+
+[[allowlists]]
+description = "Constantes publiques déjà distribuées au client (keystream France TV de l'extension, algorithmes KissKH, tableaux de genres). Ce ne sont pas des secrets serveur : les allowlister ici ne cache rien qui doive être protégé."
+paths = [
+  '''^extension/(Chrome|Firefox)/background\.js$''',
+  '''^API/proxiesembed/drmproxy/services/''',
+  '''^API/Mainapi/services/kisskh/''',
+  '''^src/pages/Anime\.tsx$''',
+  '''^src/components/TelegramAnnouncementPopup\.tsx$''',
+  '''^src/pages/SettingsPage\.tsx$''',
+  '''^API/Mainapi/sharedListsRoutes\.js$''',
+  '''^API/Mainapi/utils/__tests__/''',
+  '''^PreMid/core/constants\.ts$''',
+]

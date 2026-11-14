@@ -129,7 +129,7 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
     // Get user data from JSON files
     async function getUserData(userId, userType, profileId = null) {
         try {
-            let userData = { username: 'Utilisateur', avatar: null, isVip: false };
+            let userData = { username: 'Utilisateur', avatar: null };
             const safeUserId = String(userId).replace(/[^a-zA-Z0-9_\-]/g, '');
 
             let userFilePath;
@@ -155,7 +155,7 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
 
             return userData;
         } catch (error) {
-            return { username: 'Utilisateur', avatar: null, isVip: false };
+            return { username: 'Utilisateur', avatar: null };
         }
     }
 

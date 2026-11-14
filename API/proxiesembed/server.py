@@ -36,7 +36,6 @@ import binascii
 from string import ascii_letters, digits
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
-import aiomysql
 import os
 import builtins
 import traceback
@@ -691,19 +690,6 @@ gc.set_threshold(50000, 500, 100)
 # Configuration
 PORT = 25569
 PROXY_BASE = str(os.environ.get("PROXY_BASE", '') or '').strip()
-VIP_CACHE_TTL = 300  # Cache VIP check results for 5 minutes
-
-# MySQL configuration â€” same env vars as Node.js backend (API/.env)
-DB_CONFIG = {
-    'host': os.environ.get('DB_HOST'),
-    'port': _get_env_int('DB_PORT', 3306),
-    'user': os.environ.get('DB_USER'),
-    'password': os.environ.get('DB_PASSWORD'),
-    'db': os.environ.get('DB_NAME'),
-    'minsize': 2,
-    'maxsize': 20,
-    'autocommit': True,
-}
 
 # Proxies SOCKS5H configuration
 PROXIES = _load_proxy_list_env('PROXIES_SOCKS5_JSON')
@@ -1365,7 +1351,6 @@ class ProxyServer:
         # court, sinon on ressert une URL déjà morte.
         self.vidara_cache = TTLCache(maxsize=500, ttl=900)
         self.seekstreaming_cache = TTLCache(maxsize=500, ttl=300)
-        self.vip_cache = TTLCache(maxsize=5000, ttl=VIP_CACHE_TTL)  # VIP access key verification cache
         self.m3u8_response_cache = TTLCache(maxsize=2000, ttl=M3U8_CACHE_TTL)  # Short-lived M3U8 response cache
         self.m3u8_vod_cache = TTLCache(maxsize=1000, ttl=M3U8_VOD_CACHE_TTL)   # Longer-lived VOD M3U8 cache
         self.debridr_status_cache = TTLCache(maxsize=1, ttl=300)
@@ -1391,9 +1376,6 @@ class ProxyServer:
         self.streamed_proxy = StreamedProxy(self.sessions, CORS_HEADERS)
         self.app.on_cleanup.append(self.streamed_proxy.close)
 
-        # MySQL pool (initialized async in start_server)
-        self.mysql_pool = None
-        
         # Performance metrics
         self._request_count = 0
         self._active_streams = 0
@@ -1402,29 +1384,6 @@ class ProxyServer:
         self._coalesced_requests = 0
         self._coalesced_segments = 0
         self._segment_cache_hits = 0
-
-    async def _init_mysql(self):
-        """Initialize the MySQL connection pool for direct VIP verification"""
-        try:
-            self.mysql_pool = await aiomysql.create_pool(
-                host=DB_CONFIG['host'],
-                port=DB_CONFIG['port'],
-                user=DB_CONFIG['user'],
-                password=DB_CONFIG['password'],
-                db=DB_CONFIG['db'],
-                minsize=DB_CONFIG['minsize'],
-                maxsize=DB_CONFIG['maxsize'],
-                autocommit=DB_CONFIG['autocommit'],
-                charset='utf8mb4',
-            )
-            # Test connection
-            async with self.mysql_pool.acquire() as conn:
-                async with conn.cursor() as cur:
-                    await cur.execute('SELECT 1')
-            logger.info('âœ… MySQL connection pool created (VIP verification)')
-        except Exception as e:
-            logger.error(f'âŒ MySQL connection error: {e}')
-            self.mysql_pool = None
 
     async def _init_sessions(self):
         """Initialize persistent sessions - OPTIMIZED FOR HIGH LOAD"""
@@ -2388,8 +2347,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         return web.json_response(
             {'status': 'success', 'providers': DEBRID_ENABLED_PROVIDERS},
             headers={'Cache-Control': 'no-store'},
@@ -2400,8 +2357,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         try:
             data = await request.json()
             if not isinstance(data, dict):
@@ -2466,7 +2421,6 @@ class ProxyServer:
             'veev_cache': f"{len(self.veev_cache._cache)}/{self.veev_cache._maxsize}",
             'vidara_cache': f"{len(self.vidara_cache._cache)}/{self.vidara_cache._maxsize}",
             'seekstreaming_cache': f"{len(self.seekstreaming_cache._cache)}/{self.seekstreaming_cache._maxsize}",
-            'vip_cache': f"{len(self.vip_cache._cache)}/{self.vip_cache._maxsize}",
             'm3u8_response_cache': f"{len(self.m3u8_response_cache._cache)}/{self.m3u8_response_cache._maxsize}",
             'm3u8_vod_cache': f"{len(self.m3u8_vod_cache._cache)}/{self.m3u8_vod_cache._maxsize}",
         }
@@ -3708,91 +3662,6 @@ class ProxyServer:
 
         return None
 
-    # ===== VIP Verification =====
-
-    async def _check_vip(self, request: Request) -> bool:
-        """Verify VIP access key directly against MySQL access_keys table.
-        Returns True if VIP, False otherwise. Results are cached for VIP_CACHE_TTL seconds."""
-        raw_key = request.headers.get('x-access-key', '')
-        
-        if not raw_key or not raw_key.strip():
-            return False
-        
-        access_key = raw_key.strip()
-
-        # Normalize key encoding to match how Mainapi (checkVip.js) looks it up.
-        # aiohttp hands header bytes back as Latin-1 (or surrogate-escaped). Recover the
-        # raw wire bytes, then: valid UTF-8 -> decode it; otherwise the bytes are Latin-1
-        # (e.g. 'é' = U+00E9 sent as a single 0xE9 byte). This mirrors checkVip.js
-        # (latin1 bytes -> utf8, keep original when invalid) so the key_value lookup
-        # matches the stored value and VIP users aren't falsely denied.
-        try:
-            raw = access_key.encode('latin-1', 'surrogateescape')
-            try:
-                access_key = raw.decode('utf-8')
-            except UnicodeDecodeError:
-                access_key = raw.decode('latin-1')
-        except UnicodeEncodeError:
-            pass
-        
-        # Check cache first
-        cached = self.vip_cache.get(access_key)
-        if cached is not None:
-            return cached
-        
-        # Query MySQL directly
-        try:
-            if not self.mysql_pool:
-                return False
-            
-            async with self.mysql_pool.acquire() as conn:
-                async with conn.cursor() as cur:
-                    await cur.execute(
-                        'SELECT key_value, active, expires_at FROM access_keys WHERE key_value = %s LIMIT 1',
-                        (access_key,)
-                    )
-                    row = await cur.fetchone()
-            
-            
-            if not row:
-                self.vip_cache.set(access_key, False)
-                return False
-            
-            key_value, active, expires_at = row
-            
-            # Key must be active
-            if not active:
-                self.vip_cache.set(access_key, False)
-                return False
-            
-            # Check expiration. access_keys.expires_at is epoch MILLISECONDS (BIGINT),
-            # matching Mainapi (parseAccessKeyExpiresAt -> getTime()). Compare as ms,
-            # same as checkVip.js: new Date() > new Date(expires_at).
-            if expires_at is not None:
-                try:
-                    if int(expires_at) < int(time.time() * 1000):
-                        self.vip_cache.set(access_key, False)
-                        return False
-                except (ValueError, TypeError):
-                    pass
-            
-            # Key is valid
-            self.vip_cache.set(access_key, True)
-            return True
-            
-        except Exception as e:
-            logger.warning(f'[VIP] MySQL verification error: {e}')
-            # DB error â€” deny by default for security
-            return False
-    
-    def _vip_denied_response(self) -> Response:
-        """Return 403 response for non-VIP users"""
-        return web.json_response(
-            {'error': 'VIP access required', 'code': 'VIP_REQUIRED'},
-            status=403,
-            headers=CORS_HEADERS
-        )
-    
     # ===== Extraction Handlers =====
     
     async def voe_m3u8_handler(self, request: Request) -> Response:
@@ -3800,8 +3669,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         try:
             encoded_url = request.query.get('url')
             if not encoded_url:
@@ -4017,8 +3884,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         try:
             url = request.query.get('url')
             if not url or not self._is_fsvid_vidzy_embed_url(url, 'fsvid'):
@@ -4481,8 +4346,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         try:
             url = request.query.get('url')
             if not url or not self._is_fsvid_vidzy_embed_url(url, 'vidzy'):
@@ -4564,8 +4427,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         try:
             url = request.query.get('url')
             if not _is_allowed_embed_host(url, VIDMOLY_HOSTS):
@@ -4654,8 +4515,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         try:
             url = request.query.get('url')
             if not _is_allowed_embed_host(url, SIBNET_HOSTS):
@@ -4797,8 +4656,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         try:
             url = request.query.get('url')
             if not _is_allowed_embed_host(url, UQLOAD_EXTRACT_HOSTS):
@@ -4902,8 +4759,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         try:
             url = request.query.get('url')
             if not url:
@@ -5020,8 +4875,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         try:
             url = request.query.get('url')
             if not _is_allowed_embed_host(url, LULUSTREAM_HOSTS):
@@ -5110,8 +4963,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         try:
             url = request.query.get('url')
             if not _is_allowed_embed_host(url, VEEV_HOSTS):
@@ -5221,8 +5072,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         try:
             url = request.query.get('url')
             if not _is_allowed_embed_host(url, VIDARA_HOSTS):
@@ -5305,8 +5154,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
 
         try:
             embed = parse_seekstreaming_embed_url(request.query.get("url", ""))
@@ -6443,8 +6290,6 @@ class ProxyServer:
         internal_error = self._require_internal(request)
         if internal_error is not None:
             return internal_error
-        if not await self._check_vip(request):
-            return self._vip_denied_response()
         
         # Support both GET ?url= and POST {"url": ...} like proxy_server.py
         if request.method == 'POST':
@@ -6764,7 +6609,6 @@ class ProxyServer:
             access_log=None,  # Disabled for production - saves significant I/O
         )
         await runner.setup()
-        await self._init_mysql()
         await self._init_sessions()
         
         # Pre-init widefrog config for DRM proxy (runs in thread to avoid blocking)

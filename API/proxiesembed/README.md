@@ -11,7 +11,7 @@ Le service est écrit avec `aiohttp` et pensé pour la charge : connexions concu
 - endpoints proxy spécialisés par source
 - debrid unlock via API
 - surface DRM avec extraction de manifestes et réécriture de ressources
-- vérification d'accès VIP via MySQL
+- accès interne aux extracteurs depuis mainapi
 - support de pools SOCKS5 et de sessions dédiées pour certains cas comme france.tv
 
 ## Démarrage
@@ -54,12 +54,12 @@ geste explicite et relisible).
 **2. Les surfaces d'extraction exigent la clé interne.**
 `/api/extract-*`, `/api/voe/m3u8`, `/drm/extract` et `/api/debrid/unlock`
 réclament le header `x-internal-key` (`INTERNAL_API_KEY`), que seul mainapi
-connaît, **et** une clé VIP valide (`x-access-key`) que mainapi retransmet. Une
-fuite de la seule clé interne ne suffit donc pas.
+connaît. Les URLs de média générées restent signées, les cibles sont validées
+et les limites de débit continuent de s'appliquer.
 
 Le navigateur passe désormais par mainapi. Les routes catalogue résolvent
 elles-mêmes les m3u8, à la demande, quand la requête porte **`?resolve=1`** et
-une clé VIP valide :
+les identifiants de contenu attendus :
 
 | Catalogue | Film | Série |
 | --- | --- | --- |
@@ -93,8 +93,8 @@ restent lisibles via l'extension, qui extrait localement dans le navigateur.
 
 - **Aucun endpoint « signe-moi cette URL »** : ce serait un oracle de signature.
 - **Aucun endpoint « extrais-moi cette URL »**. `/api/media/extract/:provider`
-  a été supprimé : même bordé (VIP, adresse publique, allowlist de providers),
-  il laissait le client choisir la cible. Les m3u8 sont désormais résolues
+  a été supprimé : même bordé (adresse publique, allowlist de providers), il
+  laissait le client choisir la cible. Les m3u8 sont désormais résolues
   uniquement à partir des liens que le serveur a lui-même scrapés, et le client
   ne transmet que des identifiants (tmdbId, saison, épisode).
 
@@ -113,7 +113,6 @@ contentaient d'un `url.includes('france.tv')`, que
 
 Le fichier `API/proxiesembed/.env.example` couvre les besoins principaux :
 
-- base de données : `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
 - exposition publique : `PROXY_BASE`
 - **sécurité** : `MEDIA_SIGNING_SECRET`, `INTERNAL_API_KEY`, `MEDIA_SIGNATURE_TTL`
   — les deux secrets doivent porter **exactement la même valeur** que côté
@@ -124,7 +123,7 @@ Le fichier `API/proxiesembed/.env.example` couvre les besoins principaux :
 
 ## Endpoints à connaître
 
-Légende : 🔏 = URL signée obligatoire · 🔑 = clé interne mainapi + clé VIP
+Légende : 🔏 = URL signée obligatoire · 🔑 = clé interne mainapi
 
 | Route | Rôle |
 | --- | --- |
@@ -153,7 +152,6 @@ Légende : 🔏 = URL signée obligatoire · 🔑 = clé interne mainapi + clé 
 - certaines ressources lourdes sont cachées en mémoire avec eviction TTL
 - la partie france.tv peut utiliser une session SOCKS5H distincte pour l'extraction
 - la partie DRM tente de charger les utilitaires WideFrog au démarrage, mais reste optionnelle
-- la vérification VIP s'appuie sur MySQL avant d'autoriser certaines surfaces
 
 ## Quand regarder aussi ailleurs
 

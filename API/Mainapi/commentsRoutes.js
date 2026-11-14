@@ -5,7 +5,6 @@ const path = require("path");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const { getPool } = require("./mysqlPool");
-const { verifyAccessKey } = require("./checkVip");
 // Réutiliser l'instance Redis partagée au lieu d'en créer une nouvelle (évite les fuites mémoire)
 const { redis } = require("./config/redis");
 const { verifyTurnstileFromRequest } = require("./utils/turnstile");
@@ -481,7 +480,6 @@ async function _fetchUserData(userId, userType, profileId = null) {
     let userData = {
       username: "Utilisateur",
       avatar: null,
-      isVip: false,
     };
 
     // Sanitize inputs to prevent path traversal
@@ -489,9 +487,6 @@ async function _fetchUserData(userId, userType, profileId = null) {
     const safeUserType = ["oauth", "bip39"].includes(userType)
       ? userType
       : "oauth";
-    const safeProfileId = profileId
-      ? String(profileId).replace(/[^a-zA-Z0-9_\-]/g, "")
-      : null;
 
     // Chemin vers le fichier utilisateur
     let userFilePath;
@@ -547,39 +542,12 @@ async function _fetchUserData(userId, userType, profileId = null) {
       // Fichier utilisateur introuvable — on garde les valeurs par défaut
     }
 
-    // Vérifier le statut VIP en lisant l'access_code depuis les données du profil
-    // puis en le vérifiant contre la table MySQL access_keys
-    if (safeProfileId && safeUserId) {
-      try {
-        const profileDataPath = path.join(
-          __dirname,
-          "data",
-          "users",
-          "profiles",
-          safeUserType,
-          safeUserId,
-          `${safeProfileId}.json`,
-        );
-        const profileData = JSON.parse(
-          await fs.readFile(profileDataPath, "utf8"),
-        );
-        const storedAccessCode = profileData.access_code || null;
-        if (storedAccessCode) {
-          const vipStatus = await verifyAccessKey(storedAccessCode);
-          userData.isVip = vipStatus.vip;
-        }
-      } catch (err) {
-        // Pas de données de profil ou pas d'access_code — isVip reste false
-      }
-    }
-
     return userData;
   } catch (error) {
     console.error("Erreur _fetchUserData:", error);
     return {
       username: "Utilisateur",
       avatar: null,
-      isVip: false,
     };
   }
 }
@@ -1069,7 +1037,6 @@ async function sendDiscordWebhook(type, data) {
       contentType,
       contentId,
       isSpoiler,
-      isVip,
       isAdmin,
       replyToUsername,
       userId,
@@ -1112,7 +1079,7 @@ async function sendDiscordWebhook(type, data) {
     const embed = {
       title: title,
       description: description,
-      color: isAdmin ? 0xff0000 : isVip ? 0xffd700 : 0x3498db,
+      color: isAdmin ? 0xff0000 : 0x3498db,
       url: contentUrl || undefined, // Lien cliquable sur le titre
       fields: [
         {
@@ -1133,9 +1100,7 @@ async function sendDiscordWebhook(type, data) {
       ],
       timestamp: new Date().toISOString(),
       footer: {
-        text: String(
-          isAdmin ? "👑 Administrateur" : isVip ? "⭐ VIP" : "👤 Utilisateur",
-        ).substring(0, 2048),
+        text: String(isAdmin ? "👑 Administrateur" : "👤 Utilisateur").substring(0, 2048),
       },
     };
 
@@ -1782,7 +1747,7 @@ router.get("/:commentId/replies", async (req, res) => {
           content: formatContentForResponse(reply.content),
           username: userData.username,
           avatar: userData.avatar,
-          is_vip: userData.isVip ? 1 : 0,
+          is_vip: 0,
           is_admin: userData.isAdmin ? 1 : 0,
           reactions: reply.reaction_count,
           userReaction:
@@ -1961,7 +1926,7 @@ router.post("/:commentId/replies", requireAuth, writeRateLimit, async (req, res)
         replyToUsername || null,
         content,
         isSpoiler ? 1 : 0,
-        userData.isVip ? 1 : 0,
+        0,
         userData.isAdmin ? 1 : 0,
         Date.now(),
         hierarchicalPath,
@@ -2022,7 +1987,6 @@ router.post("/:commentId/replies", requireAuth, writeRateLimit, async (req, res)
       contentType: comment.content_type,
       contentId: comment.content_id,
       isSpoiler,
-      isVip: userData.isVip,
       isAdmin: userData.isAdmin,
       replyToUsername,
       userId: req.user.userId,
@@ -2216,7 +2180,7 @@ router.get("/admin/list", requireAuth, async (req, res) => {
           content: formatContentForResponse(comment.content),
           username: userData.username,
           avatar: userData.avatar,
-          is_vip: userData.isVip,
+          is_vip: comment.is_vip,
           is_admin: userData.isAdmin,
         };
       }),
@@ -2301,7 +2265,7 @@ router.get("/admin/moderated", requireAuth, async (req, res) => {
     if (type === "all" || type === "comments") {
       unionParts.push(`
         SELECT c.id, c.user_id, c.user_type, c.profile_id, c.content, c.content_type, c.content_id,
-               c.is_spoiler, c.is_edited, c.created_at, c.moderation_reason, c.moderation_details, c.moderated_at,
+               c.is_spoiler, c.is_vip, c.is_edited, c.created_at, c.moderation_reason, c.moderation_details, c.moderated_at,
                'comment' as item_type,
                (SELECT COUNT(*) FROM comment_reactions WHERE target_type = 'comment' AND target_id = c.id) as reaction_count
         FROM comments c
@@ -2315,7 +2279,7 @@ router.get("/admin/moderated", requireAuth, async (req, res) => {
     if (type === "all" || type === "replies") {
       unionParts.push(`
         SELECT cr.id, cr.user_id, cr.user_type, cr.profile_id, cr.content, c2.content_type, c2.content_id,
-               cr.is_spoiler, cr.is_edited, cr.created_at, cr.moderation_reason, cr.moderation_details, cr.moderated_at,
+               cr.is_spoiler, cr.is_vip, cr.is_edited, cr.created_at, cr.moderation_reason, cr.moderation_details, cr.moderated_at,
                'reply' as item_type,
                (SELECT COUNT(*) FROM comment_reactions WHERE target_type = 'reply' AND target_id = cr.id) as reaction_count
         FROM comment_replies cr
@@ -2371,7 +2335,7 @@ router.get("/admin/moderated", requireAuth, async (req, res) => {
           content: formatContentForResponse(item.content),
           username: ud.username,
           avatar: ud.avatar,
-          is_vip: ud.isVip,
+          is_vip: item.is_vip,
           is_admin: ud.isAdmin,
         };
       }),
@@ -3796,7 +3760,7 @@ router.get("/:contentType/:contentId", async (req, res) => {
           content: formatContentForResponse(comment.content),
           username: userData.username,
           avatar: userData.avatar,
-          is_vip: userData.isVip ? 1 : 0,
+          is_vip: 0,
           is_admin: userData.isAdmin ? 1 : 0,
           repliesCount: comment.replies_count,
           reactions: comment.reaction_count,
@@ -3944,7 +3908,7 @@ router.post("/", requireAuth, writeRateLimit, async (req, res) => {
         userData.avatar,
         content,
         isSpoiler ? 1 : 0,
-        userData.isVip ? 1 : 0,
+        0,
         userData.isAdmin ? 1 : 0,
         Date.now(),
         getClientIp(req),
@@ -3964,7 +3928,6 @@ router.post("/", requireAuth, writeRateLimit, async (req, res) => {
       contentType,
       contentId,
       isSpoiler,
-      isVip: userData.isVip,
       isAdmin: userData.isAdmin,
       userId: req.user.userId,
       userType: req.user.userType,

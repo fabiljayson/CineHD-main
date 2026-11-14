@@ -19,7 +19,6 @@ async function fixture(t, signatureTTL = signatures.SIGNATURE_TTL, nativeOverrid
     logger: { warn: (...args) => logs.push(args) },
     signatures: { ...signatures, SIGNATURE_TTL: signatureTTL },
     source: { getStreams: async () => { calls.catalog++; return [{ _streamedKey: key, url: embedUrl }]; } },
-    verifyAccessKey: async value => ({ vip: value === 'valid' }),
     native: {
       resolve: async () => { calls.resolve++; return { url: 'https://lb1.strmd.st/live.m3u8', referer: 'https://embed.st/' }; },
       decode: async () => { calls.decode++; return { url: 'https://lb1.strmd.st/user.m3u8', referer: 'https://embed.st/' }; },
@@ -53,13 +52,10 @@ function legacyUrl(overrides = {}) {
   return '/api/livetv/streamed/media.m3u8?token=' + encodeSignedToken('/livetv/streamed/media', JSON.stringify(target));
 }
 
-test('le relais natif exige le VIP avant toute résolution et signe les ressources sans prolonger leur accès', async t => {
+test('le relais natif est accessible sans VIP et signe les ressources sans prolonger leur accès', async t => {
   const f = await fixture(t);
   const path = `/api/livetv/streamed/native/streamed_match/${key}`;
-  assert.equal((await f.request(path)).status, 403);
-  assert.equal((await f.request(path, { headers: { 'x-access-key': 'invalid' } })).status, 403);
-  assert.equal(f.calls.catalog, 0); assert.equal(f.calls.resolve, 0);
-  const response = await f.request(path, { headers: { 'x-access-key': 'valid' } });
+  const response = await f.request(path);
   assert.equal(response.status, 200);
   const { url } = await response.json();
   const query = assertProxyUrl(url);
@@ -110,9 +106,9 @@ test('la limite isole les spectateurs derrière Cloudflare et bloque avant le d�
   assert.equal(f.calls.decode, 0);
 });
 
-test('une durée de signature courte borne aussi le lien natif VIP', async t => {
+test('une durée de signature courte borne aussi le lien natif sans statut VIP', async t => {
   const f = await fixture(t, 60);
-  const response = await f.request(`/api/livetv/streamed/native/streamed_match/${key}`, { headers: { 'x-access-key': 'valid' } });
+  const response = await f.request(`/api/livetv/streamed/native/streamed_match/${key}`);
   const { url } = await response.json();
   const query = assertProxyUrl(url);
   assert.ok(Number(query.get('exp')) > Date.now() / 1000 && Number(query.get('exp')) <= Date.now() / 1000 + 60);
@@ -146,7 +142,7 @@ test('un échec média journalise la phase et le code sans exposer les jetons ni
 test('un relais non configuré refuse avant toute extraction', async t => {
   for (const overrides of [{ proxyBase: '' }, { signatures: { ...signatures, signingConfigured: () => false } }]) {
     const f = await fixture(t, 60, {}, overrides);
-    const response = await f.request(`/api/livetv/streamed/native/streamed_match/${key}`, { headers: { 'x-access-key': 'valid' } });
+    const response = await f.request(`/api/livetv/streamed/native/streamed_match/${key}`);
     assert.equal(response.status, 503);
     assert.equal(f.calls.resolve, 0);
   }

@@ -180,9 +180,7 @@ function createWishboardRouter(mysqlPool, redis) {
     }
 
     // Check request limit helper
-    const checkLimit = async (userId, userType, profileId, req) => {
-        // Enforce limits: 1 per 48h for Free, 3 per 48h for VIP
-
+    const checkLimit = async (profileId) => {
         const [recentRequests] = await mysqlPool.execute(
             `SELECT COUNT(*) as count FROM wishboard_requests 
              WHERE profile_id = ? 
@@ -191,30 +189,10 @@ function createWishboardRouter(mysqlPool, redis) {
         );
 
         const count = recentRequests[0].count;
-
-        // Vérifier le statut VIP en lisant l'access_code depuis les données du profil
-        let isVip = false;
-        if (profileId && userId) {
-            try {
-                const safeUserId = String(userId).replace(/[^a-zA-Z0-9_\-]/g, '');
-                const safeUserType = ['oauth', 'bip39'].includes(userType) ? userType : 'oauth';
-                const safeProfileId = String(profileId).replace(/[^a-zA-Z0-9_\-]/g, '');
-                const profileDataPath = path.join(__dirname, 'data', 'users', 'profiles', safeUserType, safeUserId, `${safeProfileId}.json`);
-                const profileData = JSON.parse(await fs.readFile(profileDataPath, 'utf8'));
-                const storedAccessCode = profileData.access_code || null;
-                if (storedAccessCode) {
-                    const vipStatus = await verifyAccessKey(storedAccessCode);
-                    isVip = vipStatus.vip;
-                }
-            } catch (err) {
-                // Pas de données de profil — isVip reste false
-            }
-        }
-
-        const limit = isVip ? 3 : 1;
+        const limit = 3;
         const remaining = Math.max(0, limit - count);
 
-        return { count, limit, remaining, isVip };
+        return { count, limit, remaining };
     };
 
     // Get profile ID from headers or body
@@ -414,7 +392,7 @@ function createWishboardRouter(mysqlPool, redis) {
             }
 
             // Check Limits
-            const { remaining, limit } = await checkLimit(userId, req.user.userType, profileId, req);
+            const { remaining, limit } = await checkLimit(profileId);
             if (remaining <= 0) {
                 return res.status(429).json({
                     error: `Limite atteinte. Vous avez droit à ${limit} demande(s) toutes les 48h.`,
@@ -684,7 +662,7 @@ function createWishboardRouter(mysqlPool, redis) {
                 return res.status(403).json({ error: 'Ce profil ne vous appartient pas' });
             }
 
-            const limitStatus = await checkLimit(req.user.userId, req.user.userType, profileId, req);
+            const limitStatus = await checkLimit(profileId);
             res.json(limitStatus);
         } catch (error) {
             console.error('Error fetching limits:', error);

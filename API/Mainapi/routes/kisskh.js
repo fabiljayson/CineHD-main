@@ -234,7 +234,6 @@ function createKisskhRouter(deps = {}) {
   const resolver = deps.resolver;
   const capabilityStore = deps.capabilityStore;
   const proxyPolicy = deps.proxyPolicy;
-  const verifyAccessKey = deps.verifyAccessKey;
   const now = deps.now || Date.now;
   const activeRetrievals = new Map();
   const retrievalFailures = new Map();
@@ -351,13 +350,7 @@ function createKisskhRouter(deps = {}) {
     let parsed;
     try {
       parsed = parseTvRequest(req.params, req.query);
-      const accessKey = typeof req.headers['x-access-key'] === 'string'
-        ? req.headers['x-access-key']
-        : null;
-      const vipStatus = typeof verifyAccessKey === 'function'
-        ? await verifyAccessKey(accessKey)
-        : { vip: false };
-      const proxyMedia = vipStatus?.vip === true;
+      const proxyMedia = true;
       if (typeof resolver.getCachedTv === 'function' && typeof resolver.warmTv === 'function') {
         const key = retrievalKey('tv', parsed);
         const logContext = { mediaType: 'tv', ...parsed };
@@ -403,13 +396,7 @@ function createKisskhRouter(deps = {}) {
     let parsed;
     try {
       parsed = parseMovieRequest(req.params);
-      const accessKey = typeof req.headers['x-access-key'] === 'string'
-        ? req.headers['x-access-key']
-        : null;
-      const vipStatus = typeof verifyAccessKey === 'function'
-        ? await verifyAccessKey(accessKey)
-        : { vip: false };
-      const proxyMedia = vipStatus?.vip === true;
+      const proxyMedia = true;
       if (typeof resolver.getCachedMovie === 'function' && typeof resolver.warmMovie === 'function') {
         const key = retrievalKey('movie', parsed);
         const logContext = { mediaType: 'movie', ...parsed };
@@ -625,7 +612,6 @@ function createRuntimeDependencies(deps = {}) {
     resolver,
     capabilityStore,
     proxyPolicy,
-    verifyAccessKey: deps.verifyAccessKey,
   };
 }
 

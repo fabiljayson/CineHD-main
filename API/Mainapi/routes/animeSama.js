@@ -36,13 +36,7 @@ async function respondWithAnimeSources(req, res, animes) {
   const episodeNum = Number.parseInt(req.query.episode, 10);
   if (!Number.isInteger(seasonNum) || !Number.isInteger(episodeNum)) return res.json(animes);
 
-  const accessKey = req.headers['x-access-key'] || null;
-
   try {
-    const { verifyAccessKey } = require('../checkVip');
-    const vipStatus = await verifyAccessKey(accessKey);
-    if (!vipStatus?.vip) return res.json(animes);
-
     // `season`/`episode` sont des rangs 1-based côté client.
     const episode = animes?.[0]?.seasons?.[seasonNum - 1]?.episodes?.[episodeNum - 1];
     if (!episode || !Array.isArray(episode.streaming_links)) return res.json(animes);
@@ -51,7 +45,7 @@ async function respondWithAnimeSources(req, res, animes) {
       Array.isArray(link.players) ? link.players : []
     );
 
-    episode.m3u8ByPlayer = await buildM3u8Map(urls, { accessKey });
+    episode.m3u8ByPlayer = await buildM3u8Map(urls);
     return res.json(animes);
   } catch (error) {
     // L'extraction est un bonus : le catalogue reste servi si elle échoue.

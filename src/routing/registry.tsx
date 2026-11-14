@@ -25,6 +25,43 @@ export const getProviderCatalogScope = (pathname: string): string | null => {
   return match ? `/provider/${match[1]}` : null;
 };
 
+/**
+ * Routes qui ne doivent jamais apparaître dans les résultats de recherche :
+ * espaces personnels, flux d'authentification, lecture protégée et liens à
+ * jeton (facture, cadeau). Comparaison par segment entier : `/watch` n'attrape
+ * donc pas `/watchparty/list`, et `/profile` n'attrape pas `/profile-selection`
+ * (répertorié ci-dessous).
+ */
+const NOINDEX_PATHS: readonly string[] = [
+  // Espace personnel et administration
+  '/profile',
+  '/profile-selection',
+  '/profile-management',
+  '/alerts',
+  '/admin',
+  '/wishboard/my-requests',
+  '/debrid',
+  // Authentification et création de compte
+  '/login',
+  '/login-bip39',
+  '/create-account',
+  '/link-bip39',
+  '/auth',
+  '/oauth/authorize',
+  // Lecture protégée par une session
+  '/watch',
+  '/ftv/watch',
+  // Sessions éphémères et liens à jeton
+  '/watchparty/create',
+  '/watchparty/room',
+  '/vip/invoices',
+  '/vip/invoice',
+  '/vip/cadeau',
+];
+
+export const isNoIndexPath = (pathname: string): boolean =>
+  NOINDEX_PATHS.some((entry) => pathname === entry || pathname.startsWith(`${entry}/`));
+
 export const ROUTES: RouteEntry[] = [
   // Les fallbacks partagent le chargement de leur page. Les autres routes
   // gardent RouteProgressBar pendant l'import, sans fausse grille d'affiches.
@@ -87,11 +124,8 @@ export const ROUTES: RouteEntry[] = [
   { path: '/wishboard/my-requests',   loader: lz(() => import('../pages/Greenlight/WishboardUserRequests')) },
   { path: '/wishboard/submit-link',   loader: lz(() => import('../pages/Greenlight/SubmitLinkPage')) },
 
-  // VIP
-  { path: '/vip',                     loader: lz(() => import('../pages/VipPage')) },
-  { path: '/vip/don',                 loader: lz(() => import('../pages/VipDonatePage')) },
+  // Factures historiques uniquement.
   { path: '/vip/invoice/:publicId',   loader: lz(() => import('../pages/VipInvoicePage')) },
-  { path: '/vip/cadeau/:giftToken',   loader: lz(() => import('../pages/VipGiftPage')) },
 
   // Other
   { path: '/about',                   loader: lz(() => import('../pages/WhatIsMovixPage')) },

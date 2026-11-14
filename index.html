@@ -18,6 +18,47 @@
             content="Regardez des milliers de films et séries en streaming HD sur CineHD. Catalogue complet en VF et VOSTFR, live TV, collections et watch parties synchronisées entre amis."
         />
 
+        <!-- Open Graph / Twitter. Valeurs statiques pour les crawlers qui ne
+             exécutent pas JavaScript et pour les pages qui n'ont pas de <SEO>
+             (accueil, /movies…) : l'image est le logo CineHD (fichier movix.png
+             conservé pour la compatibilité des liens).
+             Les balises marquées data-fallback sont celles que SEO.tsx rend
+             aussi dynamiquement : ce composant les retire à l'affichage pour
+             éviter deux og:url (racine + page) — les scrapers qui prennent la
+             première balise partageraient sinon toujours l'accueil. Les
+             balises sans marqueur (locale, dimensions) ne sont jamais rendues
+             dynamiquement et restent en permanence. -->
+        <meta property="og:type" content="website" data-fallback />
+        <meta property="og:site_name" content="CineHD" data-fallback />
+        <meta
+            property="og:title"
+            content="CineHD — Films et séries en streaming gratuit | VF, VOSTFR, HD"
+            data-fallback
+        />
+        <meta
+            property="og:description"
+            content="Regardez des milliers de films et séries en streaming HD sur CineHD. Catalogue complet en VF et VOSTFR, live TV, collections et watch parties synchronisées entre amis."
+            data-fallback
+        />
+        <meta property="og:url" content="__MOVIX_SITE_URL__" data-fallback />
+        <meta property="og:image" content="__MOVIX_SITE_URL__/movix.png" data-fallback />
+        <meta property="og:image:width" content="1024" />
+        <meta property="og:image:height" content="1024" />
+        <meta property="og:locale" content="fr_FR" />
+        <meta property="og:locale:alternate" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" data-fallback />
+        <meta
+            name="twitter:title"
+            content="CineHD — Films et séries en streaming gratuit | VF, VOSTFR, HD"
+            data-fallback
+        />
+        <meta
+            name="twitter:description"
+            content="Regardez des milliers de films et séries en streaming HD sur CineHD. Catalogue complet en VF et VOSTFR, live TV, collections et watch parties synchronisées entre amis."
+            data-fallback
+        />
+        <meta name="twitter:image" content="__MOVIX_SITE_URL__/movix.png" data-fallback />
+
         <!-- Prefetch -->
         <link rel="dns-prefetch" href="//image.tmdb.org" />
         <link rel="preconnect" href="https://image.tmdb.org" crossorigin />

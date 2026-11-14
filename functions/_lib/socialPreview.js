@@ -1,6 +1,6 @@
 const ALPHABET =
   "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const SITE_NAME = "Movix";
+const SITE_NAME = "CineHD";
 const TMDB_API_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
 
@@ -81,9 +81,9 @@ const COPY = {
     tmdbLanguage: "fr-FR",
     ogLocale: "fr_FR",
     alternateOgLocale: "en_US",
-    defaultTitle: "Movix - Films et séries en streaming",
+    defaultTitle: "CineHD - Films et séries en streaming",
     defaultDescription:
-      "Regardez des films, séries, collections et pages communautaires sur Movix.",
+      "Regardez des films, séries, collections et pages communautaires sur CineHD.",
     movieWord: "films",
     tvWord: "séries",
     providerFallback: "Plateforme",
@@ -98,13 +98,13 @@ const COPY = {
     knownForLabel: "Connu pour",
     bornLabel: "Naissance",
     movieFallback:
-      "Découvrez {{title}} sur Movix, avec synopsis, note et lecture en ligne.",
+      "Découvrez {{title}} sur CineHD, avec synopsis, note et lecture en ligne.",
     tvFallback:
-      "Découvrez {{title}} sur Movix, avec synopsis, note, saisons et lecture en ligne.",
+      "Découvrez {{title}} sur CineHD, avec synopsis, note, saisons et lecture en ligne.",
     collectionFallback:
-      "Retrouvez tous les films de la collection {{title}} sur Movix.",
+      "Retrouvez tous les films de la collection {{title}} sur CineHD.",
     personFallback:
-      "Consultez la biographie et la filmographie de {{title}} sur Movix.",
+      "Consultez la biographie et la filmographie de {{title}} sur CineHD.",
     watchMovieLabel: "Regarder le film",
     watchSeriesLabel: "Regarder la série",
     watchAnimeLabel: "Regarder l’anime",
@@ -123,75 +123,75 @@ const COPY = {
     syncProLabel: "Sync Pro",
     movieLabel: "Film",
     tvLabel: "Serie",
-    sharedListTitle: "Liste partagée - Movix",
+    sharedListTitle: "Liste partagée - CineHD",
     sharedListDescription:
-      "Consultez une liste partagée par la communauté Movix.",
-    watchPartyTitle: "Watch Party - Movix",
+      "Consultez une liste partagée par la communauté CineHD.",
+    watchPartyTitle: "Watch Party - CineHD",
     watchPartyDescription:
-      "Créez, rejoignez et partagez une watch party synchronisée sur Movix.",
-    homeTitle: "Movix - Streaming films et séries gratuit",
+      "Créez, rejoignez et partagez une watch party synchronisée sur CineHD.",
+    homeTitle: "CineHD - Streaming films et séries gratuit",
     homeDescription:
-      "Explorez les films, séries, collections, alertes et recommandations Movix.",
-    searchTitle: "Recherche - Movix",
+      "Explorez les films, séries, collections, alertes et recommandations CineHD.",
+    searchTitle: "Recherche - CineHD",
     searchDescription:
-      "Cherchez un film, une série, une collection ou une personne sur Movix.",
-    moviesTitle: "Films - Movix",
+      "Cherchez un film, une série, une collection ou une personne sur CineHD.",
+    moviesTitle: "Films - CineHD",
     moviesDescription:
-      "Parcourez les films populaires, récents et recommandés sur Movix.",
-    tvTitle: "Séries TV - Movix",
+      "Parcourez les films populaires, récents et recommandés sur CineHD.",
+    tvTitle: "Séries TV - CineHD",
     tvDescription:
-      "Parcourez les séries TV populaires, récentes et recommandées sur Movix.",
-    collectionsTitle: "Collections - Movix",
+      "Parcourez les séries TV populaires, récentes et recommandées sur CineHD.",
+    collectionsTitle: "Collections - CineHD",
     collectionsDescription:
-      "Retrouvez les sagas et franchises de films disponibles sur Movix.",
-    alertsTitle: "Mes alertes - Movix",
+      "Retrouvez les sagas et franchises de films disponibles sur CineHD.",
+    alertsTitle: "Mes alertes - CineHD",
     alertsDescription: "Gérez vos alertes de sorties et de nouveaux épisodes.",
-    rouletteTitle: "Roulette - Movix",
+    rouletteTitle: "Roulette - CineHD",
     rouletteDescription:
-      "Laissez Movix choisir un film ou une série pour votre prochaine session.",
-    suggestionTitle: "Suggestion - Movix",
+      "Laissez CineHD choisir un film ou une série pour votre prochaine session.",
+    suggestionTitle: "Suggestion - CineHD",
     suggestionDescription:
       "Lancez une recommandation surprise selon vos critères.",
-    providerBrowseTitle: "Où regarder - Movix",
+    providerBrowseTitle: "Où regarder - CineHD",
     providerBrowseDescription:
-      "Explorez les catalogues par plateforme de streaming sur Movix.",
-    extensionTitle: "Extension - Movix",
+      "Explorez les catalogues par plateforme de streaming sur CineHD.",
+    extensionTitle: "Extension - CineHD",
     extensionDescription:
-      "Installez l’extension navigateur Movix et ses intégrations.",
-    top10Title: "Top 10 - Movix",
+      "Installez l’extension navigateur CineHD et ses intégrations.",
+    top10Title: "Top 10 - CineHD",
     top10Description:
-      "Consultez le Top 10 films et séries de la communauté Movix.",
-    aboutTitle: "À propos de Movix",
+      "Consultez le Top 10 films et séries de la communauté CineHD.",
+    aboutTitle: "À propos de CineHD",
     aboutDescription:
-      "Découvrez ce qu’est Movix et les fonctionnalités de la plateforme.",
-    privacyTitle: "Confidentialité - Movix",
+      "Découvrez ce qu’est CineHD et les fonctionnalités de la plateforme.",
+    privacyTitle: "Confidentialité - CineHD",
     privacyDescription:
-      "Consultez la politique de confidentialité et les pratiques de Movix.",
-    cinegraphTitle: "CineGraph - Movix",
+      "Consultez la politique de confidentialité et les pratiques de CineHD.",
+    cinegraphTitle: "CineGraph - CineHD",
     cinegraphDescription:
       "Explorez les liens entre films, séries, genres et talents avec CineGraph.",
-    wishboardTitle: "Wishboard - Movix",
+    wishboardTitle: "Wishboard - CineHD",
     wishboardDescription:
       "Demandez un ajout de contenu et suivez les requêtes communautaires.",
-    wrappedTitle: "Wrapped - Movix",
-    wrappedDescription: "Retrouvez vos statistiques et votre récap Movix.",
-    profileTitle: "Profil - Movix",
+    wrappedTitle: "Wrapped - CineHD",
+    wrappedDescription: "Retrouvez vos statistiques et votre récap CineHD.",
+    profileTitle: "Profil - CineHD",
     profileDescription:
-      "Retrouvez vos listes, favoris, alertes et historique sur Movix.",
-    authTitle: "Connexion - Movix",
-    authDescription: "Connectez-vous à votre compte Movix.",
-    vipTitle: "VIP - Movix",
-    vipDescription: "Découvrez les avantages VIP et les options premium Movix.",
-    genericPageTitle: "Page Movix",
-    genericPageDescription: "Découvrez cette page sur Movix.",
+      "Retrouvez vos listes, favoris, alertes et historique sur CineHD.",
+    authTitle: "Connexion - CineHD",
+    authDescription: "Connectez-vous à votre compte CineHD.",
+    vipTitle: "VIP - CineHD",
+    vipDescription: "Découvrez les avantages VIP et les options premium CineHD.",
+    genericPageTitle: "Page CineHD",
+    genericPageDescription: "Découvrez cette page sur CineHD.",
   },
   en: {
     tmdbLanguage: "en-US",
     ogLocale: "en_US",
     alternateOgLocale: "fr_FR",
-    defaultTitle: "Movix - Movies and TV streaming",
+    defaultTitle: "CineHD - Movies and TV streaming",
     defaultDescription:
-      "Watch movies, TV shows, collections and community pages on Movix.",
+      "Watch movies, TV shows, collections and community pages on CineHD.",
     movieWord: "movies",
     tvWord: "TV shows",
     providerFallback: "Platform",
@@ -206,12 +206,12 @@ const COPY = {
     knownForLabel: "Known for",
     bornLabel: "Born",
     movieFallback:
-      "Discover {{title}} on Movix with synopsis, rating and online playback.",
+      "Discover {{title}} on CineHD with synopsis, rating and online playback.",
     tvFallback:
-      "Discover {{title}} on Movix with synopsis, rating, seasons and online playback.",
+      "Discover {{title}} on CineHD with synopsis, rating, seasons and online playback.",
     collectionFallback:
-      "Browse every movie in the {{title}} collection on Movix.",
-    personFallback: "See the biography and filmography of {{title}} on Movix.",
+      "Browse every movie in the {{title}} collection on CineHD.",
+    personFallback: "See the biography and filmography of {{title}} on CineHD.",
     watchMovieLabel: "Watch movie",
     watchSeriesLabel: "Watch series",
     watchAnimeLabel: "Watch anime",
@@ -230,62 +230,62 @@ const COPY = {
     syncProLabel: "Sync Pro",
     movieLabel: "Movie",
     tvLabel: "TV Show",
-    sharedListTitle: "Shared List - Movix",
-    sharedListDescription: "Browse a list shared by the Movix community.",
-    watchPartyTitle: "Watch Party - Movix",
+    sharedListTitle: "Shared List - CineHD",
+    sharedListDescription: "Browse a list shared by the CineHD community.",
+    watchPartyTitle: "Watch Party - CineHD",
     watchPartyDescription:
-      "Create, join and share synchronized watch parties on Movix.",
-    homeTitle: "Movix - Free movie and TV streaming",
+      "Create, join and share synchronized watch parties on CineHD.",
+    homeTitle: "CineHD - Free movie and TV streaming",
     homeDescription:
-      "Explore movies, TV shows, collections, alerts and recommendations on Movix.",
-    searchTitle: "Search - Movix",
+      "Explore movies, TV shows, collections, alerts and recommendations on CineHD.",
+    searchTitle: "Search - CineHD",
     searchDescription:
-      "Search for a movie, TV show, collection or person on Movix.",
-    moviesTitle: "Movies - Movix",
+      "Search for a movie, TV show, collection or person on CineHD.",
+    moviesTitle: "Movies - CineHD",
     moviesDescription:
-      "Browse popular, recent and recommended movies on Movix.",
-    tvTitle: "TV Shows - Movix",
-    tvDescription: "Browse popular, recent and recommended TV shows on Movix.",
-    collectionsTitle: "Collections - Movix",
+      "Browse popular, recent and recommended movies on CineHD.",
+    tvTitle: "TV Shows - CineHD",
+    tvDescription: "Browse popular, recent and recommended TV shows on CineHD.",
+    collectionsTitle: "Collections - CineHD",
     collectionsDescription:
-      "Browse movie sagas and franchises available on Movix.",
-    alertsTitle: "My Alerts - Movix",
+      "Browse movie sagas and franchises available on CineHD.",
+    alertsTitle: "My Alerts - CineHD",
     alertsDescription: "Manage your release and new episode alerts.",
-    rouletteTitle: "Roulette - Movix",
+    rouletteTitle: "Roulette - CineHD",
     rouletteDescription:
-      "Let Movix pick a movie or TV show for your next session.",
-    suggestionTitle: "Suggestion - Movix",
+      "Let CineHD pick a movie or TV show for your next session.",
+    suggestionTitle: "Suggestion - CineHD",
     suggestionDescription:
       "Get a surprise recommendation based on your filters.",
-    providerBrowseTitle: "Where to Watch - Movix",
+    providerBrowseTitle: "Where to Watch - CineHD",
     providerBrowseDescription:
-      "Explore streaming catalogs by platform on Movix.",
-    extensionTitle: "Extension - Movix",
+      "Explore streaming catalogs by platform on CineHD.",
+    extensionTitle: "Extension - CineHD",
     extensionDescription:
-      "Install the Movix browser extension and integrations.",
-    top10Title: "Top 10 - Movix",
-    top10Description: "See the Movix community Top 10 movies and TV shows.",
-    aboutTitle: "About Movix",
-    aboutDescription: "Learn what Movix is and what the platform offers.",
-    privacyTitle: "Privacy - Movix",
-    privacyDescription: "Read the Movix privacy policy and data practices.",
-    cinegraphTitle: "CineGraph - Movix",
+      "Install the CineHD browser extension and integrations.",
+    top10Title: "Top 10 - CineHD",
+    top10Description: "See the CineHD community Top 10 movies and TV shows.",
+    aboutTitle: "About CineHD",
+    aboutDescription: "Learn what CineHD is and what the platform offers.",
+    privacyTitle: "Privacy - CineHD",
+    privacyDescription: "Read the CineHD privacy policy and data practices.",
+    cinegraphTitle: "CineGraph - CineHD",
     cinegraphDescription:
       "Explore links between movies, shows, genres and talent with CineGraph.",
-    wishboardTitle: "Wishboard - Movix",
+    wishboardTitle: "Wishboard - CineHD",
     wishboardDescription:
       "Request content additions and track community requests.",
-    wrappedTitle: "Wrapped - Movix",
-    wrappedDescription: "See your Movix stats and recap.",
-    profileTitle: "Profile - Movix",
+    wrappedTitle: "Wrapped - CineHD",
+    wrappedDescription: "See your CineHD stats and recap.",
+    profileTitle: "Profile - CineHD",
     profileDescription:
-      "Find your lists, favorites, alerts and history on Movix.",
-    authTitle: "Login - Movix",
-    authDescription: "Sign in to your Movix account.",
-    vipTitle: "VIP - Movix",
-    vipDescription: "Discover Movix VIP benefits and premium options.",
-    genericPageTitle: "Movix Page",
-    genericPageDescription: "Discover this page on Movix.",
+      "Find your lists, favorites, alerts and history on CineHD.",
+    authTitle: "Login - CineHD",
+    authDescription: "Sign in to your CineHD account.",
+    vipTitle: "VIP - CineHD",
+    vipDescription: "Discover CineHD VIP benefits and premium options.",
+    genericPageTitle: "CineHD Page",
+    genericPageDescription: "Discover this page on CineHD.",
   },
 };
 
@@ -829,8 +829,8 @@ function buildWatchPartyMetadata(requestUrl, roomData, previewLanguage, mode) {
   ];
   const descriptionBody = titleText
     ? previewLanguage === "fr"
-      ? `Rejoignez cette Watch Party Movix pour regarder ${titleText}${episodePart} en synchronisation.`
-      : `Join this Movix Watch Party to watch ${titleText}${episodePart} in sync.`
+      ? `Rejoignez cette Watch Party CineHD pour regarder ${titleText}${episodePart} en synchronisation.`
+      : `Join this CineHD Watch Party to watch ${titleText}${episodePart} in sync.`
     : copy.watchPartyDescription;
 
   return buildBaseMetadata(requestUrl, previewLanguage, {
@@ -840,7 +840,7 @@ function buildWatchPartyMetadata(requestUrl, roomData, previewLanguage, mode) {
       requestUrl.origin,
       media.poster || roomData.poster,
     ),
-    imageAlt: titleText ? `${titleText} - Watch Party` : "Watch Party - Movix",
+    imageAlt: titleText ? `${titleText} - Watch Party` : "Watch Party - CineHD",
     ogType: "website",
   });
 }
@@ -853,8 +853,8 @@ function buildGenreMetadata(requestUrl, mediaType, genreId, previewLanguage) {
   const contentType = mediaType === "movie" ? copy.movieWord : copy.tvWord;
   const description =
     previewLanguage === "fr"
-      ? `Retrouvez les ${contentType} du genre ${genreName} sur Movix.`
-      : `Browse ${contentType} in the ${genreName} genre on Movix.`;
+      ? `Retrouvez les ${contentType} du genre ${genreName} sur CineHD.`
+      : `Browse ${contentType} in the ${genreName} genre on CineHD.`;
   const title =
     previewLanguage === "fr"
       ? `${genreName} - ${contentType} - ${SITE_NAME}`
@@ -891,11 +891,11 @@ function buildProviderMetadata(
           : "movies and TV shows";
   const description = type
     ? previewLanguage === "fr"
-      ? `Retrouvez les ${contentType} de ${providerName}${genreName ? ` dans ${genreName}` : ""} sur Movix.`
-      : `Browse ${contentType} on ${providerName}${genreName ? ` in ${genreName}` : ""} on Movix.`
+      ? `Retrouvez les ${contentType} de ${providerName}${genreName ? ` dans ${genreName}` : ""} sur CineHD.`
+      : `Browse ${contentType} on ${providerName}${genreName ? ` in ${genreName}` : ""} on CineHD.`
     : previewLanguage === "fr"
-      ? `Explorez le catalogue ${providerName} sur Movix.`
-      : `Explore the ${providerName} catalog on Movix.`;
+      ? `Explorez le catalogue ${providerName} sur CineHD.`
+      : `Explore the ${providerName} catalog on CineHD.`;
 
   return buildBaseMetadata(requestUrl, previewLanguage, {
     title: type
@@ -909,12 +909,12 @@ function buildWrappedMetadata(requestUrl, year, previewLanguage) {
   const copy = COPY[previewLanguage];
   const description = year
     ? previewLanguage === "fr"
-      ? `Retrouvez votre récap Movix ${year} et partagez vos stats.`
-      : `See your Movix ${year} recap and share your stats.`
+      ? `Retrouvez votre récap CineHD ${year} et partagez vos stats.`
+      : `See your CineHD ${year} recap and share your stats.`
     : copy.wrappedDescription;
 
   return buildBaseMetadata(requestUrl, previewLanguage, {
-    title: year ? `Movix Wrapped ${year}` : copy.wrappedTitle,
+    title: year ? `CineHD Wrapped ${year}` : copy.wrappedTitle,
     description,
   });
 }
@@ -1038,32 +1038,32 @@ function buildStaticMetadata(requestUrl, previewLanguage) {
       });
     case "/debrid":
       return buildBaseMetadata(requestUrl, previewLanguage, {
-        title: "Debrid - Movix",
+        title: "Debrid - CineHD",
         description:
           previewLanguage === "fr"
-            ? "Débridez et gérez vos liens premium sur Movix."
-            : "Debrid and manage your premium links on Movix.",
+            ? "Débridez et gérez vos liens premium sur CineHD."
+            : "Debrid and manage your premium links on CineHD.",
       });
     case "/dmca":
       return buildBaseMetadata(requestUrl, previewLanguage, {
-        title: "DMCA - Movix",
+        title: "DMCA - CineHD",
         description:
           previewLanguage === "fr"
-            ? "Informations DMCA et demandes legales pour Movix."
-            : "DMCA information and legal requests for Movix.",
+            ? "Informations DMCA et demandes legales pour CineHD."
+            : "DMCA information and legal requests for CineHD.",
       });
     case "/admin":
       return buildBaseMetadata(requestUrl, previewLanguage, {
-        title: "Admin - Movix",
-        description: "Movix administration.",
+        title: "Admin - CineHD",
+        description: "CineHD administration.",
       });
     case "/ftv":
       return buildBaseMetadata(requestUrl, previewLanguage, {
-        title: "France TV - Movix",
+        title: "France TV - CineHD",
         description:
           previewLanguage === "fr"
-            ? "Accédez au catalogue et au live France TV via Movix."
-            : "Access the France TV catalog and live streams via Movix.",
+            ? "Accédez au catalogue et au live France TV via CineHD."
+            : "Access the France TV catalog and live streams via CineHD.",
       });
     default:
       if (/^\/watchparty\/(?:join|room)\//.test(pathname)) {
@@ -1090,11 +1090,11 @@ function buildStaticMetadata(requestUrl, previewLanguage) {
 
       if (/^\/ftv\/(?:info|watch)\//.test(pathname)) {
         return buildBaseMetadata(requestUrl, previewLanguage, {
-          title: "France TV - Movix",
+          title: "France TV - CineHD",
           description:
             previewLanguage === "fr"
-              ? "Accédez au catalogue et au live France TV via Movix."
-              : "Access the France TV catalog and live streams via Movix.",
+              ? "Accédez au catalogue et au live France TV via CineHD."
+              : "Access the France TV catalog and live streams via CineHD.",
         });
       }
 

@@ -58,24 +58,6 @@ CineHD (anciennement Movix) est un monorepo produit pour une plateforme de strea
 
 Ce n'est pas un simple duo "frontend + backend". Une feature peut très vite traverser plusieurs couches à la fois : interface React, persistance locale, sync backend, extraction vidéo, proxy Python et parfois extension navigateur.
 
-## Le groupe ix
-
-CineHD fait partie d'**ix**, une petite famille de projets dont les noms finissaient en « ix ». Ils partagent la même origine : à l'époque Movix, une lettre entre deux crochets et une couleur par projet ; CineHD a depuis pris son identité propre (triangle doré, CINE argent et HD or).
-
-<p align="center">
-  <img src="./brand/groupe-ix.svg" alt="ix" width="72" />
-  <img src="./brand/movix.svg" alt="CineHD" width="72" />
-  <img src="./brand/loadix.svg" alt="Loadix" width="72" />
-</p>
-
-| Projet | Logo | Rôle |
-| --- | --- | --- |
-| ix | `[ix]` en noir | le groupe ; il reste neutre pour laisser sa couleur à chaque projet |
-| CineHD (ex-Movix) | triangle doré, « CINE » argent et « HD » or sur fond noir | streaming de films, séries et anime |
-| [Loadix](https://loadix.fun) | `[L]` en bleu | index communautaire francophone de releases DDL et NZB |
-
-Les annonces des projets passent par le canal Telegram [t.me/ix_annonces](https://t.me/ix_annonces). Les logos, leurs versions rondes pour les avatars et le script qui les génère sont dans [`brand/`](brand/).
-
 ## Ce que contient le repo
 
 | Zone | Rôle | Documentation |

@@ -1,0 +1,128 @@
+{
+  "planHash": "7b46aef88ad0b42883ddea5b1cc33d0cdc5ea418df27a76512d8f55899069df1",
+  "phase": "standalone",
+  "recordedAtUtc": "2026-11-09T16:21:37.8010322Z",
+  "retryCount": 0,
+  "resetBaseline": false,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 0,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "typescript-no-emit",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "",
+        "durationMs": 76658
+      },
+      {
+        "name": "tests-pass",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "npm notice run cinehd@0.1.0 test\nnpm notice run node --test tests/*.test.mjs tests/*.test.ts\n\u2714 automatic mode handles unknown hardware and recognizes limited devices (3.709474ms)\n\u2714 invalid and missing saved modes fall back to automatic detection (0.608001ms)\n\u2714 low latency remains opt-in with malformed persisted data (5.632036ms)\n\u2714 une fen\u00EAtre \u00E9crite est relue fra\u00EEche, \u00E0 l identique (319.890069ms)\n\u2714 pass\u00E9 la fra\u00EEcheur, la fen\u00EAtre reste affichable mais n est plus fra\u00EEche (146.678947ms)\n\u2714 pass\u00E9 la p\u00E9remption dure, la fen\u00EAtre est jet\u00E9e (147.641442ms)\n\u2714 une horloge recul\u00E9e ne rend pas une entr\u00E9e \u00E9ternelle (173.846653ms)\n\u2714 la cl\u00E9 ignore l ordre des sources mais pas la langue ni la fen\u00EAtre (92.687388ms)\n\u2714 une entr\u00E9e illisible ne fait pas planter la lecture (52.700377ms)\n\u2714 le nombre de fen\u00EAtres gard\u00E9es est born\u00E9 (64.062366ms)\n\u2714 un stockage en \u00E9chec d\u00E9grade sans jamais lever (70.719187ms)\n\u2714 une fen\u00EAtre d\u00E9mesur\u00E9e n est pas persist\u00E9e (81.2607ms)\n\u2714 sans r\u00E9p\u00E9tition : une seule occurrence, et seulement dans la fen\u00EAtre (723.1723ms)\n\u2714 bornes de la fen\u00EAtre incluses (250.22438ms)\n\u2714 hebdomadaire : tous les sept jours (113.780468ms)\n\u2714 hebdomadaire : une fen\u00EAtre lointaine ne repart pas de la premi\u00E8re occurrence (75.524809ms)\n\u2714 mensuel : le quanti\u00E8me est conserv\u00E9 (111.484827ms)\n\u2714 mensuel le 31 : les mois trop courts sont saut\u00E9s, pas la s\u00E9rie (85.630895ms)\n\u2714 annuel le 29 f\u00E9vrier : uniquement les ann\u00E9es bissextiles (98.038679ms)\n\u2714 annuel ordinaire (115.146516ms)\n\u2714 une date de fin arr\u00EAte la s\u00E9rie (103.068787ms)\n\u2714 les occurrences portent une cl\u00E9 distincte par date (84.888699ms)\n\u2714 les dates ne glissent pas selon le fuseau (150.081296ms)\n\u2714 une date impossible est refus\u00E9e (51.026519ms)\n\u2714 categorie : les cinq valeurs connues passent, le reste devient \u00AB autre \u00BB (36.479102ms)\n\u2714 libelle libre : garde pour \u00AB autre \u00BB, borne, ignore ailleurs (95.130899ms)\n\u2714 le libelle libre suit jusque dans les occurrences (38.023071ms)\n\u2714 le stockage rejette ce qui n a pas la bonne forme (41.956498ms)\n\u2714 ajout, modification et suppression (39.836124ms)\n\u2714 une r\u00E9p\u00E9tition sans fin reste born\u00E9e sur une fen\u00EAtre large (70.88366ms)\n\u2714 watchlist : tableau d objets (247.001567ms)\n\u2714 watchlist : entr\u00E9es inexploitables \u00E9cart\u00E9es (57.365682ms)\n\u2714 watchlist absente (66.322587ms)\n\u2714 reprendre la lecture : format courant, objet movies/tv (36.295309ms)\n\u2714 reprendre la lecture : ancien format, tableau plat (41.506962ms)\n\u2714 reprendre la lecture : vide ou illisible (150.042414ms)\n\u2714 sans API Clipboard (PS4), la copie passe par une zone de texte au lieu de planter (494.277676ms)\n\u2714 l\u2019API Clipboard est utilis\u00E9e quand elle existe (52.876068ms)\n\u2714 un refus de l\u2019API Clipboard tente le repli, un double \u00E9chec renvoie false sans lever (86.813198ms)\n\u2714 une r\u00E9ponse commentaires invalide pr\u00E9serve la liste (undefined) (854.972781ms)\n\u2714 une r\u00E9ponse commentaires invalide pr\u00E9serve la liste ({}) (354.998338ms)\n\u2714 une r\u00E9ponse commentaires invalide pr\u00E9serve la liste (\u0022\u003Chtml\u003Emaintenance\u003C/html\u003E\u0022) (218.273908ms)\n\u2714 une r\u00E9ponse commentaires invalide pr\u00E9serve la liste ({\u0022comments\u0022:null}) (149.311312ms)\n\u2714 une r\u00E9ponse commentaires invalide pr\u00E9serve la liste ({\u0022comments\u0022:{}}) (127.574468ms)\n\u2714 s\u00E9lectionne uniquement un service affich\u00E9, y compris pour un ancien lien automatique (4.706575ms)\n\u2714 r\u00E9cup\u00E8re la liste via Main API avec VIP, sans cache et avec annulation (231.67441ms)\n\u2714 respecte la liste vide et ne r\u00E9active rien si la configuration est indisponible (183.750639ms)\n\u2714 conserve le fournisseur et les en-t\u00EAtes VIP lors du d\u00E9bridage (53.38642ms)\n\u2714 WatchMovie lib\u00E8re le d\u00E9filement m\u00EAme si le document perd son body (986.190373ms)\n\u2714 WatchTv lib\u00E8re le d\u00E9filement m\u00EAme si le document perd son body (420.771304ms)\n\u2714 WatchAnime lib\u00E8re le d\u00E9filement m\u00EAme si le document perd son body (103.440145ms)\n\u2714 un portail attend un h\u00F4te disponible sans planter lorsque body dispara\u00EEt (24.45707ms)\n\u2714 les callbacks Embla programm\u00E9s sont annul\u00E9s au d\u00E9montage (99.47502ms)\n\u2714 envoie le CAPTCHA dans le corps POST et la session dans Authorization (397.494159ms)\n\u2714 permet le d\u00E9codage anonyme avec CAPTCHA sans envoyer de fausse session (93.677547ms)\n\u2714 restitue le refu\n\u2026[truncated]",
+        "durationMs": 24033,
+        "testResults": {
+          "testFramework": "unknown",
+          "runnerDetectedFrom": "none",
+          "testsTotal": 0,
+          "testsPassed": 0,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": true
+        }
+      },
+      {
+        "name": "production-build",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "npm notice run cinehd@0.1.0 build\nnpm notice run vite build\n\nwarn - The class \u0060ease-[cubic-bezier(0.23,1,0.32,1)]\u0060 is ambiguous and matches multiple utilities.\nwarn - If this is content and not a class, replace it with \u0060ease-\u0026lsqb;cubic-bezier(0.23,1,0.32,1)\u0026rsqb;\u0060 to silence this warning.\n\nwarn - The class \u0060ease-[ease]\u0060 is ambiguous and matches multiple utilities.\nwarn - If this is content and not a class, replace it with \u0060ease-\u0026lsqb;ease\u0026rsqb;\u0060 to silence this warning.\n\u001B[33m[PLUGIN_TIMINGS] \u001B[0mYour build spent significant time in plugin \u0060vite:css\u0060. See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.\n\n\u001B[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001B[0msrc/services/pushNotificationService.ts is dynamically imported by src/main.tsx but also statically imported by src/components/NotificationsPopup.tsx, dynamic import will not move module into another chunk.\n\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 600 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001B[33m[PLUGIN_TIMINGS] \u001B[0mYour build spent significant time in plugins. Here is a breakdown:\n  - vite:legacy-post-process (75%)\n  - vite:build-import-analysis (24%)\nSee https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.\n\n\u001B[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001B[0msrc/services/pushNotificationService.ts is dynamically imported by src/main.tsx but also statically imported by src/components/NotificationsPopup.tsx, dynamic import will not move module into another chunk.\n\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 600 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n",
+        "durationMs": 105970
+      },
+      {
+        "name": "dev-server-serves-home",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\n\u003C!doctype html\u003E\n\u003Chtml lang=\u0022fr\u0022 class=\u0022dark\u0022 translate=\u0022no\u0022\u003E\n    \u003Chead\u003E\n      \u003Cscript type=\u0022module\u0022\u003Eimport { injectIntoGlobalHook } from \u0022/@react-refresh\u0022;\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () =\u003E {};\nwindow.$RefreshSig$ = () =\u003E (type) =\u003E type;\u003C/script\u003E\n\n      \u003Cscript type=\u0022module\u0022 src=\u0022/@vite/client\u0022\u003E\u003C/script\u003E\n\n        \u003Cmeta charset=\u0022UTF-8\u0022 /\u003E\n        \u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1.0\u0022 /\u003E\n        \u003Cmeta http-equiv=\u0022X-UA-Compatible\u0022 content=\u0022ie=edge\u0022 /\u003E\n        \u003Cmeta\n            name=\u0022robots\u0022\n            content=\u0022index, follow, noarchive, max-snippet:-1, max-image-preview:large, max-video-preview:-1\u0022\n        /\u003E\n        \u003Cmeta name=\u0022google\u0022 content=\u0022notranslate\u0022 /\u003E\n        \u003Cmeta name=\u0022apple-mobile-web-app-title\u0022 content=\u0022CineHD\u0022 /\u003E\n        \u003Cmeta name=\u0022application-name\u0022 content=\u0022CineHD\u0022 /\u003E\n        \u003Cmeta name=\u0022msapplication-TileColor\u0022 content=\u0022#000000\u0022 /\u003E\n        \u003Cmeta name=\u0022theme-color\u0022 content=\u0022#000000\u0022 /\u003E\n        \u003Cmeta\n            name=\u0022description\u0022\n            content=\u0022Regardez des milliers de films et s\u00E9ries en streaming HD sur CineHD. Catalogue complet en VF et VOSTFR, live TV, collections et watch parties synchronis\u00E9es entre amis.\u0022\n        /\u003E\n\n        \u003C!-- Prefetch --\u003E\n        \u003Clink rel=\u0022dns-prefetch\u0022 href=\u0022//image.tmdb.org\u0022 /\u003E\n        \u003Clink rel=\u0022preconnect\u0022 href=\u0022https://image.tmdb.org\u0022 crossorigin /\u003E\n        \u003Clink rel=\u0022dns-prefetch\u0022 href=\u0022//api.themoviedb.org\u0022 /\u003E\n        \u003Clink rel=\u0022preconnect\u0022 href=\u0022https://api.themoviedb.org\u0022 crossorigin /\u003E\n        \u003Clink rel=\u0022dns-prefetch\u0022 href=\u0022//www.gstatic.com\u0022 /\u003E\n        \u003Clink rel=\u0022dns-prefetch\u0022 href=\u0022//www.google.com\u0022 /\u003E\n        \u003Clink rel=\u0022preconnect\u0022 href=\u0022https://www.gstatic.com\u0022 crossorigin /\u003E\n        \u003Clink rel=\u0022dns-prefetch\u0022 href=\u0022//www.googletagmanager.com\u0022 /\u003E\n        \u003Clink rel=\u0022preconnect\u0022 href=\u0022https://www.googletagmanager.com\u0022 /\u003E\n        \u003Clink rel=\u0022preconnect\u0022 href=\u0022https://fonts.googleapis.com\u0022 /\u003E\n        \u003Clink rel=\u0022preconnect\u0022 href=\u0022https://fonts.gstatic.com\u0022 crossorigin /\u003E\n\n        \u003C!-- Bootstrap Icons : la feuille jsdelivr a \u00E9t\u00E9 retir\u00E9e du \u003Chead\u003E.\n             Elle bloquait le premier rendu de TOUTES les pages (DNS \u002B TLS vers\n             un CDN tiers, puis la police d\u0027ic\u00F4nes) alors qu\u0027un seul \u00E9cran s\u0027en\n             sert. \u0060src/pages/LiveTV.tsx\u0060 importe d\u00E9j\u00E0\n             \u0060bootstrap-icons/font/bootstrap-icons.min.css\u0060 : la feuille part\n             donc dans le chunk de cette route, servie depuis notre origine avec\n             un cache immuable, et seulement quand on y va. --\u003E\n\n        \u003C!-- Ic\u00F4nes : le SVG d\u0027abord. Le PNG garde sa vraie taille d\u00E9clar\u00E9e,\n             sinon Chrome le pr\u00E9f\u00E8re au SVG ; il ne sert plus qu\u0027aux navigateurs\n             sans favicon SVG et \u00E0 l\u0027\u00E9cran d\u0027accueil iOS, qui n\u0027accepte que le PNG. --\u003E\n        \u003Clink rel=\u0022icon\u0022 type=\u0022image/svg\u002Bxml\u0022 href=\u0022/movix.svg\u0022 /\u003E\n        \u003Clink rel=\u0022icon\u0022 type=\u0022image/png\u0022 sizes=\u00221024x1024\u0022 href=\u0022/movix.png\u0022 /\u003E\n        \u003Clink rel=\u0022apple-touch-icon\u0022 href=\u0022/movix.png\u0022 /\u003E\n        \u003Clink rel=\u0022manifest\u0022 href=\u0022/manifest.json\u0022 /\u003E\n\n        \u003Ctitle data-rh=\u0022true\u0022\u003E\n            CineHD \u2014 Films et s\u00E9ries en streaming gratuit | VF, VOSTFR, HD\n        \u003C/title\u003E\n\n        \u003C!-- JSON-LD. Un seul objet avec @graph, pas un tableau : Safari 18\u002B\n             injecte dans chaque page un lecteur de donn\u00E9es structur\u00E9es qui\n             suppose un objet et plante sur un tableau\n             (\u0060r[\u0022@context\u0022].toLowerCase\u0060), une erreur dans la console de\n             chaque visiteur Safari. @graph est la forme recommand\u00E9e par\n             schema.org et comprise par Google. --\u003E\n        \u003Cscript type=\u0022application/ld\u002Bjson\u0022 data-rh=\u0022true\u0022\u003E\n            {\n                \u0022@context\u0022: \u0022https://schema.org\u0022,\n                \u0022@graph\u0022: [\n                    {\n                        \u0022@type\u0022: \u0022Organization\u0022,\n                        \u0022name\u0022: \u0022CineHD\u0022,\n                        \u0022alternateName\u0022: \u0022CineHD Streaming\u0022,\n                        \u0022url\u0022: \u0022http://localhost:5173\u0022,\n                        \u0022description\u0022: \u0022CineHD est une plateforme fran\u00E7aise open-source (MIT) de streaming multim\u00E9dia : films, s\u00E9ries, anim\n\u2026[truncated]",
+        "durationMs": 1648
+      }
+    ],
+    "executions": [
+      {
+        "source": "typescript-no-emit",
+        "resolvedExecutable": "/home/fabiljayson/Projects/MovixOpenSource-main/node_modules/.bin/tsc",
+        "args": [
+          "--noEmit",
+          "-p",
+          "tsconfig.app.json"
+        ],
+        "cwd": "/home/fabiljayson/Projects/MovixOpenSource-main",
+        "env": {},
+        "prependPath": [],
+        "platform": "linux"
+      },
+      {
+        "source": "tests-pass",
+        "resolvedExecutable": "/home/fabiljayson/.local/share/mise/shims/npm",
+        "args": [
+          "test"
+        ],
+        "cwd": "/home/fabiljayson/Projects/MovixOpenSource-main",
+        "env": {},
+        "prependPath": [],
+        "platform": "linux"
+      },
+      {
+        "source": "production-build",
+        "resolvedExecutable": "/home/fabiljayson/.local/share/mise/shims/npm",
+        "args": [
+          "run",
+          "build"
+        ],
+        "cwd": "/home/fabiljayson/Projects/MovixOpenSource-main",
+        "env": {},
+        "prependPath": [],
+        "platform": "linux"
+      },
+      {
+        "source": "dev-server-serves-home",
+        "resolvedExecutable": "/home/fabiljayson/.local/share/mise/shims/npm",
+        "args": [
+          "run",
+          "dev",
+          "--",
+          "--host",
+          "127.0.0.1",
+          "--port",
+          "3000",
+          "--strictPort"
+        ],
+        "cwd": "/home/fabiljayson/Projects/MovixOpenSource-main",
+        "env": {},
+        "prependPath": [],
+        "platform": "linux"
+      }
+    ]
+  }
+}

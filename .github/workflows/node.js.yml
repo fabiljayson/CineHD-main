@@ -34,6 +34,10 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
+    - name: Typecheck
+      # Vite ne type-check pas : sans cette étape, une régression de types
+      # n'apparaît qu'à l'ouverture du fichier dans un éditeur.
+      run: npm run typecheck
     - name: Build
       run: npm run build --if-present
       env:

@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import LandingPage from './pages/LandingPage';
 import DnsBlockBanner from './components/DnsBlockBanner';
 import CookieConsentBanner from './components/CookieConsentBanner';
+import RouteRobots from './components/RouteRobots';
 import { AdFreePopupProvider } from './context/AdFreePopupContext';
 import { SearchProvider } from './context/SearchContext';
 import { AuthProvider } from './context/AuthContext';
@@ -2031,7 +2032,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <TooltipProvider delayDuration={300}>
       {/* Skeletons are flat tone steps — no shimmer (design house rule). */}
       <SkeletonTheme baseColor="#1a1a1a" highlightColor="#1a1a1a" enableAnimation={false} borderRadius={8}>
@@ -2051,6 +2052,7 @@ function App() {
                       <Toaster position="bottom-right" richColors />
                       <DnsBlockBanner />
                       <CookieConsentBanner />
+                      <RouteRobots />
                       <RequireUsernameChange />
                     </IntroProvider>
                   </TurnstileProvider>

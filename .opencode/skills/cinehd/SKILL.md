@@ -18,9 +18,9 @@ Docs branding rule: everything user-facing says **CineHD (ex-Movix)**; runtime i
 
 Containers `cinehd-mysql` (8.4, 3306) + `cinehd-redis` (7, 6379) are already living on this machine. MySQL auth through the bundled `mariadb` client needs `--skip-ssl` (self-signed container cert). Complete DB (37 tables) is created via the `db/schema` module + `renderCreateTable` — app bootstrap alone does NOT create core/media/community tables.
 
-## Known bugs (reported, NOT fixed — do not claim otherwise)
+## Known bugs
 
-watchparty won't start without the missing deps; `npm run build:report` is broken (script `scripts/bundle-report.mjs` absent); root `manifest.json` not copied into `dist` (PWA 404 in prod likely); `recommendationRoutes.js` and `adminStats.js` never mounted; cloudflare worker whitelist `.*`; TMDB key hardcoded in `PreMid/core/constants.ts`; `Dockerfile ARG` Telegram var obsolete. The frontend fetches TMDB **directly** — "error loading data" usually means TMDB blocked, not our API down.
+Tous les défauts listés ici ont été corrigés et commités le 2026-10-26 (routes reco/adminStats montées, `manifest.json` dans `public/`, `build:report` réparé via `ANALYZE=true vite build`, clé TMDB via env, whitelist du worker Cloudflare, `Dockerfile ARG`, `.wvd` untracké). Ne pas les présenter comme ouverts. Le frontend interroge TMDB **directement** — « error loading data » vient le plus souvent de TMDB, pas de nos API.
 
 ## Pitfalls
 

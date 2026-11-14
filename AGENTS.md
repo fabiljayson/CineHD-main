@@ -64,3 +64,32 @@ Les contrôles ci-dessous sont des repères à utiliser lorsqu’une vérificati
 | Rust/WASM | `npm run wasm:watchparty-sync:build` pour vérifier la compilation du moteur |
 
 Ne pas lancer de suite générale sans rapport. Distinguer les problèmes préexistants des régressions et indiquer uniquement les contrôles réellement exécutés.
+
+## Playbook local (repris du skill opencode `cinehd`)
+
+Le skill d’origine est [.opencode/skills/cinehd/SKILL.md](.opencode/skills/cinehd/SKILL.md) ; il est repris ici pour être appliqué à chaque session. Sa liste de bugs a été corrigée : les défauts qu’elle signalait ont été réparés et commités le 2026-10-26.
+
+### Branding
+
+- Tout ce qui est visible par l’utilisateur dit **CineHD (ex-Movix)** ; les identifiants runtime ne changent pas (`movix.*`, `MOVIX_*`, `com.movix.app`, fichiers `movix.*`).
+- La page `/privacy` est la source de vérité de la politique de confidentialité ; [docs/privacy-policy.md](docs/privacy-policy.md) en est le miroir bilingue et doit être resynchronisé si la page change.
+
+### Environnement local
+
+| Service | Port | Lancement |
+| --- | --- | --- |
+| Frontend Vite | 3000 | `npm run dev` |
+| Main API | 25565 | `cd API/Mainapi && node server.js` (port en dur, `PORT` du `.env` n’est pas lu) |
+| WatchParty | 25566 | depuis `API/watchpartyAPI/`, dépendances résolues depuis le `node_modules` racine |
+| proxiesembed | 25569 | Python, port en dur dans `server.py` |
+
+- proxiesembed exige **Python 3.13** (pas de wheels lxml pour 3.14) ; `MEDIA_SIGNING_SECRET` et `INTERNAL_API_KEY` doivent être identiques à ceux de la Main API.
+- Conteneurs locaux attendus : `cinehd-mysql` (8.4, 3306) et `cinehd-redis` (7, 6379). Le client `mariadb` a besoin de `--skip-ssl` face au certificat auto-signé.
+- Le schéma complet (37 tables) se crée via le module `db/schema` + `renderCreateTable` ; le bootstrap de `app.js` ne crée pas les tables core/media/community.
+- `docs/*.md` n’est **pas** ignoré par git (exception explicite `!docs/*.md`) : garder les documents bilingues synchronisés.
+
+### Pièges
+
+- Le frontend interroge **directement** `api.themoviedb.org` pour l’essentiel du catalogue : une page « error loading data » vient le plus souvent de TMDB, pas de nos API.
+- `pkill -f <motif>` peut tuer la session en cours, le motif matchant sa propre ligne de commande. Préférer `pkill -x node` ou un motif à classes de caractères (`node_modules/[.]bin/vite`).
+- Un serveur lancé avec `nohup … &` meurt avec le timeout du shell : utiliser `setsid nohup … & disown < /dev/null`.

@@ -7,7 +7,7 @@
     {
       "name": "Movix",
       "version": "2.6.5",
-      "down": "https://github.com/fabiljayson/CineHD-main/releases/download/app-ios-latest/movix-ios-unsigner.ipa",
+      "down": "https://github.com/fabiljayson/CineHD-main/releases/download/app-ios-latest/cinehd-ios-unsigner.ipa",
       "category": "Other",
       "description": "Application iOS officielle de Movix : navigation intégrée, lecture vidéo native, image dans l'image, Chromecast et DNS sécurisé. L'IPA distribuée ici n'est pas signée : Scarlet la signe au moment de l'installation. Version 2.6.5 (build 42). Notes de version : https://github.com/fabiljayson/CineHD-main/releases/tag/ios-v2.6.5",
       "bundleID": "com.movix.app",

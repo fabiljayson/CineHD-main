@@ -7690,7 +7690,7 @@
       "heroSub": "CineHD as an Android app, with built-in cast, embedded extension and 1.1.1.1 DNS toggle.",
       "introBody": "The Android CineHD app is a WebView that loads CineHD with a few native integrations: Chromecast, embedded CineHD extension (no Tampermonkey needed), 1.1.1.1 DNS toggle (local VPN that only redirects DNS queries to bypass ISP blocking), and automatic update popup. Everything is centralized on the <1>/app</1> page.",
       "downloadTitle": "Download the APK",
-      "downloadBody": "The <1>APK</1> is distributed directly by CineHD (not on the Play Store — Google doesn't accept streaming apps that aggregate third-party sources). Direct download on the <2>/app</2> page, which fetches movix-android.apk from the official GitHub repo.",
+      "downloadBody": "The <1>APK</1> is distributed directly by CineHD (not on the Play Store — Google doesn't accept streaming apps that aggregate third-party sources). Direct download on the <2>/app</2> page, which fetches cinehd-android.apk from the official GitHub repo.",
       "installTitle": "Install",
       "step1": "Download the APK file from the /app page.",
       "step2": "In Android Settings → Security → Allow unknown sources for your browser (one-time step per browser).",

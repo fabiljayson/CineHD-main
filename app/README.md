@@ -106,7 +106,7 @@ Le téléchargement contient `Movix-unsigned.ipa` et `Movix-unsigned.ipa.sha256`
 Sur un tag `ios-v*`, le job de publication téléverse l'archive sur la release mobile `app-ios-latest` et n'y commite plus le binaire : seules les sources des stores (`app/movix-ios-source.json`, `app/movix-scarlet-source.json`) suivent. Le fichier reste téléchargeable directement, sans passer par `gh` :
 
 ```bash
-curl -LO https://github.com/fabiljayson/CineHD-main/releases/download/app-ios-latest/movix-ios-unsigner.ipa
+curl -LO https://github.com/fabiljayson/CineHD-main/releases/download/app-ios-latest/cinehd-ios-unsigner.ipa
 ```
 
 C'est le même fichier que celui attaché à la release du tag, vérifié par son empreinte SHA-256 avant d'être téléversé. L'APK Android suit le même chemin, via `app-android-latest`.

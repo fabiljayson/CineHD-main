@@ -255,7 +255,7 @@ jobs:
           IOS_SOURCE_MIN_OS: ${{ needs.build.outputs.min_os }}
           IOS_SOURCE_IPA_PATH: dist/Movix-unsigned.ipa
           IOS_SOURCE_DATE: ${{ github.event.head_commit.timestamp }}
-          IOS_SOURCE_DOWNLOAD_URL: https://github.com/${{ github.repository }}/releases/download/app-ios-latest/movix-ios-unsigner.ipa
+          IOS_SOURCE_DOWNLOAD_URL: https://github.com/${{ github.repository }}/releases/download/app-ios-latest/cinehd-ios-unsigner.ipa
           IOS_SOURCE_ICON_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.event.repository.default_branch }}/app/ios/Movix/Images.xcassets/AppIcon.appiconset/icon-1024.png
           IOS_SOURCE_NOTES_URL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
           IOS_SOURCE_OUTPUT: app/movix-ios-source.json
@@ -267,7 +267,9 @@ jobs:
       # Seuls les JSON de sources changent à chaque publication.
       - name: Upload the IPA to the moving release
         working-directory: dist
-        run: gh release upload app-ios-latest Movix-unsigned.ipa --clobber
+        run: |
+          mv Movix-unsigned.ipa cinehd-ios-unsigner.ipa
+          gh release upload app-ios-latest cinehd-ios-unsigner.ipa --clobber
 
       - name: Commit the store sources
         env:

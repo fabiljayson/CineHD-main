@@ -51,6 +51,44 @@ PROXY_TEST_ORIGIN=https://media.staging.example/controlled.mp4 \
   python tests/proxyCloudflareSmoke.py
 ```
 
+## Déploiement (CI)
+
+`.github/workflows/deploy-cloudflare.yml` :
+
+| Déclencheur | Effet |
+| --- | --- |
+| Pull request | CI seulement (`node.js.yml`) : aucune permission Cloudflare, aucun secret de déploiement |
+| `push` sur `main` | images → santé → déploiement staging → sonde `tests/deploymentSmoke.mjs` |
+| `workflow_dispatch` (staging) | identique au push |
+| `workflow_dispatch` (production) | staging prouvé, puis environnement `production` protégé |
+
+Secrets requis (Settings → Secrets and variables → Actions) :
+
+- `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` — stockés sur les
+  environnements `staging` et `production`, jamais au niveau du dépôt ;
+- variables d'environnement `STAGING_MAIN_API_URL` et `PRODUCTION_MAIN_API_URL`
+  (Settings → Variables) : leur absence fait échouer la sonde, volontairement.
+
+Les secrets runtime des services (`DATABASE_URL`, `JWT_SECRET`, …) vivent dans
+Cloudflare (Secrets du Worker), pas dans le dépôt ni dans les logs de CI.
+
+### Retour arrière
+
+Deux objets se roulent séparément :
+
+```bash
+# Worker (code et bindings) : revient à la version précédente
+npx --no-install wrangler rollback --config deployment/cloudflare/wrangler.toml
+
+# Container (image) : redéployer le commit précédent
+gh workflow run deploy-cloudflare.yml -f environment=staging
+  # sur le commit connu bon, ou via « Re-run » du dernier déploiement vert
+```
+
+Un retour arrière n'est complet que lorsque la sonde `deploymentSmoke.mjs`
+repasse sur l'URL cible : un rollback Worker sur une image incompatible laisse
+un service en 502.
+
 ## Décision de placement (Task 6)
 
 Chaque service est jugé séparément. Un échec de transport, de durabilité d'état,

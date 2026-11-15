@@ -353,10 +353,14 @@ Not done: Step 4's rehearsal against the owner-approved window (no staging), and
 - Consumes: passing service image, Neon, Worker, storage, and staging smoke checks from prior tasks.
 - Produces: CI checks on pull requests, automatic staging deployment from the approved branch, and production deployment only through a protected GitHub Environment/manual approval.
 
-- [ ] **Step 1: Define workflow triggers and permissions.** Run pull-request CI without deployment secrets, deploy staging only from `main`, grant each job only the permissions it needs, and require the protected production environment for production.
-- [ ] **Step 2: Build and test separate images in CI.** Use lockfiles, `linux/amd64`, image health checks, root `npm ci`/typecheck/lint/tests, Main API tests, and Python tests; do not print secret values.
+**Status (2026-11-15): Steps 1, 2 and 4 written; Steps 3 and 5 need repository access.** `.github/workflows/deploy-cloudflare.yml` builds the three images for `linux/amd64`, health-checks each one, deploys staging on `main`, runs `tests/deploymentSmoke.mjs`, and gates production behind the protected environment after staging has passed. `.github/workflows/node.js.yml` gains `main-api` and `proxies` jobs so the backend and the Python proxy are actually tested. Rollback (Worker and image, separately) is documented in `deployment/cloudflare/README.md`.
+
+Not done: Step 3's secret configuration lives in repository settings, and Step 5's validation needs a real pull request and `main` run — neither is possible from this checkout. One bug was caught while reading the workflow back: a staging job restricted to the `staging` input would be skipped on a production dispatch, skipping production with it, so the staging job now always runs.
+
+- [x] **Step 1: Define workflow triggers and permissions.** Run pull-request CI without deployment secrets, deploy staging only from `main`, grant each job only the permissions it needs, and require the protected production environment for production. — *`push:main` + `workflow_dispatch`, `contents: read` partout sauf `deployments: write`.*
+- [x] **Step 2: Build and test separate images in CI.** Use lockfiles, `linux/amd64`, image health checks, root `npm ci`/typecheck/lint/tests, Main API tests, and Python tests; do not print secret values. — *Matrice d'images + health check, jobs `main-api` et `proxies` ; commande Main API vérifiée localement (1 test, 6 ignorés faute d'URL).*
 - [ ] **Step 3: Configure staged deployment.** Store Cloudflare account/token and Neon endpoints in protected GitHub/Cloudflare secret stores; deploy with the repository’s pinned Wrangler dependency and correct staging bindings.
-- [ ] **Step 4: Gate production promotion on staging smoke results and approval.** Verify image and Worker rollout compatibility; provide a documented rollback action for both Worker configuration and image versions.
+- [x] **Step 4: Gate production promotion on staging smoke results and approval.** Verify image and Worker rollout compatibility; provide a documented rollback action for both Worker configuration and image versions. — *`needs: [images, deploy-staging]` + environnement `production` ; rollback Worker/image documenté.*
 - [ ] **Step 5: Validate workflow behavior on a pull request and `main`.** Expected: pull requests cannot deploy, staging probes gate success, and production waits for explicit environment approval.
 
 ### Task 16: Stage, Verify, and Roll Out

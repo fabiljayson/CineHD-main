@@ -63,6 +63,45 @@ jobs:
     - name: Test
       run: npm test
 
+  main-api:
+    # Le backend a ses propres dépendances et son propre lockfile : le tester
+    # depuis la racine ne vérifie ni son installation ni ses tests.
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: 'npm'
+        cache-dependency-path: API/Mainapi/package-lock.json
+    - name: Installation (lockfile)
+      working-directory: API/Mainapi
+      run: npm ci
+    - name: Tests
+      # Les tests E2E de bascule se désactivent d'eux-mêmes sans
+      # MYSQL_MIGRATION_URL / DATABASE_MIGRATION_URL : aucun secret n'est requis
+      # sur une pull request.
+      working-directory: API/Mainapi
+      run: node --test tests/*.test.js
+
+  proxies:
+    # Le proxy est le seul service Python du dépôt ; il n'était vérifié nulle part.
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    - name: Installation
+      working-directory: API/proxiesembed
+      run: pip install -r requirements.txt
+    - name: Tests
+      working-directory: API/proxiesembed
+      run: python -m unittest discover -s tests -t .
+
   security:
     # Contrôles hors matrice : ils ne dépendent pas de la version de Node, et le
     # scan de secrets a besoin de l'historique complet (clone superficiel =

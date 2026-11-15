@@ -9,6 +9,21 @@
 **Tech Stack:** Existing Vite/React, Node.js, Express, Socket.IO, Python 3.13/aiohttp, Docker, Cloudflare Workers/Containers/R2/D1/KV/Durable Objects, Neon PostgreSQL, GitHub Actions.
 
 **Spec:** [2026-11-14-cloudflare-neon-deployment-design.md](../specs/2026-11-14-cloudflare-neon-deployment-design.md)
+**Inventory:** [2026-11-14-cinehd-deployment-inventory.md](../specs/2026-11-14-cinehd-deployment-inventory.md)
+
+### Implementation status (2026-11-15)
+
+| Task | State | Commit |
+| --- | --- | --- |
+| 1 — Data and operations gates | Done except owner review | `e657493` |
+| 2 — Main API container | Done, image built and booted | `ea720e6` |
+| 3 — WatchParty packaging | Done, placement gated by Task 6 | `65a956a` |
+| 4 — Python proxy container | Done, placement gated by Task 6 | `6b6c518` |
+| 5–6 — Worker routing, staging proof | Not started | — |
+| 7–13, 15–16 — Neon, storage, CI, rollout | Not started | — |
+| 14 — D1 | **Deferred** (no distinct dataset) | — |
+
+Four additional commits (`8ee6e10`, `6e0c0b8`, `7ceb890`, `0dad2bd`) were not plan tasks: the Main API's build was blocked by an upstream dependency whose GitHub tarball and repository had disappeared, so it was repinned, then vendored as a tarball, then the VLC helper and Streamed tests were pointed at the installed copy with a fail-fast preflight.
 
 ## Global Constraints
 
@@ -64,9 +79,11 @@
 - Consumes: the current MySQL schema groups, Redis consumers, file-writing paths, and approved design.
 - Produces: a signed-off deployment inventory covering D1 ownership, durable-file retention, data volume, outage/rollback window, expected concurrency/regions, and Redis consistency requirements. Later tasks must not invent values for these constraints.
 
-- [ ] **Step 1: Inventory relational data and migration preconditions.** Record the six table groups, row counts/estimated data size when an authorized staging or production read is available, foreign-key order, and any MySQL features that affect conversion. Do not copy production data into a local file.
-- [ ] **Step 2: Inventory Redis and filesystem responsibilities.** Trace every Redis caller and every durable write path, record whether each value is authoritative/cache/coordination state, and identify the current retention and recovery behavior.
-- [ ] **Step 3: Resolve or explicitly defer the open choices.** Record D1’s distinct dataset (or mark D1 deferred), R2 file retention, migration downtime/rollback window, expected concurrency and regions, and Redis consistency classes in the design document. If an answer is unavailable, keep the affected feature gated rather than guessing.
+**Status (2026-11-15):** inventory written, owner review outstanding. Evidence: `docs/superpowers/specs/2026-11-14-cinehd-deployment-inventory.md` — 40 tables in six groups (core 10, media 3, community 16, oauth 6, vip 3, wrapped 2), **no `FOREIGN KEY` constraints** declared, 35 runtime SQL files, 27 Redis-consuming files classified strong-consistency vs replaceable cache, four filesystem paths classified, and the 240-connections-per-instance ceiling (12 workers × 20 pool) recorded as the budget reference. Row counts, downtime window and concurrency/regions are recorded as **owner-gated, not guessed**. The design document's five open questions were replaced by a resolved/deferred table (commit `e657493`). Owner review (Step 4) has not happened, so no production resource or data movement is authorized.
+
+- [x] **Step 1: Inventory relational data and migration preconditions.** Record the six table groups, row counts/estimated data size when an authorized staging or production read is available, foreign-key order, and any MySQL features that affect conversion. Do not copy production data into a local file.
+- [x] **Step 2: Inventory Redis and filesystem responsibilities.** Trace every Redis caller and every durable write path, record whether each value is authoritative/cache/coordination state, and identify the current retention and recovery behavior.
+- [x] **Step 3: Resolve or explicitly defer the open choices.** Record D1’s distinct dataset (or mark D1 deferred), R2 file retention, migration downtime/rollback window, expected concurrency and regions, and Redis consistency classes in the design document. If an answer is unavailable, keep the affected feature gated rather than guessing.
 - [ ] **Step 4: Review the inventory with the project owner.** Acceptance: no production resource creation or data movement is authorized by this task alone; unresolved choices are explicit and assigned to later gates.
 
 ### Task 2: Containerize the Main API
@@ -82,10 +99,12 @@
 - Consumes: the existing CommonJS service and legacy MySQL configuration until Task 11 completes.
 - Produces: a reproducible `linux/amd64` image with configurable `PORT`, non-sensitive health/readiness, and bounded worker/pool settings supplied by deployment configuration.
 
-- [ ] **Step 1: Write lifecycle tests.** Assert configurable port binding, `/health` liveness, readiness failure when required dependencies are unavailable, and graceful shutdown without starting an unbounded cluster in tests.
-- [ ] **Step 2: Create a reproducible service lockfile and multi-stage Dockerfile.** Use the Main API manifest and `npm ci`; exclude secrets, local caches, and development-only files from the runtime image.
-- [ ] **Step 3: Implement environment-configured port and health behavior.** Keep the local port default at `25565`; health responses must not disclose configuration, credentials, or dependency details.
-- [ ] **Step 4: Build and verify locally.** Run `cd API/Mainapi && npm ci && node --test tests/containerHealth.test.js`, then `docker build --platform linux/amd64 -t cinehd-mainapi:check API/Mainapi`; expected: tests pass and the image starts with disposable dependencies.
+**Status (2026-11-15):** done and verified. Evidence: commit `ea720e6`. `PORT` now overrides the `25565` default; the listener opens **before** the MySQL bootstrap so `/health` is independent of dependencies, while `/ready` returns 503 until MySQL `SELECT 1` and Redis `PING` answer, with static bodies that name neither. `node --test tests/containerHealth.test.js` passes (liveness 200 with dependencies unreachable, readiness 503, clean SIGTERM exit 0, one worker). `npm ci --dry-run` accepts the lockfile. The image build, initially blocked by an upstream dependency that had disappeared, now **builds** (`docker build --platform linux/amd64`, exit 0) after vendoring that package in commit `7ceb890`; the container answers `/health` 200 and `/ready` 503 as uid 1000. Bounded pool/worker settings remain configured by `NUM_WORKERS` and `DB_POOL_CONNECTION_LIMIT` rather than hard-coded.
+
+- [x] **Step 1: Write lifecycle tests.** Assert configurable port binding, `/health` liveness, readiness failure when required dependencies are unavailable, and graceful shutdown without starting an unbounded cluster in tests.
+- [x] **Step 2: Create a reproducible service lockfile and multi-stage Dockerfile.** Use the Main API manifest and `npm ci`; exclude secrets, local caches, and development-only files from the runtime image.
+- [x] **Step 3: Implement environment-configured port and health behavior.** Keep the local port default at `25565`; health responses must not disclose configuration, credentials, or dependency details.
+- [x] **Step 4: Build and verify locally.** Run `cd API/Mainapi && npm ci && node --test tests/containerHealth.test.js`, then `docker build --platform linux/amd64 -t cinehd-mainapi:check API/Mainapi`; expected: tests pass and the image starts with disposable dependencies.
 
 ### Task 3: Package WatchParty for Its Approved Target
 
@@ -100,10 +119,12 @@
 - Consumes: the existing Socket.IO protocol and the current `node_modules`-root dependency arrangement.
 - Produces: a self-contained reproducible image for staging and an external Docker fallback. Cloudflare placement remains conditional on Task 6; this task does not claim Container compatibility.
 
-- [ ] **Step 1: Write lifecycle tests.** Assert `PORT` configuration, health/readiness, graceful shutdown, and the room persistence contract selected in Task 1.
-- [ ] **Step 2: Add a service-local manifest and lockfile.** Declare every runtime dependency used by `watchparty.js`, set `"type": "module"`, and preserve Socket.IO compatibility.
-- [ ] **Step 3: Implement the configured listener and selected persistence integration.** Accept `PORT` while preserving `WATCHPARTY_PORT` and the local default `25566`; do not substitute KV or shutdown-only snapshots for authoritative room state.
-- [ ] **Step 4: Build and verify locally.** Run `cd API/watchpartyAPI && npm ci && node --test tests/containerLifecycle.test.js`, then build with `docker build --platform linux/amd64`; expected: tests pass without root `node_modules`.
+**Status (2026-11-15):** done, placement still conditional. Evidence: commit `65a956a`. The service has its own ESM `package.json` + `package-lock.json` (91 packages), reads `PORT` before `WATCHPARTY_PORT` before the `25566` default, exposes `/health` and `/ready` (503 during shutdown), and bounds shutdown at 10 s so a connected Socket.IO client cannot hang the exit after the rooms are saved. `node --test tests/containerLifecycle.test.js` passes: `PORT` wins, the other port is provably not listening, rooms are restored from `cache/watchparty-rooms.json` then re-snapshotted on SIGTERM, exit 0. Image built `linux/amd64` and run: `/health` and `/ready` 200 as uid 1000. The image contains only this service directory plus its own dependencies, so the container running proves no root `node_modules` is needed. Durability of rooms remains a shutdown snapshot, which is why Task 6's gate still decides Cloudflare vs. external Docker.
+
+- [x] **Step 1: Write lifecycle tests.** Assert `PORT` configuration, health/readiness, graceful shutdown, and the room persistence contract selected in Task 1.
+- [x] **Step 2: Add a service-local manifest and lockfile.** Declare every runtime dependency used by `watchparty.js`, set `"type": "module"`, and preserve Socket.IO compatibility.
+- [x] **Step 3: Implement the configured listener and selected persistence integration.** Accept `PORT` while preserving `WATCHPARTY_PORT` and the local default `25566`; do not substitute KV or shutdown-only snapshots for authoritative room state.
+- [x] **Step 4: Build and verify locally.** Run `cd API/watchpartyAPI && npm ci && node --test tests/containerLifecycle.test.js`, then build with `docker build --platform linux/amd64`; expected: tests pass without root `node_modules`.
 
 ### Task 4: Containerize the Python Proxy
 
@@ -117,10 +138,12 @@
 - Consumes: the current Python 3.13 requirements and proxy implementation.
 - Produces: a reproducible Python 3.13 image with configurable `PORT` and a minimal health endpoint; Cloudflare placement remains conditional on Task 6.
 
-- [ ] **Step 1: Write runtime tests.** Assert that `PORT` overrides the existing `25569` default, `/health` is available without proxy credentials, and the health body contains no secrets.
-- [ ] **Step 2: Implement configurable listener and health endpoint.** Leave proxy request authentication, URL validation, and aiohttp streaming behavior unchanged.
-- [ ] **Step 3: Create the Python 3.13 image.** Install the pinned requirements, use a non-root runtime user where compatible with native dependencies, and omit build caches and credentials.
-- [ ] **Step 4: Verify locally.** Run `python API/proxiesembed/tests/test_container_runtime.py` and `docker build --platform linux/amd64 -t cinehd-proxy:check API/proxiesembed`; expected: tests pass and the container health probe succeeds.
+**Status (2026-11-15):** done, placement still conditional. Evidence: commit `6b6c518`. `PORT` overrides the hard-coded `25569` with a fallback, and the existing `/health` stayed unauthenticated (only CORS middleware is registered); streaming, request signing and destination validation are untouched. Dependencies install into a separate venv; the image runs as uid 65534 and writes nothing to disk. `docker run --rm cinehd-proxy:check python tests/test_container_runtime.py` passes **3/3 inside the image** — the host cannot run it (Python 3.14 without aiohttp), so the container is the faithful environment. The container answers `/health` 200 both with `PORT` set and on the default. Known limitation: in-image `unittest discover` reports 1 error out of 30, from `test_streamed_proxy.py` needing `ROOT.parents[1]` (the full repo tree) — pre-existing and unrelated to the port change.
+
+- [x] **Step 1: Write runtime tests.** Assert that `PORT` overrides the existing `25569` default, `/health` is available without proxy credentials, and the health body contains no secrets.
+- [x] **Step 2: Implement configurable listener and health endpoint.** Leave proxy request authentication, URL validation, and aiohttp streaming behavior unchanged.
+- [x] **Step 3: Create the Python 3.13 image.** Install the pinned requirements, use a non-root runtime user where compatible with native dependencies, and omit build caches and credentials.
+- [x] **Step 4: Verify locally.** Run `python API/proxiesembed/tests/test_container_runtime.py` and `docker build --platform linux/amd64 -t cinehd-proxy:check API/proxiesembed`; expected: tests pass and the container health probe succeeds.
 
 ### Task 5: Add Cloudflare Worker Routing and Bindings
 
@@ -295,7 +318,9 @@
 - Consumes: an explicitly named Worker-owned dataset from Task 1.
 - Produces: an isolated D1 schema and access path that owns only that dataset. If Task 1 identifies no dataset, the task is marked deferred and no D1 binding/database is created.
 
-- [ ] **Step 1: Confirm the distinct dataset and ownership boundary.** Reject any proposal to copy or shadow Neon Main API tables in D1.
+**Status (2026-11-15): DEFERRED — no distinct dataset.** Task 1 found no Worker-owned relation separate from the Main API's 40 tables, which all move to Neon. Per Step 4's own instruction, this is recorded as “deferred: no distinct dataset”: no D1 database, no D1 binding, and no `deployment/cloudflare/src/d1/` exist, and none should be created. Reopening requires a named dataset with its own owner, and copying or shadowing Neon tables in D1 stays rejected.
+
+- [x] **Step 1: Confirm the distinct dataset and ownership boundary.** Reject any proposal to copy or shadow Neon Main API tables in D1. — *Outcome: no distinct dataset; D1 deferred.*
 - [ ] **Step 2: If approved, write D1 behavior tests before schema/handler code.** Cover the named dataset’s read/write lifecycle and expected Worker-local consistency.
 - [ ] **Step 3: Add only the required D1 schema and binding.** Keep migrations separate from Neon and Main API runtime code.
 - [ ] **Step 4: Verify locally/staging.** If approved, run `node --test tests/cloudflareD1.test.mjs` and `npx wrangler deploy --dry-run --config deployment/cloudflare/wrangler.toml`; otherwise record “deferred: no distinct dataset” and skip D1 provisioning.
@@ -339,7 +364,7 @@
 
 ### Checkpoint A: Compatibility
 
-- [ ] Tasks 1–6 have written evidence and target decisions.
+- [ ] Tasks 1–6 have written evidence and target decisions. — *Progress: Tasks 1–4 done with evidence (`e657493`, `ea720e6`, `65a956a`, `6b6c518`); Tasks 5–6 not started, so this checkpoint is open.*
 - [ ] Any service that failed its Cloudflare gate has an explicit external Docker target.
 - [ ] No production resources or data have been changed.
 
@@ -373,7 +398,7 @@
 
 ## Open Questions / Explicit Gates
 
-- Task 1 must resolve or defer D1 dataset ownership, R2 retention, MySQL data volume and outage/rollback window, expected concurrency/regions, and Redis consistency needs.
+- Task 1 must resolve or defer D1 dataset ownership, R2 retention, MySQL data volume and outage/rollback window, expected concurrency/regions, and Redis consistency needs. **Outcome:** D1 **deferred** (no distinct dataset, so Task 14 is skipped); R2 retention and Redis consistency classes resolved; data volume, outage/rollback window and concurrency/regions remain **owner-gated**.
 - The Cloudflare Container placement of Main API, WatchParty, and proxy is conditional on Task 6; an external Docker target remains valid for any failed service.
 - Production Cloudflare/Neon credentials, database transfer, and routing changes require separate explicit authorization.
 

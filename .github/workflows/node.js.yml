@@ -33,7 +33,15 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependency-path: |
+          package-lock.json
+          API/Mainapi/package-lock.json
     - run: npm ci
+    - name: Install Main API dependencies
+      # tests/streamedPlayback.test.mjs charge le resolver Streamed vendu dans
+      # API/Mainapi/vendor/ : il n'existe que dans API/Mainapi/node_modules.
+      # Sans cette installation, `npm test` échoue dès l'import du test.
+      run: npm ci --prefix API/Mainapi
     - name: Typecheck
       # Vite ne type-check pas : sans cette étape, une régression de types
       # n'apparaît qu'à l'ouverture du fichier dans un éditeur.

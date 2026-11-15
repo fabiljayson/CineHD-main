@@ -110,9 +110,11 @@ docker run --rm -e PORT=25565 --env-file .env -p 25565:25565 cinehd-mainapi:chec
 
 `linux/amd64` est la seule plateforme attendue par Cloudflare Containers. `.dockerignore` exclut `.env`, `cache/`, `public/oauth-icons/` et les tests : les secrets et les données locales ne sont jamais dans l'image.
 
-**Dépendance `streamed-pk-hls-stream-resolver` (2026-11-15) :** l'URL d'origine (`codeload.github.com/sharoon7171/…`) renvoie `404` et le dépôt amont a disparu (`Repository not found`), ce qui bloquait toute installation propre, image et CI comprises. La dépendance pointe désormais vers le miroir maintenu `vyla-entertainment/live-api-streampk`, épinglé au commit `6f2f3932…` (une URL de commit, jamais une branche).
+**Dépendance `streamed-pk-hls-stream-resolver` (2026-11-15) :** l'URL d'origine (`codeload.github.com/sharoon7171/…`) renvoie `404` et le dépôt amont a disparu (`Repository not found`), ce qui bloquait toute installation propre, image et CI comprises.
 
-C'est un repointage sans changement de code exécuté : la Main API ne charge qu'un fichier de ce paquet (`utils/streamedNative.js` → `src/sources/goat/lock-worker.js`), et le sous-arbre `src/sources/` est identique octet pour octet à la version précédemment installée. Les fichiers qui diffèrent dans le miroir (`src/http`, `src/resolve`, `src/wire`, `src/streamed`) ne sont jamais importés par ce chemin. Le `package-lock.json` porte l'`integrity` du nouveau tarball : `npm ci` échoue si son contenu change.
+Le paquet est désormais **vendu** dans `API/Mainapi/vendor/streamed-pk-hls-stream-resolver.tgz` et déclaré par `"file:./vendor/streamed-pk-hls-stream-resolver.tgz"`. Plus aucune installation ne dépend d'un hébergeur externe. L'archive vient du paquet déjà installé, donc du code que le service exécutait ; `vendor/README.md` consigne la provenance, l'empreinte du contenu, la raison du tarball (npm 10 refuse un dossier lié) et la procédure de mise à jour.
+
+Conséquences pratiques : le dossier `vendor/` doit accompagner `package.json` et `package-lock.json` lors de l'installation (le `Dockerfile` le copie avant `npm ci`), et le lockfile porte l'`integrity` de l'archive — un tarball modifié sans mise à jour du lockfile casse `npm ci`. Le paquet amont ne déclare aucune licence : sa redistribution doit être validée par le propriétaire du projet.
 
 Sondes :
 

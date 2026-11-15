@@ -17,7 +17,10 @@ WORKDIR /app
 RUN apt-get update \
  && apt-get install -y --no-install-recommends python3 make g++ \
  && rm -rf /var/lib/apt/lists/*
+# `streamed-pk-hls-stream-resolver` est une dépendance vendue (`file:./vendor/…`) :
+# npm ci doit la trouver avant d'installer, sinon le lien échoue.
 COPY package.json package-lock.json ./
+COPY vendor ./vendor
 RUN npm ci --omit=dev
 
 FROM node:22-bookworm-slim AS runtime

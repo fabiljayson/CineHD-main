@@ -121,6 +121,8 @@ Container ground rules that follow:
 
 ## 5. Remaining gates for later tasks
 
+The owner-facing version of these gates, with options and defaults, is [2026-11-15-cinehd-owner-review.md](2026-11-15-cinehd-owner-review.md) (Task 1 Step 4).
+
 1. **Row counts and data volume** — owner or authorized staging read (Task 11 batching, Task 16 cutover).
 2. **Downtime/rollback window** — owner decision (Task 11 Step 4).
 3. **Concurrency/regions and Neon connection budget** — owner decision; the 240-connection per-instance ceiling above is the number to budget against.

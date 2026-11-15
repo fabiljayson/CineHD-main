@@ -22,6 +22,14 @@ if (cluster.isPrimary ?? cluster.isMaster) {
   console.log(`🚀 Master process ${process.pid} démarré en mode cluster`);
   console.log(`📊 Création de ${NUM_WORKERS} workers...`);
 
+  // Budget de connexions (décision D3) : le nombre est rendu visible au lieu
+  // d'être déduit. Le dépassement est signalé, jamais corrigé en silence.
+  const connectionBudget = require('./utils/connectionBudget');
+  console.log(`🔌 ${connectionBudget.describeConnectionBudget()}`);
+  if (connectionBudget.resolveConnectionBudget().exceeded) {
+    console.warn('⚠️ Budget MySQL dépassé : réduire NUM_WORKERS ou DB_POOL_CONNECTION_LIMIT (ou relever DB_CONNECTION_BUDGET) avant de multiplier les instances.');
+  }
+
   for (let i = 0; i < NUM_WORKERS; i++) {
     const worker = forkWorker(i);
     console.log(

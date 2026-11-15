@@ -3,7 +3,7 @@
 **Closes:** [Task 1 Step 4](../plans/2026-11-14-cinehd-cloudflare-neon-deployment.md#task-1-close-data-and-operations-gates) of the Cloudflare/Neon deployment plan.
 **Built on:** [deployment inventory](2026-11-14-cinehd-deployment-inventory.md) and [design](2026-11-14-cloudflare-neon-deployment-design.md).
 **Date drafted:** 2026-11-15.
-**Status:** awaiting owner answers.
+**Status:** **answered 2026-11-15.** Decisions and their mechanisms are recorded in [2026-11-15-cinehd-cutover-decisions.md](2026-11-15-cinehd-cutover-decisions.md); D1's numbers and D3's production values stay provisional until a database read and the concurrency target are available.
 
 This review settles the values the inventory could not obtain from the checkout. **It authorizes nothing else:** no production resource is created, no data is moved, and no traffic is changed by answering it.
 
@@ -94,17 +94,17 @@ Each of these blocks a plan step and cannot be invented by an implementer.
 
 | Decision | Answer | Owner | Date |
 | --- | --- | --- | --- |
-| D1 — data volume | | | |
-| D2 — downtime / rollback boundary | | | |
-| D3 — concurrency, regions, connection budget | | | |
-| D4 — Containers vs external Docker | | | |
-| D5 — migration operator and credentials | | | |
-| R1 — `oauth-icons` retention | | | |
-| R2 — Redis stays | | | |
-| R3 — vendored resolver licensing | | | |
-| R4 — per-service fallback | | | |
+| D1 — data volume | Read-only report adopted (staging first), run by the operator: `node scripts/reportTableSizes.js --exact`. Numbers pending. | Owner | 2026-11-15 |
+| D2 — downtime / rollback boundary | Maintenance window, writes refused; rollback allowed until the first Neon write; target ≤ 30 min, replaced by the Task 11 rehearsal measurement. | Owner | 2026-11-15 |
+| D3 — concurrency, regions, connection budget | Explicit `DB_CONNECTION_BUDGET`, logged at boot. Staging: 4 workers × 10 = 40 per instance. Production region and cap pending. | Owner | 2026-11-15 |
+| D4 — Containers vs external Docker | Per-service fallback accepted; no service required on Containers regardless of its gate. | Owner | 2026-11-15 |
+| D5 — migration operator and credentials | One named operator; secrets only in the platform store; production import and cutover are separate explicit actions. | Owner | 2026-11-15 |
+| R1 — `oauth-icons` retention | Keep indefinitely in R2; they are small and referenced from `oauth_clients`. | Owner | 2026-11-15 |
+| R2 — Redis stays | Locks, rate limits, counters, affinity and pub/sub stay on Redis during the transition. | Owner | 2026-11-15 |
+| R3 — vendored resolver licensing | Treated as internal-only; must be replaced or re-licensed before public distribution. | Owner | 2026-11-15 |
+| R4 — per-service fallback | Accepted. | Owner | 2026-11-15 |
 
-Task 1 Step 4 closes when D1–D5 are answered and R1–R4 are acknowledged. Until then:
+Task 1 Step 4 closes when D1–D5 are answered and R1–R4 are acknowledged — **done 2026-11-15**. What still gates production is evidence, not a decision:
 
 - Tasks 7–11 may be written and rehearsed against a disposable database, but **no production import or cutover is authorized**.
 - Tasks 5–6 may proceed, since routing and staging proofs do not depend on these answers.

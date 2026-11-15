@@ -51,7 +51,7 @@ It refuses to start when `DB_HOST`, `DB_USER` or `DB_NAME` is missing and fails 
 
 **Decision.** The budget is explicit configuration (`DB_CONNECTION_BUDGET`) and the product is logged at boot, because the defaults are 12 workers × 20 pooled connections = **240 connections per instance**, and Containers multiply that.
 
-**Implemented.** `API/Mainapi/utils/connectionBudget.js`, logged by the cluster master on every start and covered by `tests/connectionBudget.test.mjs`. It **reports** an exceeded budget and never silently reduces the pool.
+**Implemented.** `API/Mainapi/utils/connectionBudget.js`: the cluster master logs the applied product at every boot, and `mysqlPool` takes its `connectionLimit` from `resolvePoolLimit()`. With `DB_CONNECTION_BUDGET` set, the pool shrinks to `floor(budget / workers)` connections per worker — the worker count is never changed, and a budget below the worker count is reported as impossible instead of being quietly exceeded. Without the variable, both functions return the service's own values, so current deployments are unaffected. Covered by `tests/connectionBudget.test.mjs`.
 
 **Provisional values.**
 

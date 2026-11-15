@@ -273,11 +273,17 @@ Verified against a disposable PostgreSQL 16 container: six migrations applied in
 - Consumes: all PostgreSQL migrations and converted consumers from Tasks 7–10; the approved outage/rollback window from Task 1.
 - Produces: resumable, auditable import and reconciliation commands using `MYSQL_MIGRATION_URL` and direct `DATABASE_MIGRATION_URL`, plus an explicit cutover/rollback runbook.
 
-- [ ] **Step 1: Write migration rehearsal tests with synthetic data.** Include relationships, large tables, nulls, JSON, timestamp boundaries, MySQL unsigned-range values, and restart after a partially completed table. Assert rerun correctness and source/target row plus canonical-key checksums.
-- [ ] **Step 2: Implement resumable table-ordered transfer.** Read source data in bounded batches, preserve primary keys and relationships, record progress, and make retries idempotent. Do not dual-write indefinitely.
-- [ ] **Step 3: Implement reconciliation and cutover commands.** Report mismatched tables/keys without printing row contents or secrets; refuse cutover when comparisons or migration versions differ.
-- [ ] **Step 4: Rehearse the owner-approved rollback boundary.** Freeze or drain writes as specified in Task 1, capture a final source checkpoint, verify the target, switch runtime configuration, and document the point after which writes make a simple MySQL rollback unsafe.
-- [ ] **Step 5: Verify on a disposable copy.** Run `cd API/Mainapi && node --test tests/mysqlPostgresMigration.e2e.test.js`; expected: interrupted transfer resumes, checksums reconcile, and injected failures stop cutover without losing the source.
+**Status (2026-11-15): Steps 1–3 done, Step 5 done, Steps 4 and 6 recorded.** `tests/mysqlPostgresMigration.e2e.test.js` passes 6/6 against disposable MySQL 8.4 and PostgreSQL 16 containers; `scripts/migrateMysqlToPostgres.js` transfers table by table in primary-key order with a checkpoint per committed batch, and `scripts/verifyMysqlPostgresData.js` compares counts and canonical checksums and, with `--cutover`, refuses a cutover when migrations or transfers are incomplete. The runbook is in `API/Mainapi/README.md` under “Bascule vers Neon”.
+
+Two behaviours the rehearsal forced into the design: the target's `updated_at` trigger is suppressed during import (`app.skip_touch`), because otherwise every copied row's timestamp became the transfer time; and a `BIGINT UNSIGNED` value above `9223372036854775807` is refused by name instead of being handed to PostgreSQL's signed `BIGINT`.
+
+Not done: Step 4's rehearsal against the owner-approved window (no staging), and Step 6's production actions, which this plan does not authorize.
+
+- [x] **Step 1: Write migration rehearsal tests with synthetic data.** Include relationships, large tables, nulls, JSON, timestamp boundaries, MySQL unsigned-range values, and restart after a partially completed table. Assert rerun correctness and source/target row plus canonical-key checksums. — *6/6, dont le refus d'une valeur unsigned hors plage.*
+- [x] **Step 2: Implement resumable table-ordered transfer.** Read source data in bounded batches, preserve primary keys and relationships, record progress, and make retries idempotent. Do not dual-write indefinitely. — *`migrateMysqlToPostgres.js`, checkpoint validé par lot, `ON CONFLICT DO UPDATE`.*
+- [x] **Step 3: Implement reconciliation and cutover commands.** Report mismatched tables/keys without printing row contents or secrets; refuse cutover when comparisons or migration versions differ. — *`verifyMysqlPostgresData.js --cutover`, table nommée sans contenu.*
+- [ ] **Step 4: Rehearse the owner-approved rollback boundary.** Freeze or drain writes as specified in Task 1, capture a final source checkpoint, verify the target, switch runtime configuration, and document the point after which writes make a simple MySQL rollback unsafe. — *Runbook écrit (README, décision D2) ; la répétition sur un environnement gelé reste à faire.*
+- [x] **Step 5: Verify on a disposable copy.** Run `cd API/Mainapi && node --test tests/mysqlPostgresMigration.e2e.test.js`; expected: interrupted transfer resumes, checksums reconcile, and injected failures stop cutover without losing the source. — *Conteneurs jetables, 6/6, source inchangée après échec injecté.*
 - [ ] **Step 6: Require explicit production approval.** Production import and DNS/traffic cutover are separate operator actions; this plan does not authorize either.
 
 ### Task 12: Move Frontend Asset History to R2

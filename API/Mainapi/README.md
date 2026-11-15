@@ -147,6 +147,54 @@ NUM_WORKERS=4 DB_POOL_CONNECTION_LIMIT=10
 - debrid et OAuth : `routes/debrid.js`, `routes/oauth.js`, `routes/adminOauthApps.js`
 - administration : `routes/admin.js`, `routes/accountRequests.js`, `routes/helpFeedback.js`, `routes/downloadLinksLeaderboard.js`
 
+## Bascule vers Neon (opérateur)
+
+Le schéma PostgreSQL est généré depuis `db/schema` : ne jamais modifier
+`db/migrations/*.sql` à la main.
+
+```bash
+npm run db:postgres:generate    # régénère 001_core … 006_wrapped
+npm run db:postgres:migrate     # applique les versions manquantes (DATABASE_MIGRATION_URL)
+```
+
+`DATABASE_MIGRATION_URL` vise l'endpoint **direct** Neon ; `DATABASE_URL` (pooler)
+est réservé au runtime. Les migrations sont sérialisées par un verrou consultatif
+et inscrites dans `schema_migrations` avec leur empreinte : une migration déjà
+appliquée puis modifiée est refusée.
+
+### Transfert et réconciliation
+
+```bash
+MYSQL_MIGRATION_URL='mysql://…' DATABASE_MIGRATION_URL='postgres://…' \
+  npm run db:postgres:transfer -- --tables=admins,films   # reprenable, idempotent
+MYSQL_MIGRATION_URL='mysql://…' DATABASE_MIGRATION_URL='postgres://…' \
+  npm run db:postgres:verify -- --cutover                 # gardes de bascule
+```
+
+Le transfert lit par lots ordonnés par clé primaire et enregistre sa progression
+dans `pg_migration_checkpoint` : un arrêt laisse la source intacte et la cible
+dans un état partiel connu, la reprise repart de la dernière clé. Les lignes
+gardent leurs horodatages d'origine (`app.skip_touch` désactive le trigger
+`updated_at` pendant l'import).
+
+Une valeur `BIGINT UNSIGNED` au-delà de `9223372036854775807` est **refusée** en
+nommant la colonne : PostgreSQL `BIGINT` est signé et tronquer un identifiant
+serait pire qu'un échec.
+
+### Fenêtre d'arrêt et point de non-retour
+
+Voir [la décision D2](../../docs/superpowers/specs/2026-11-15-cinehd-cutover-decisions.md) :
+
+1. **Avant** : `npm run db:postgres:verify -- --cutover` doit afficher « Bascule autorisée ».
+2. **Gel** : mode maintenance, écritures refusées, drain des écritures en cours.
+3. **Dernier transfert** : relancer le transfert jusqu'à complétion, revérifier.
+4. **Bascule** : pointer `DATABASE_URL` vers Neon, redémarrer, surveiller `/ready`.
+5. **Point de non-retour** : la première écriture acceptée sur Neon. Avant elle,
+   revenir à MySQL est sans perte ; après elle, la rollback simple est perdue.
+
+L'import en production et le basculement du trafic sont **deux actions
+distinctes**, chacune explicitement autorisée. Ce dépôt ne les autorise pas.
+
 ## À garder en tête
 
 - Le backend actif est ici, pas dans l'ancien contenu direct de `API/`.

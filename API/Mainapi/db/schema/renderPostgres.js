@@ -136,6 +136,11 @@ BEGIN
   -- remplace qu'un champ, et jsonb_populate_record reconstruit le NEW typé.
   -- clock_timestamp(), pas now() : now() est figé au début de la transaction,
   -- donc une mise à jour dans la même transaction garderait l'ancienne valeur.
+  -- Les imports (task 11) posent app.skip_touch = 'on' : une ligne recopiée
+  -- doit conserver son updated_at d'origine, pas celui du transfert.
+  IF current_setting('app.skip_touch', true) = 'on' THEN
+    RETURN NEW;
+  END IF;
   NEW := jsonb_populate_record(NEW, to_jsonb(NEW) || jsonb_build_object(TG_ARGV[0], clock_timestamp()));
   RETURN NEW;
 END;

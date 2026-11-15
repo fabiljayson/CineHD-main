@@ -12,7 +12,13 @@ BEGIN
   IF current_setting('app.skip_touch', true) = 'on' THEN
     RETURN NEW;
   END IF;
-  NEW := jsonb_populate_record(NEW, to_jsonb(NEW) || jsonb_build_object(TG_ARGV[0], clock_timestamp()));
+  -- MySQL ne remplace la colonne que si l'UPDATE ne l'assigne pas. Sans ce
+  -- test, une écriture explicite (accessed_at antidaté, updated_at recopié)
+  -- serait écrasée par l'horloge : exactement le contraire du comportement
+  -- d'origine.
+  IF (to_jsonb(NEW) ->> TG_ARGV[0]) IS NOT DISTINCT FROM (to_jsonb(OLD) ->> TG_ARGV[0]) THEN
+    NEW := jsonb_populate_record(NEW, to_jsonb(NEW) || jsonb_build_object(TG_ARGV[0], clock_timestamp()));
+  END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

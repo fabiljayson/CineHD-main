@@ -6,7 +6,7 @@
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const { createSecretKey } = require('node:crypto');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const { redis } = require('../config/redis');
 const { readAccountData } = require('../utils/accountDataCache');
 const { createSessionActivityUpdater } = require('../utils/sessionActivity');

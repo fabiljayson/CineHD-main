@@ -15,7 +15,8 @@ const { ipKeyGenerator } = require('express-rate-limit');
 
 const { issueJwt, getAuthIfValid } = require('../middleware/auth');
 const { setSessionCookie, clearSessionCookie } = require('../middleware/sessionCookie');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
+const { findSessionByClientId } = require('../db/coreSql');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
 const { getTrustedClientIp } = require('../utils/clientIp');
 const { verifyTurnstileFromRequest } = require('../utils/turnstile');
@@ -124,7 +125,7 @@ const createUserSession = async (userType, userId, req) => {
 
     if (clientId) {
       const [existingSessions] = await pool.execute(
-        "SELECT id FROM user_sessions WHERE user_id = ? AND user_type = ? AND CASE WHEN JSON_VALID(device) THEN JSON_UNQUOTE(JSON_EXTRACT(device, '$.clientId')) ELSE NULL END = ? ORDER BY accessed_at DESC LIMIT 1",
+        findSessionByClientId(),
         [userId, userType, clientId]
       );
 

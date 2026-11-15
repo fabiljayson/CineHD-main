@@ -17,7 +17,7 @@ const router = express.Router();
 const { getAuthIfValid } = require('../middleware/auth');
 const { createSyncBodyParsers, rejectOversizedSync, getParsedBodyBytes } = require('../middleware/bodyParsing');
 const { jsonParseErrorHandler } = require('../middleware/security');
-const { getPool, withMysqlAdvisoryLock } = require('../mysqlPool');
+const { withAdvisoryLock } = require('../db/dialect');
 const { safeWriteFile, safeWriteJsonFile } = require('../utils/safeFile');
 const { readAccountData } = require('../utils/accountDataCache');
 const { logSyncErrorToDiscord } = require('../utils/discord');
@@ -195,13 +195,9 @@ function buildSyncLockName(userType, userId, profileId) {
 }
 
 async function withProfileSyncLock(userType, userId, profileId, task) {
-  const pool = getPool();
-  if (!pool) {
-    throw new Error('MySQL pool not ready for sync lock');
-  }
-
-  return withMysqlAdvisoryLock(
-    pool,
+  // Le verrou suit le moteur sélectionné : consultatif MySQL ou PostgreSQL,
+  // même garantie de sérialisation par profil.
+  return withAdvisoryLock(
     buildSyncLockName(userType, userId, profileId),
     task,
     { timeoutSeconds: 30 }

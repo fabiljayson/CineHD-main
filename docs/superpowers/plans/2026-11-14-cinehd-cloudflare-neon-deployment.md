@@ -220,7 +220,13 @@ Verified against a disposable PostgreSQL 16 container: six migrations applied in
 - Consumes: `getPostgresPool()` and migrations `001_core.sql`/`002_media.sql`.
 - Produces: core/media route behavior backed by Neon, preserving current auth, profile isolation, age restrictions, parameterized SQL, and transaction boundaries.
 
-**Status (2026-11-15): not started — foundation only.** The PostgreSQL schema, migrations, pool and advisory lock exist (see Task 7), and `assertPostgresSchemaReady()` provides Step 3's clear failure when migrations are missing. The runtime still runs on MySQL and still creates the `oauth` tables itself (`utils/oauthClientsDb.js`, `utils/oauthStorage.js`), so neither the bootstrap removal nor the consumer port is done; Steps 1–4 stay open.
+**Status (2026-11-15): core query sites converted; Steps 3–4 still open.** `db/dialect.js` + `db/pgCompat.js` select the engine with `DB_DRIVER=postgres`, presenting the `mysql2` contract (`[rows]`, `affectedRows`) over `pg`, and convert `?` placeholders without touching SQL string literals. `db/coreSql.js` holds the two genuinely non-portable statements: `JSON_VALID`/`JSON_EXTRACT` on `device.clientId` (→ `pg_input_is_valid` + `->>`) and `DATE_SUB(NOW(), INTERVAL ? SECOND)`. `authRoutes`, `sessions`, `profiles`, `middleware/auth` and `sessionActivity` now use the dialect pool, and `sync` uses the dialect lock.
+
+`tests/postgresCoreMedia.e2e.test.js` passes 9/9 against a disposable PostgreSQL 16: adapter contract, session lookup by clientId (including a non-JSON `device`), session ordering and scoped deletion, the activity interval guard, credential lookup plus `last_login_at`, profile-scoped vote deletion, sync-lock serialization, and the empty-result path.
+
+Still open: account authentication end to end through the routes, profile isolation/age restriction, sync conflict handling and media row lookup are not asserted; `routes/sync.js` still stores payloads on disk; and the runtime bootstrap is untouched, so MySQL remains the default engine.
+
+One behaviour the conversion fixed in the schema: the generated `ON UPDATE` trigger overwrote explicit writes, so `accessed_at` could not be set to a past value. MySQL only bumps such a column when the `UPDATE` doesn't assign it, and the trigger now matches.
 
 - [ ] **Step 1: Write PostgreSQL-backed behavior tests.** Cover account authentication, profile isolation/age restriction, session lifecycle, sync conflict handling, and media row lookup using a disposable PostgreSQL database.
 - [ ] **Step 2: Convert core/media queries by the Task 1 call-site map.** Replace MySQL placeholders, result handling, metadata inspection, and MySQL-specific syntax explicitly; do not add a compatibility layer that imitates `mysql2` result tuples.

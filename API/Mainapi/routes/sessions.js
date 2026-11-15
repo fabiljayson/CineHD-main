@@ -8,7 +8,7 @@ const express = require('express');
 const router = express.Router();
 
 const { getAuthIfValid } = require('../middleware/auth');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const { getSessionDeviceInfo, parseStoredSessionDeviceInfo } = require('../utils/sessionDeviceInfo');
 
 // === Routes ===

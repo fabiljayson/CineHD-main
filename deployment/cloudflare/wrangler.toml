@@ -1,0 +1,73 @@
+# Worker de routage CineHD.
+#
+# Le Worker possède tous les bindings Cloudflare : les services ne reçoivent que
+# ce que leur Container a besoin de savoir. Les hôtes ci-dessous sont des valeurs
+# de staging (Task 6) ; les domaines réels se posent par environnement, jamais
+# devinés dans le code.
+
+name = "cinehd-router"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Hôte servant les préfixes de chemin ; les autres hôtes sont dédiés à un service.
+[vars]
+FALLBACK_HOST = "cinehd.example.test"
+MAIN_API_HOST = "api.cinehd.example.test"
+WATCHPARTY_HOST = "watch.cinehd.example.test"
+PROXY_HOST = "proxy.cinehd.example.test"
+PATH_ROUTES = "/api=mainapi,/watchparty=watchparty,/proxy=proxy"
+MAIN_API_TARGET = "container:MAIN_API"
+WATCHPARTY_TARGET = "container:WATCHPARTY"
+PROXY_TARGET = "container:PROXY"
+
+# --- Containers -------------------------------------------------------------
+# `max_instances` et `instance_type` portent le budget de la décision D3 :
+# une seule instance par service en staging, à réviser avec le plafond Neon.
+
+[[containers]]
+class_name = "MainApiContainer"
+image = "../../API/Mainapi/Dockerfile"
+max_instances = 1
+instance_type = "basic"
+
+[[containers]]
+class_name = "WatchPartyContainer"
+image = "../../API/watchpartyAPI/Dockerfile"
+max_instances = 1
+instance_type = "basic"
+
+[[containers]]
+class_name = "ProxyContainer"
+image = "../../API/proxiesembed/Dockerfile"
+max_instances = 1
+instance_type = "basic"
+
+# --- Bindings Durable Object ------------------------------------------------
+
+[[durable_objects.bindings]]
+name = "MAIN_API"
+class_name = "MainApiContainer"
+
+[[durable_objects.bindings]]
+name = "WATCHPARTY"
+class_name = "WatchPartyContainer"
+
+[[durable_objects.bindings]]
+name = "PROXY"
+class_name = "ProxyContainer"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["MainApiContainer", "WatchPartyContainer", "ProxyContainer"]
+
+# --- Stockage ---------------------------------------------------------------
+# Icônes OAuth : durables, référencées par `oauth_clients` (rétention décidée en R1).
+[[r2_buckets]]
+binding = "OAUTH_ICONS"
+bucket_name = "cinehd-oauth-icons"
+
+# Cache des sources scrapées : jetable, jamais une source de vérité.
+[[kv_namespaces]]
+binding = "SOURCE_CACHE"
+id = "00000000000000000000000000000000"

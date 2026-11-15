@@ -19,7 +19,8 @@
 | 2 — Main API container | Done, image built and booted | `ea720e6` |
 | 3 — WatchParty packaging | Done, placement gated by Task 6 | `65a956a` |
 | 4 — Python proxy container | Done, placement gated by Task 6 | `6b6c518` |
-| 5–6 — Worker routing, staging proof | Not started | — |
+| 5 — Worker routing | Code, tests and dry-run done; staging pending | — |
+| 6 — Staging proof | Not started | — |
 | 7–13, 15–16 — Neon, storage, CI, rollout | Not started | — |
 | 14 — D1 | **Deferred** (no distinct dataset) | — |
 
@@ -158,10 +159,12 @@ Four additional commits (`8ee6e10`, `6e0c0b8`, `7ceb890`, `0dad2bd`) were not pl
 - Consumes: service images from Tasks 2–4, the existing public URL/path contract, and explicit staging host configuration.
 - Produces: Worker/DO routes with service-specific Container classes, readiness checks, explicit resource limits, and named R2/KV/DO bindings. The Worker owns all Cloudflare bindings.
 
-- [ ] **Step 1: Write routing tests.** Assert that configured hosts/paths map to only their selected service; preserve query strings, HTTP methods, request bodies, and WebSocket upgrade headers; reject unknown internal routes.
-- [ ] **Step 2: Implement pure route resolution in `routing.mjs` and wire the Worker dispatcher.** Use explicit host/path configuration rather than hard-coded domain guesses. Keep service targets configurable so a failed staging gate can select an external Docker origin.
-- [ ] **Step 3: Implement Container/DO lifecycle and readiness.** Keep traffic away from unready instances; configure bounded instance/resource settings from Task 1 and make startup/replacement failures visible.
-- [ ] **Step 4: Validate locally and in staging.** Run `node --test tests/cloudflareRouting.test.mjs` and `npx wrangler deploy --dry-run --config deployment/cloudflare/wrangler.toml`; expected: all route tests pass and Wrangler accepts the Worker/Container/binding configuration.
+**Status (2026-11-15): Steps 1–3 done, Step 4 done locally and pending in staging.** `tests/cloudflareRouting.test.mjs` (13 checks) covers host isolation, internal-route rejection, prefix stripping with longest-prefix wins, method/body/header/query preservation, WebSocket upgrade forwarding, external-origin targets, and 404/502/503 paths that never touch upstream. `src/routing.mjs` holds every decision with no Workers API; `src/index.ts` only dispatches; `src/containers.ts` starts a Container, polls `/health` until ready, and answers 503 rather than forwarding to an unready instance. `wrangler deploy --dry-run` exits 0 after building the three Task 2–4 images and resolving the DO, R2 and KV bindings. No Cloudflare account or deployment was used.
+
+- [x] **Step 1: Write routing tests.** Assert that configured hosts/paths map to only their selected service; preserve query strings, HTTP methods, request bodies, and WebSocket upgrade headers; reject unknown internal routes. — *`tests/cloudflareRouting.test.mjs`, 13/13.*
+- [x] **Step 2: Implement pure route resolution in `routing.mjs` and wire the Worker dispatcher.** Use explicit host/path configuration rather than hard-coded domain guesses. Keep service targets configurable so a failed staging gate can select an external Docker origin. — *`routing.mjs` + `src/index.ts` ; cible `origin:https://…` déjà acceptée et testée.*
+- [x] **Step 3: Implement Container/DO lifecycle and readiness.** Keep traffic away from unready instances; configure bounded instance/resource settings from Task 1 and make startup/replacement failures visible. — *`src/containers.ts` (sonde `/health`, 503 nommé, limites dans `wrangler.toml`).*
+- [ ] **Step 4: Validate locally and in staging.** Run `node --test tests/cloudflareRouting.test.mjs` and `npx wrangler deploy --dry-run --config deployment/cloudflare/wrangler.toml`; expected: all route tests pass and Wrangler accepts the Worker/Container/binding configuration. — *Moitié locale faite : 13/13 et dry-run exit 0. La moitié staging dépend de Task 6.*
 
 ### Task 6: Prove Staging Compatibility for Each Service
 

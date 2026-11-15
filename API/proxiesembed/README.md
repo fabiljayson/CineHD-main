@@ -25,8 +25,8 @@ python server.py
 
 Notes utiles :
 
-- le code bind actuellement sur `http://localhost:25569`
-- le fichier `.env.example` contient `PORT`, mais `server.py` écoute aujourd'hui `25569` en dur
+- le service bind sur `http://localhost:25569` par défaut, et sur `PORT` quand cette variable est définie (`docker run -e PORT=…`, Container)
+- `/health` répond sans authentification : c'est la sonde du conteneur
 - certaines routes DRM s'appuient sur des utilitaires additionnels dans `drmproxy/` ; si ces utilitaires sont absents, le serveur démarre quand même mais la partie DRM avancée reste limitée
 
 ## Modèle d'accès (important)
@@ -145,6 +145,28 @@ Légende : 🔏 = URL signée obligatoire · 🔑 = clé interne mainapi
 | `GET /drm/resource` | 🔏 Proxy de ressources DRM |
 | `GET /drm/b/{base_b64}/{subpath}` | 🔏 Proxy path-based pour DASH (signature dans le blob) |
 | `POST /api/debrid/unlock` | 🔑 Unlock de liens debrid |
+
+## Conteneur
+
+Python 3.13 est requis (pas de wheels lxml compatibles pour 3.14) :
+
+```bash
+docker build --platform linux/amd64 -t cinehd-proxy:check API/proxiesembed
+docker run --rm -e PORT=25569 --env-file .env -p 25569:25569 cinehd-proxy:check
+```
+
+- les dépendances sont installées dans un venv dans une étape séparée, l'image finale ne contient ni compilateur ni cache pip ;
+- le service tourne en utilisateur non-root et n'écrit rien sur disque (ses caches sont en mémoire) ;
+- `.dockerignore` exclut `.env` et le bytecode.
+
+Vérification du runtime (lance `server.py` sur un port libre, ou sonde `PROXY_BASE_URL`) :
+
+```bash
+python tests/test_container_runtime.py
+docker run --rm cinehd-proxy:check python tests/test_container_runtime.py
+```
+
+Ce test couvre `PORT`, `/health` sans credentials et l'absence de secret dans son corps. Le streaming lui-même (206, chunked, abandon client, egress) appartient au scénario staging `tests/proxyCloudflareSmoke.py` de la Task 6.
 
 ## Notes d'architecture
 

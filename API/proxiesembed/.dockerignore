@@ -1,0 +1,13 @@
+# Secrets et configuration locale
+.env
+.env.*
+
+# Bytecode et environnements locaux
+__pycache__
+**/__pycache__
+*.pyc
+.venv
+venv
+
+*.log
+.git

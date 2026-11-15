@@ -688,7 +688,18 @@ except ImportError:
 gc.set_threshold(50000, 500, 100)
 
 # Configuration
-PORT = 25569
+# Port d'écoute : `PORT` (Containers, `docker run -e PORT=…`) prime sur le défaut
+# local 25569. Une valeur absente ou invalide retombe sur ce défaut plutôt que de
+# faire échouer le démarrage.
+def _resolve_port(default: int = 25569) -> int:
+    try:
+        port = int(str(os.environ.get('PORT', '')).strip())
+    except (TypeError, ValueError):
+        return default
+    return port if 0 < port < 65536 else default
+
+
+PORT = _resolve_port()
 PROXY_BASE = str(os.environ.get("PROXY_BASE", '') or '').strip()
 
 # Proxies SOCKS5H configuration

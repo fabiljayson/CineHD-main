@@ -13,6 +13,7 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs').promises;
 const path = require('path');
 const { verifyAccessKey } = require('./checkVip');
+const { extractSessionToken } = require('./middleware/sessionCookie');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -31,7 +32,7 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
 
     // Verify JWT token with MySQL session validation (same as wishboardRoutes)
     const requireAuth = async (req, res, next) => {
-        const token = req.headers.authorization?.split(' ')[1];
+        const token = extractSessionToken(req);
         if (!token) {
             return res.status(401).json({ error: 'Non authentifié' });
         }

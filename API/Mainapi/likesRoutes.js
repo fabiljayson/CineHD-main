@@ -4,6 +4,7 @@ const { getPool } = require('./mysqlPool');
 const fs = require('fs').promises;
 const path = require('path');
 const { verifyTurnstileFromRequest } = require('./utils/turnstile');
+const { extractSessionToken } = require('./middleware/sessionCookie');
 
 const TURNSTILE_INVISIBLE_SECRETKEY = process.env.TURNSTILE_INVISIBLE_SECRETKEY;
 
@@ -67,7 +68,7 @@ const dbAll = async (sql, params = []) => {
 
 // Middleware pour vérifier l'authentification (optionnel pour GET) avec validation session MySQL
 const optionalAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = extractSessionToken(req);
   if (!token) {
     req.user = null;
     return next();
@@ -115,7 +116,7 @@ const optionalAuth = async (req, res, next) => {
 
 // Middleware pour vérifier l'authentification (requis pour POST) avec validation session MySQL
 const requireAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = extractSessionToken(req);
   if (!token) {
     return res.status(401).json({ error: 'Non authentifié' });
   }

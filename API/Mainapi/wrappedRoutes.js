@@ -12,6 +12,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { fetchTmdbDetails } = require('./utils/tmdbCache');
+const { extractSessionToken } = require('./middleware/sessionCookie');
 const { fetchWrappedCommunity } = require('./utils/wrappedCommunity');
 const { buildRace, buildFormatWinners, buildEras } = require('./utils/wrappedStory');
 const { runBudgetedBatches } = require('./utils/wrappedEnrichment');
@@ -213,8 +214,7 @@ async function enrichWithTMDBData(contents) {
  * Middleware to verify JWT token
  */
 const verifyToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = extractSessionToken(req);
 
     if (!token) {
         // If no token, check if we can proceed without it (e.g. for simple tracking?)

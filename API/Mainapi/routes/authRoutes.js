@@ -14,6 +14,7 @@ const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
 const { issueJwt, getAuthIfValid } = require('../middleware/auth');
+const { setSessionCookie, clearSessionCookie } = require('../middleware/sessionCookie');
 const { getPool } = require('../mysqlPool');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
 const { getTrustedClientIp } = require('../utils/clientIp');
@@ -29,6 +30,23 @@ const {
   setLink,
   removeLinksForTargetProvider,
 } = require('../utils/accountLinks');
+
+// Toute réponse d'authentification qui porte un jeton le dépose aussi dans le
+// cookie HttpOnly. Centralisé ici plutôt que répété à chaque `res.json` : une
+// future route de connexion ne peut pas oublier le cookie, et les cinq routes
+// actuelles n'ont pas à connaître son existence. Le jeton reste dans le corps
+// de la réponse pour les clients sans cookie jar (extension, userscript, app
+// mobile), qui ne sont pas exposés au vol par XSS.
+router.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    if (body && typeof body === 'object' && typeof body.token === 'string' && body.token) {
+      setSessionCookie(res, body.token);
+    }
+    return originalJson(body);
+  };
+  next();
+});
 
 // Rate limiter pour les endpoints d'authentification
 // 10 tentatives par IP toutes les 15 minutes
@@ -981,6 +999,38 @@ router.post('/username', authRateLimit, authorizeAuthWrite, ...authBodyParsers, 
     console.error('Error updating username:', error);
     return res.status(500).json({ success: false, error: 'Erreur lors de la mise à jour du pseudo' });
   }
+});
+
+// POST /logout -- la déconnexion vivait uniquement dans le stockage du
+// navigateur. Avec un cookie HttpOnly, seul le serveur peut l'effacer : sans
+// cette route, « se déconnecter » laisserait une session valide dans le
+// navigateur jusqu'à son expiration. La session est aussi supprimée en base,
+// comme pour toute révocation.
+router.post('/logout', async (req, res) => {
+  let auth = null;
+  try {
+    auth = await getAuthIfValid(req);
+  } catch {
+    auth = null;
+  }
+
+  clearSessionCookie(res);
+
+  if (auth?.sessionId) {
+    try {
+      const pool = getPool();
+      if (pool) {
+        await pool.execute(
+          'DELETE FROM user_sessions WHERE id = ? AND user_id = ? AND user_type = ?',
+          [auth.sessionId, auth.userId, auth.userType]
+        );
+      }
+    } catch (error) {
+      console.error('[AUTH] Deconnexion : purge de session impossible:', error.message);
+    }
+  }
+
+  return res.json({ success: true });
 });
 
 router.use(jsonParseErrorHandler);

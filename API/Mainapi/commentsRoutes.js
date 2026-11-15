@@ -9,6 +9,7 @@ const { getPool } = require("./mysqlPool");
 const { redis } = require("./config/redis");
 const { verifyTurnstileFromRequest } = require("./utils/turnstile");
 const { getTrustedClientIp } = require("./utils/clientIp");
+const { extractSessionToken } = require("./middleware/sessionCookie");
 // Signalement d'une proposition de sequence deposee depuis le lecteur : elle
 // n'a rien d'un commentaire, mais elle se modere au meme endroit, avec les
 // memes etats et les memes notifications. Voir `target_type = 'segment'`.
@@ -322,7 +323,7 @@ const dbAll = async (sql, params = []) => {
 
 // Middleware pour vérifier l'authentification avec validation session MySQL
 const requireAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  const token = extractSessionToken(req);
   if (!token) {
     return res.status(401).json({ error: "Non authentifié" });
   }
@@ -1667,7 +1668,7 @@ router.get("/:commentId/replies", async (req, res) => {
 
     // Tenter de récupérer l'utilisateur connecté (optionnel)
     let currentUser = null;
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = extractSessionToken(req);
     if (token) {
       try {
         const decoded = jwt.verify(token, JWT_SECRET, {
@@ -3672,7 +3673,7 @@ router.get("/:contentType/:contentId", async (req, res) => {
 
     // Tenter de récupérer l'utilisateur connecté (optionnel)
     let currentUser = null;
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = extractSessionToken(req);
     if (token) {
       try {
         const decoded = jwt.verify(token, JWT_SECRET, {

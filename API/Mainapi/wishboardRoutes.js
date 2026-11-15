@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs').promises;
 const path = require('path');
 const { verifyAccessKey } = require('./checkVip');
+const { extractSessionToken } = require('./middleware/sessionCookie');
 const { searchTmdb } = require('./utils/tmdbCache');
 const { verifyTurnstileFromRequest } = require('./utils/turnstile');
 const { resolveAdminIdentity } = require('./utils/adminIdentity');
@@ -44,7 +45,7 @@ function createWishboardRouter(mysqlPool, redis) {
 
     // Middleware to verify JWT token with MySQL session validation
     const requireAuth = async (req, res, next) => {
-        const token = req.headers.authorization?.split(' ')[1];
+        const token = extractSessionToken(req);
         if (!token) {
             return res.status(401).json({ error: 'Non authentifié' });
         }

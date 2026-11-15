@@ -12,6 +12,7 @@ const {
 } = require('./mysqlPool');
 const { verifyAccessKey } = require('./checkVip');
 const { verifyTurnstileFromRequest } = require('./utils/turnstile');
+const { extractSessionToken } = require('./middleware/sessionCookie');
 // Réutiliser l'instance Redis partagée au lieu d'en créer une nouvelle (évite les fuites mémoire)
 const { redis } = require('./config/redis');
 
@@ -212,7 +213,7 @@ const dbAll = async (sql, params = []) => {
 
 // === Auth middleware (comme commentsRoutes.js) ===
 const requireAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = extractSessionToken(req);
   if (!token) {
     return res.status(401).json({ error: 'Non authentifié' });
   }
@@ -251,7 +252,7 @@ const requireAuth = async (req, res, next) => {
 
 // === Admin middleware — vérifie que l'utilisateur est admin via la table admins MySQL ===
 const requireAdmin = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = extractSessionToken(req);
   if (!token) {
     return res.status(401).json({ error: 'Non authentifié' });
   }
@@ -303,7 +304,7 @@ const requireAdmin = async (req, res, next) => {
 // prouver la propriété d'une liste (liste modérée, par exemple).
 function getOptionalAuthUser(req) {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = extractSessionToken(req);
     if (!token) return null;
     const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
     if (!['oauth', 'bip39'].includes(decoded.userType) || !decoded.sub) return null;

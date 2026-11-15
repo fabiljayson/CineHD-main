@@ -110,7 +110,9 @@ docker run --rm -e PORT=25565 --env-file .env -p 25565:25565 cinehd-mainapi:chec
 
 `linux/amd64` est la seule plateforme attendue par Cloudflare Containers. `.dockerignore` exclut `.env`, `cache/`, `public/oauth-icons/` et les tests : les secrets et les données locales ne sont jamais dans l'image.
 
-**Blocage connu (2026-11-15) — `npm ci` ne peut pas aboutir :** `streamed-pk-hls-stream-resolver` est déclaré avec une URL `codeload.github.com/sharoon7171/.../tar.gz/7d918be8…` qui renvoie `404`, et le dépôt amont répond désormais `Repository not found` (privé ou supprimé). Le paquet existe encore dans le `node_modules` d'un poste déjà installé, donc le service tourne, mais aucune installation propre — ni l'image, ni la CI — ne peut le récupérer. Corriger demande une décision de dépendance : repointer vers une source accessible, ou vendre le paquet dans le dépôt. Les étapes ci-dessus et le reste du `Dockerfile` n'ont pas été validés par un build tant que ce point n'est pas tranché.
+**Dépendance `streamed-pk-hls-stream-resolver` (2026-11-15) :** l'URL d'origine (`codeload.github.com/sharoon7171/…`) renvoie `404` et le dépôt amont a disparu (`Repository not found`), ce qui bloquait toute installation propre, image et CI comprises. La dépendance pointe désormais vers le miroir maintenu `vyla-entertainment/live-api-streampk`, épinglé au commit `6f2f3932…` (une URL de commit, jamais une branche).
+
+C'est un repointage sans changement de code exécuté : la Main API ne charge qu'un fichier de ce paquet (`utils/streamedNative.js` → `src/sources/goat/lock-worker.js`), et le sous-arbre `src/sources/` est identique octet pour octet à la version précédemment installée. Les fichiers qui diffèrent dans le miroir (`src/http`, `src/resolve`, `src/wire`, `src/streamed`) ne sont jamais importés par ce chemin. Le `package-lock.json` porte l'`integrity` du nouveau tarball : `npm ci` échoue si son contenu change.
 
 Sondes :
 

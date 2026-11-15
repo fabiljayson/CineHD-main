@@ -42,7 +42,7 @@
     "proper-lockfile": "^4.1.2",
     "socket.io": "^4.8.3",
     "socks-proxy-agent": "^8.0.5",
-    "streamed-pk-hls-stream-resolver": "https://codeload.github.com/sharoon7171/streamed-pk-hls-stream-resolver/tar.gz/7d918be84d47a924373a9304d7c8856a9daba4c6",
+    "streamed-pk-hls-stream-resolver": "https://codeload.github.com/vyla-entertainment/live-api-streampk/tar.gz/6f2f3932360624b473c55becb7a5354b9a0fa804",
     "tiny-secp256k1": "^2.2.4",
     "tough-cookie": "^5.1.2",
     "uuid": "^11.1.0",

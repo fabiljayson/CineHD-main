@@ -39,6 +39,7 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.15.0",
     "openai": "^6.15.0",
+    "pg": "^8.23.1",
     "proper-lockfile": "^4.1.2",
     "socket.io": "^4.8.3",
     "socks-proxy-agent": "^8.0.5",

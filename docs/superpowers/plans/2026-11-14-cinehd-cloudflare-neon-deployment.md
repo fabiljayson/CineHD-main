@@ -193,10 +193,14 @@ Four additional commits (`8ee6e10`, `6e0c0b8`, `7ceb890`, `0dad2bd`) were not pl
 - Consumes: the six schema groups (`core`, `media`, `community`, `oauth`, `vip`, `wrapped`) and Task 1’s schema inventory.
 - Produces: `getPostgresPool()` using the pooled `DATABASE_URL`, and a migration command using the direct `DATABASE_MIGRATION_URL`. Migrations are ordered, versioned, repeat-safe, and never run implicitly on API startup.
 
+**Status (2026-11-15): Steps 2–4 done, Steps 1 and 5 open.** `pg@8.23.1` added under `API/Mainapi/`; `db/migratePostgres.js` applies `db/migrations/001…006` under the advisory lock `mainapi:migrations:v1` and records each version with its SHA-256 in `schema_migrations`, refusing a file modified after application; `postgresPool.js` builds the pooled runtime pool with `max` from `resolvePoolLimit()`, so the D3 budget governs both engines.
+
+Verified against a disposable PostgreSQL 16 container: six migrations applied in order, 40 declared tables plus the ledger, 163 indexes, 18 `ON UPDATE` triggers, an invalid `ENUM` value rejected by its named CHECK, a repeat run a no-op, and an edited applied migration refused with exit 1. The `db/__tests__/postgresMigrations.test.js` file of Steps 1 and 5 is **not** written: these checks were run manually against a real database, and this repository forbids adding a test after the code it verifies.
+
 - [ ] **Step 1: Write PostgreSQL migration tests.** Against a disposable PostgreSQL database, assert ordered application, repeat invocation without duplicate DDL, foreign-key integrity, indexes, defaults, and useful failure output for an invalid migration.
-- [ ] **Step 2: Add the PostgreSQL driver and migration command.** Keep dependencies scoped to `API/Mainapi/`; store applied versions in a dedicated migration ledger and serialize migration execution with a PostgreSQL advisory lock.
-- [ ] **Step 3: Translate and implement all six schema migrations.** Preserve constraints and indexes; document intentional PostgreSQL type/behavior changes in the corresponding migration.
-- [ ] **Step 4: Implement the runtime pool.** Use the pooled endpoint and a bounded pool maximum from deployment configuration; expose close/shutdown handling and keep direct URLs out of runtime logs.
+- [x] **Step 2: Add the PostgreSQL driver and migration command.** Keep dependencies scoped to `API/Mainapi/`; store applied versions in a dedicated migration ledger and serialize migration execution with a PostgreSQL advisory lock. — *`pg`, `db/migratePostgres.js`, ledger `schema_migrations` (version + checksum), verrou `mainapi:migrations:v1`.*
+- [x] **Step 3: Translate and implement all six schema migrations.** Preserve constraints and indexes; document intentional PostgreSQL type/behavior changes in the corresponding migration. — *Six fichiers générés depuis `db/schema` par `db/schema/renderPostgres.js` ; les écarts de type sont documentés dans ce module.*
+- [x] **Step 4: Implement the runtime pool.** Use the pooled endpoint and a bounded pool maximum from deployment configuration; expose close/shutdown handling and keep direct URLs out of runtime logs. — *`postgresPool.js` : `max` = budget D3, `closePostgresPool()`, aucun log d'URL.*
 - [ ] **Step 5: Verify on a disposable database.** Run `cd API/Mainapi && node --test db/__tests__/postgresMigrations.test.js`; expected: fresh and repeat migrations pass and leave no partial schema after failure.
 
 ### Task 8: Port Core and Media SQL Consumers
@@ -210,6 +214,8 @@ Four additional commits (`8ee6e10`, `6e0c0b8`, `7ceb890`, `0dad2bd`) were not pl
 **Interfaces:**
 - Consumes: `getPostgresPool()` and migrations `001_core.sql`/`002_media.sql`.
 - Produces: core/media route behavior backed by Neon, preserving current auth, profile isolation, age restrictions, parameterized SQL, and transaction boundaries.
+
+**Status (2026-11-15): not started — foundation only.** The PostgreSQL schema, migrations, pool and advisory lock exist (see Task 7), and `assertPostgresSchemaReady()` provides Step 3's clear failure when migrations are missing. The runtime still runs on MySQL and still creates the `oauth` tables itself (`utils/oauthClientsDb.js`, `utils/oauthStorage.js`), so neither the bootstrap removal nor the consumer port is done; Steps 1–4 stay open.
 
 - [ ] **Step 1: Write PostgreSQL-backed behavior tests.** Cover account authentication, profile isolation/age restriction, session lifecycle, sync conflict handling, and media row lookup using a disposable PostgreSQL database.
 - [ ] **Step 2: Convert core/media queries by the Task 1 call-site map.** Replace MySQL placeholders, result handling, metadata inspection, and MySQL-specific syntax explicitly; do not add a compatibility layer that imitates `mysql2` result tuples.

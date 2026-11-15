@@ -230,6 +230,16 @@ const app = express();
 // Ne pas exposer la version d'Express (fingerprinting).
 app.disable('x-powered-by');
 
+// Sondes de conteneur : montées avant CORS, compression et restriction de
+// domaine pour que /health et /ready répondent quelle que soit l'origine de la
+// sonde, et sans attendre le bootstrap MySQL (cf. routes/health.js).
+const { createHealthRouter } = require('./routes/health');
+app.use(
+  createHealthRouter({
+    checkReadiness: require('./utils/readiness').checkReadiness,
+  }),
+);
+
 // Client IP de confiance : headers CF-Connecting-IP/X-Forwarded-For uniquement
 // si le pair TCP est Cloudflare, sinon comptage de hops via TRUST_PROXY_HOPS.
 // Voir utils/clientIp.js — sans cela, les rate limiters sont contournables en

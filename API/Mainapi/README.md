@@ -27,9 +27,10 @@ Ne lance pas le service avec un `.env` vide : MySQL, Redis, JWT, TMDB et plusieu
 Notes utiles :
 
 - le serveur HTTP écoute sur `http://localhost:25565`
-- `server.js` binde aujourd'hui le port `25565` en dur ; le `PORT` listé dans `.env.example` n'est pas lu par le code
+- `PORT` est lu par `server.js` et prime sur le défaut local `25565` ; une valeur absente ou invalide retombe sur `25565`
 - `NUM_WORKERS` permet de régler le nombre de workers du cluster
 - MySQL et Redis sont nécessaires pour une grosse partie des routes
+- `/health` (liveness) et `/ready` (dépendances) sont disponibles sans authentification et avant le bootstrap MySQL
 
 ## Architecture
 
@@ -97,6 +98,37 @@ La source téléchargements (`routes/darkiworld.js` et `utils/darkiworldSqlite.j
 3. Pour utiliser un autre dossier, définir `DARKIWORLD_SQLITE_DIR` avec son chemin absolu, par exemple `/home/container/darkino-backups`.
 
 Démarrer ou redémarrer Main API après l’installation des fichiers. Sans ces snapshots, les liens absents du cache local peuvent renvoyer `sqlite_miss`. Avec `HYDRACKER_BLACKOUT=true` (valeur par défaut), aucune résolution en direct auprès d’Hydracker ou de DarkiWorld ne prend le relais.
+
+## Conteneur
+
+L'image est construite depuis ce dossier avec son `package-lock.json` :
+
+```bash
+docker build --platform linux/amd64 -t cinehd-mainapi:check API/Mainapi
+docker run --rm -e PORT=25565 --env-file .env -p 25565:25565 cinehd-mainapi:check
+```
+
+`linux/amd64` est la seule plateforme attendue par Cloudflare Containers. `.dockerignore` exclut `.env`, `cache/`, `public/oauth-icons/` et les tests : les secrets et les données locales ne sont jamais dans l'image.
+
+**Blocage connu (2026-11-15) — `npm ci` ne peut pas aboutir :** `streamed-pk-hls-stream-resolver` est déclaré avec une URL `codeload.github.com/sharoon7171/.../tar.gz/7d918be8…` qui renvoie `404`, et le dépôt amont répond désormais `Repository not found` (privé ou supprimé). Le paquet existe encore dans le `node_modules` d'un poste déjà installé, donc le service tourne, mais aucune installation propre — ni l'image, ni la CI — ne peut le récupérer. Corriger demande une décision de dépendance : repointer vers une source accessible, ou vendre le paquet dans le dépôt. Les étapes ci-dessus et le reste du `Dockerfile` n'ont pas été validés par un build tant que ce point n'est pas tranché.
+
+Sondes :
+
+| Route | Réponse | Rôle |
+| --- | --- | --- |
+| `GET /health` | `200 {"status":"ok"}` | Le processus sert du HTTP. Répond 200 pendant le bootstrap, pour qu'un démarrage long ne fasse pas tuer l'instance. |
+| `GET /ready` | `200 {"status":"ready"}` ou `503 {"status":"not-ready"}` | MySQL (`SELECT 1`) et Redis (`PING`) répondent. Le Worker de routage ne doit envoyer du trafic qu'après un 200. |
+
+Les deux corps sont statiques : aucune dépendance, aucun hôte, aucune erreur de pilote n'y apparaît. `READINESS_PROBE_TIMEOUT_MS` (2000 ms par défaut) borne chaque vérification.
+
+L'ordre de démarrage est : écoute HTTP, puis bootstrap MySQL, puis rafraîchissement des proxys. Une instance dont le bootstrap échoue après ses tentatives sort en code 1 pour être remplacée, au lieu de rester en 503.
+
+Budget de connexions : `NUM_WORKERS` (12 par défaut) × `DB_POOL_CONNECTION_LIMIT` (20 par défaut) donne jusqu'à 240 connexions MySQL **par instance**. Avec plusieurs Containers il faut réduire l'un des deux ; l'inventaire de déploiement retient ce plafond comme référence.
+
+```bash
+# Exemple : 4 workers × 10 connexions = 40 connexions par instance
+NUM_WORKERS=4 DB_POOL_CONNECTION_LIMIT=10
+```
 
 ## Points d'entrée utiles
 

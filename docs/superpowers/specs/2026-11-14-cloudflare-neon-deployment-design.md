@@ -74,11 +74,15 @@ Containers do not receive Worker bindings directly by assumption. The plan must 
 
 ## Open questions for the implementation plan
 
-- Which data, if any, belongs in D1 separately from Neon?
-- Which existing files must survive Container restarts, and what are their size and retention requirements?
-- What data volume, acceptable migration downtime, and rollback window apply to MySQL-to-Neon cutover?
-- What expected request concurrency and geographic/latency targets should determine Container sizes and instance routing?
-- Which Redis workloads require strong consistency, and which are only replaceable caches?
+Resolved or explicitly deferred by [the deployment inventory](2026-11-14-cinehd-deployment-inventory.md) (Task 1). Values the inventory could not obtain from this checkout are still owner-gated and must not be guessed by later tasks.
+
+| Question | Outcome |
+| --- | --- |
+| Which data, if any, belongs in D1 separately from Neon? | Deferred: no distinct Worker-owned dataset exists. No D1 database or binding is created. |
+| Which existing files must survive Container restarts, and what are their size and retention requirements? | `oauth-icons` (durable, referenced from `oauth_clients`), frontend asset history (7-day active retention), WatchParty room snapshot (graceful restarts only). All `cache/**` is disposable. |
+| What data volume, acceptable migration downtime, and rollback window apply to MySQL-to-Neon cutover? | Gated: owner decision. The inventory confirms there are no `FOREIGN KEY` constraints, so the cutover contract is write-freeze, canonical-key checksum parity, then a configuration switch. |
+| What expected request concurrency and geographic/latency targets should determine Container sizes and instance routing? | Gated: owner decision. The hard constraint to budget against is 12 cluster workers × 20 pooled connections = up to 240 connections per Main API instance. |
+| Which Redis workloads require strong consistency, and which are only replaceable caches? | Locks, rate limits, atomic counters, proxy affinity and cross-worker pub/sub are strong-consistency and stay on Redis or a tested Durable Object. Scraped-source caches are replaceable and are the only KV candidates. |
 
 ## Official platform references
 

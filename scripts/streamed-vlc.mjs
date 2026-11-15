@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Utilise sharoon7171/streamed-pk-hls-stream-resolver sans modifier Movix.
+// Utilise le resolver Streamed que la Main API installe depuis son lockfile,
+// sans cloner de dépôt ni modifier Movix.
 import { execFile, spawn } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { once } from 'node:events';
@@ -7,13 +8,15 @@ import { existsSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { homedir } from 'node:os';
-import { join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs, promisify } from 'node:util';
 
 const exec = promisify(execFile);
-const REVISION = '7d918be84d47a924373a9304d7c8856a9daba4c6';
-const REPOSITORY = 'https://github.com/sharoon7171/streamed-pk-hls-stream-resolver.git';
+// Une seule version épinglée du resolver : celle que `API/Mainapi/package-lock.json`
+// installe (commit fixe + integrity vérifiée par npm) et que le service exécute.
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const RESOLVER_DIRECTORY = join(REPO_ROOT, 'API', 'Mainapi', 'node_modules', 'streamed-pk-hls-stream-resolver');
 const DEFAULT_URL = 'https://streamed.pk/watch/tottenham-hotspur-vs-everton-2494033/golf/1';
 const CACHE = join(process.env.LOCALAPPDATA || join(homedir(), '.cache'), 'Movix', 'streamed-vlc');
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36';
@@ -41,29 +44,19 @@ export function iframeUrl(html, base) {
   return url.href;
 }
 
-async function command(program, args, cwd) {
-  const child = spawn(program, args, { cwd, stdio: 'inherit', windowsHide: true });
-  const [code] = await once(child, 'exit');
-  if (code !== 0) throw new Error(`${program} a échoué (code ${code}).`);
-}
-
+// Aucun clone, aucun `npm ci` lancé par ce script : le resolver est lu là où la
+// Main API l'a installé. Le dépôt amont d'origine a été supprimé, et le
+// lockfile est désormais la seule source de version.
 async function prepareResolver(directory) {
-  await mkdir(directory, { recursive: true });
-  if (!existsSync(join(directory, '.git'))) await command('git', ['init', directory]);
-  if (!existsSync(join(directory, 'src', 'resolve', 'run.js'))) {
-    console.log('Téléchargement du resolver (version fixe)...');
-    await command('git', ['fetch', '--depth=1', REPOSITORY, REVISION], directory);
-    await command('git', ['checkout', '--detach', 'FETCH_HEAD'], directory);
+  const required = ['src/resolve/parse.js', 'src/resolve/run.js', 'src/relay/segment.js'];
+  const missing = required.filter((file) => !existsSync(join(directory, file)));
+  if (missing.length) {
+    throw new Error(`Resolver introuvable dans ${directory} (${missing.join(', ')}). Lance "npm ci" dans API/Mainapi, ou passe --resolver DOSSIER.`);
   }
-  const { stdout } = await exec('git', ['rev-parse', 'HEAD'], { cwd: directory, windowsHide: true });
-  if (stdout.trim() !== REVISION) throw new Error(`Version inattendue du resolver dans ${directory}.`);
-  if (!existsSync(join(directory, 'node_modules', 'happy-dom', 'package.json'))) {
-    console.log('Installation des dépendances du resolver...');
-    if (process.platform === 'win32') {
-      await command(process.env.ComSpec || 'cmd.exe', ['/d', '/c', 'npm ci --ignore-scripts --no-audit --no-fund'], directory);
-    } else {
-      await command('npm', ['ci', '--ignore-scripts', '--no-audit', '--no-fund'], directory);
-    }
+  const hasDependencies = [join(directory, 'node_modules'), join(REPO_ROOT, 'API', 'Mainapi', 'node_modules')]
+    .some((modules) => existsSync(join(modules, 'happy-dom', 'package.json')));
+  if (!hasDependencies) {
+    throw new Error('Dépendances du resolver absentes (happy-dom). Lance "npm ci" dans API/Mainapi.');
   }
 }
 
@@ -220,7 +213,7 @@ async function main() {
     resolver: { type: 'string' }, vlc: { type: 'string' }, help: { type: 'boolean', short: 'h' },
   } });
   if (values.help) {
-    console.log('Usage : node scripts/streamed-vlc.mjs [URL] [--check | --no-vlc] [--vlc CHEMIN] [--resolver DOSSIER]\nSans URL : Tottenham Hotspur vs Everton. --check vérifie puis quitte ; --no-vlc conserve le relais sans lancer VLC.');
+    console.log('Usage : node scripts/streamed-vlc.mjs [URL] [--check | --no-vlc] [--vlc CHEMIN] [--resolver DOSSIER]\nSans URL : Tottenham Hotspur vs Everton. --check vérifie puis quitte ; --no-vlc conserve le relais sans lancer VLC.\nSans --resolver : utilise le resolver installé par API/Mainapi (npm ci).');
     return;
   }
   if (Number(process.versions.node.split('.')[0]) < 22) throw new Error('Node.js 22 ou supérieur est nécessaire.');
@@ -231,7 +224,7 @@ async function main() {
   globalThis.fetch = (target, options = {}) => nativeFetch(target, {
     ...options, signal: options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(30_000)]) : AbortSignal.timeout(30_000),
   });
-  const directory = values.resolver ? resolve(values.resolver) : join(CACHE, REVISION);
+  const directory = values.resolver ? resolve(values.resolver) : RESOLVER_DIRECTORY;
   await prepareResolver(directory);
   console.log(`Extraction d'une URL fraîche : ${url}`);
   const stream = await resolveStream(url, directory);

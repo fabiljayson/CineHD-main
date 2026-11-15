@@ -1,7 +1,7 @@
 # Streamed.pk vers VLC
 
 Sous Windows, double-cliquer sur `streamed-vlc.cmd` pour ouvrir le match
-Tottenham Hotspur vs Everton fourni lors de l'essai. Node.js 22+, Git, curl
+Tottenham Hotspur vs Everton fourni lors de l'essai. Node.js 22+, curl
 et VLC doivent être installés. Le script trouve VLC dans son dossier Windows
 habituel ; `--vlc` ou `VLC_PATH` permettent de préciser un autre emplacement.
 
@@ -19,11 +19,21 @@ node scripts/streamed-vlc.mjs --check
 node scripts/streamed-vlc.mjs --no-vlc
 ```
 
-Le premier lancement installe dans `%LOCALAPPDATA%\Movix\streamed-vlc` le
-[resolver de sharoon7171](https://github.com/sharoon7171/streamed-pk-hls-stream-resolver),
-figé au commit `7d918be84d47a924373a9304d7c8856a9daba4c6`, avec son lockfile
-et `npm ci --ignore-scripts`. Les dépendances de Movix ne sont pas modifiées.
-`--resolver DOSSIER` permet de réutiliser un clone local de cette révision.
+Le script n'installe plus rien et ne clone plus de dépôt : il utilise le
+resolver que la Main API a déjà installé depuis son `package-lock.json`, dans
+`API/Mainapi/node_modules/streamed-pk-hls-stream-resolver`. La version exécutée
+est donc exactement celle du service, épinglée par le lockfile (commit fixe et
+`integrity` vérifiée par npm). Le dépôt amont d'origine ayant été supprimé, plus
+rien ne dépend de sa disponibilité.
+
+Il faut donc avoir installé les dépendances de la Main API au préalable :
+
+```powershell
+cd API/Mainapi; npm ci
+```
+
+`--resolver DOSSIER` permet de pointer vers un autre exemplaire du resolver
+(clone local, avec son `node_modules`). Le script n'écrit jamais dans le dépôt.
 
 Le script suit aussi la redirection golf observée le 12 septembre 2026 :
 embed.st → rockystream.st → iframe `data-source` en base64 → embed.st/ingest.

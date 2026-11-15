@@ -32,8 +32,8 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY --chown=node:node . .
 
 # Répertoires écrits au runtime : ils appartiennent à l'utilisateur non-root.
-RUN mkdir -p cache darkino-backups public/oauth-icons \
- && chown -R node:node cache darkino-backups public
+RUN mkdir -p cache darkino-backups data public/oauth-icons \
+ && chown -R node:node cache darkino-backups data public
 USER node
 
 EXPOSE 25565

@@ -18,6 +18,14 @@ on:
     branches: ["main"]
   workflow_dispatch:
     inputs:
+      action:
+        description: "Action"
+        required: true
+        default: deploy
+        type: choice
+        options:
+          - deploy
+          - rollback
       environment:
         description: "Environnement cible"
         required: true
@@ -26,6 +34,10 @@ on:
         options:
           - staging
           - production
+      version_id:
+        description: "Rollback : identifiant de version Worker (vide = version précédente)"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -39,6 +51,8 @@ concurrency:
 jobs:
   images:
     name: Images (${{ matrix.service }})
+    # Inutile pour un rollback : rien à construire, rien à pousser.
+    if: github.event.inputs.action != 'rollback'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -106,9 +120,11 @@ jobs:
   deploy-staging:
     name: Staging
     needs: images
-    # Toujours exécuté, y compris pour une demande de production : la promotion
-    # doit d'abord prouver le staging. Un `if` restreint au staging ferait
-    # sauter ce job, puis la production qui en dépend.
+    # Toujours exécuté en déploiement, y compris pour une demande de production :
+    # la promotion doit d'abord prouver le staging. Un `if` restreint au staging
+    # ferait sauter ce job, puis la production qui en dépend. Un rollback, lui,
+    # ne construit ni ne déploie rien.
+    if: github.event.inputs.action != 'rollback'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -149,8 +165,12 @@ jobs:
   deploy-production:
     name: Production
     needs: [images, deploy-staging]
-    # Promotion uniquement sur demande explicite, jamais sur un push.
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
+    # Promotion uniquement sur demande explicite, jamais sur un push, et jamais
+    # par un dispatch de rollback.
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.environment == 'production' &&
+      github.event.inputs.action != 'rollback'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -182,3 +202,57 @@ jobs:
           node tests/deploymentSmoke.mjs
         env:
           DEPLOYMENT_BASE_URL: ${{ vars.PRODUCTION_MAIN_API_URL }}
+
+  rollback:
+    name: Rollback
+    # Retour arrière depuis Actions, sans poste de travail : même porte
+    # d'approbation que le déploiement quand la cible est la production.
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'rollback'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    environment:
+      name: ${{ github.event.inputs.environment }}
+      url: >-
+        ${{ github.event.inputs.environment == 'production'
+            && vars.PRODUCTION_MAIN_API_URL
+            || vars.STAGING_MAIN_API_URL }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+      - run: npm ci
+      - name: Retour à la version précédente du Worker
+        env:
+          VERSION_ID: ${{ github.event.inputs.version_id }}
+        run: |
+          set -euo pipefail
+          args=(rollback)
+          if [ -n "${VERSION_ID}" ]; then
+            args+=("${VERSION_ID}")
+          fi
+          npx --no-install wrangler "${args[@]}" \
+            --config deployment/cloudflare/wrangler.toml \
+            --yes \
+            --message "rollback ${GITHUB_RUN_ID} par ${GITHUB_ACTOR}"
+      - name: Sonde après retour arrière
+        # Un rollback Worker sur une image incompatible laisse le service en 502 :
+        # sans cette sonde, le job annoncerait un succès trompeur.
+        run: |
+          if [ -z "${DEPLOYMENT_BASE_URL}" ]; then
+            echo "URL de l'environnement manquante : rollback non vérifiable" >&2
+            exit 1
+          fi
+          node tests/deploymentSmoke.mjs
+        env:
+          DEPLOYMENT_BASE_URL: >-
+            ${{ github.event.inputs.environment == 'production'
+                && vars.PRODUCTION_MAIN_API_URL
+                || vars.STAGING_MAIN_API_URL }}

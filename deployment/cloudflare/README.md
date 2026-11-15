@@ -74,15 +74,23 @@ Cloudflare (Secrets du Worker), pas dans le dépôt ni dans les logs de CI.
 
 ### Retour arrière
 
-Deux objets se roulent séparément :
+Depuis Actions, sans poste de travail : **Deploy Cloudflare → Run workflow**,
+puis `action = rollback`. Le champ `version_id` est facultatif : vide, Wrangler
+revient à la version précédente du Worker ; renseigné, il cible une version
+précise. La variable `environment` suit la même porte d'approbation que le
+déploiement : un rollback de production demande la même validation qu'un
+déploiement de production.
+
+Un dispatch `rollback` ne construit aucune image et ne déploie rien : les jobs
+`images`, `deploy-staging` et `deploy-production` sont explicitement exclus.
+
+En local, si Actions est indisponible :
 
 ```bash
 # Worker (code et bindings) : revient à la version précédente
-npx --no-install wrangler rollback --config deployment/cloudflare/wrangler.toml
+npx --no-install wrangler rollback --config deployment/cloudflare/wrangler.toml --yes
 
-# Container (image) : redéployer le commit précédent
-gh workflow run deploy-cloudflare.yml -f environment=staging
-  # sur le commit connu bon, ou via « Re-run » du dernier déploiement vert
+# Container (image) : redéployer le commit précédent, chemin normal
 ```
 
 Un retour arrière n'est complet que lorsque la sonde `deploymentSmoke.mjs`

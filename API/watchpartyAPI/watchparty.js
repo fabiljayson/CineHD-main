@@ -15,7 +15,14 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 // --- Config ---
-const PORT = Number(process.env.WATCHPARTY_PORT || 25566);
+// `PORT` est le nom générique lu par un Container (`docker run -e PORT=…`,
+// Cloudflare) ; `WATCHPARTY_PORT` reste l'ancien nom et 25566 le défaut local.
+function resolvePort() {
+  const candidate = process.env.PORT ?? process.env.WATCHPARTY_PORT;
+  const parsed = Number.parseInt(candidate, 10);
+  return Number.isInteger(parsed) && parsed > 0 && parsed < 65536 ? parsed : 25566;
+}
+const PORT = resolvePort();
 
 // Origines autorisées par défaut : uniquement le dev local. En production il faut
 // renseigner explicitement WATCHPARTY_REST_CORS_ORIGIN / WATCHPARTY_SOCKET_CORS_ORIGIN.
@@ -211,6 +218,18 @@ const io = new SocketIOServer(server, {
   }
 });
 
+// --- Sondes de conteneur ---
+// `/health` dit que le processus sert du HTTP ; `/ready` dit que les rooms ont
+// été restaurées et que l'écoute a démarré. Les deux corps sont statiques :
+// aucune room, aucun client, aucune configuration n'y apparaît.
+let isReady = false;
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+app.get('/ready', (_req, res) => {
+  res.status(isReady ? 200 : 503).json({ status: isReady ? 'ready' : 'not-ready' });
+});
+
 // --- Rate limiting (fenêtre glissante simple, en mémoire, sans dépendance) ---
 const rateLimitBuckets = new Map();
 
@@ -304,10 +323,20 @@ async function saveRoomsToDisk() {
 }
 
 let isShuttingDown = false;
+// Un client Socket.IO encore connecté empêche `server.close` d'appeler son
+// callback : sans borne, l'arrêt ne rend pas la main avant le SIGKILL de
+// l'orchestrateur alors que la sauvegarde, elle, est déjà faite.
+const SHUTDOWN_TIMEOUT_MS = 10000;
 async function gracefulShutdown(signal) {
   if (isShuttingDown) return;
   isShuttingDown = true;
+  isReady = false;
   console.log(`[Watchparty] Signal ${signal} reçu. Sauvegarde des rooms avant arrêt...`);
+  const hardStop = setTimeout(() => {
+    console.warn(`[Watchparty] Arrêt forcé après ${SHUTDOWN_TIMEOUT_MS} ms`);
+    process.exit(0);
+  }, SHUTDOWN_TIMEOUT_MS);
+  hardStop.unref();
   await saveRoomsToDisk();
   try { io.close(); } catch { }
   try { server.close(() => process.exit(0)); } catch { process.exit(0); }
@@ -1387,5 +1416,8 @@ setInterval(() => {
     scheduleRemoteOriginRefresh(ok ? CORS_SOURCE_REFRESH_MS : CORS_SOURCE_RETRY_MS);
   }
 
-  server.listen(PORT, () => console.log(`Watchparty server listening on http://localhost:${PORT}`));
+  server.listen(PORT, () => {
+    isReady = true;
+    console.log(`Watchparty server listening on http://localhost:${PORT}`);
+  });
 })();

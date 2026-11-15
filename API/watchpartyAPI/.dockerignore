@@ -1,0 +1,12 @@
+# Secrets et configuration locale
+.env
+.env.*
+
+node_modules
+
+# Instantané de rooms : données de runtime, jamais dans l'image
+cache
+
+tests
+*.log
+.git

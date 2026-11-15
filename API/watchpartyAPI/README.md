@@ -27,8 +27,9 @@ node API/watchpartyAPI/watchparty.js
 
 Notes utiles :
 
-- le port par défaut est `25566`
-- `API/watchpartyAPI/` n'a pas son propre `package.json` et résout ses dépendances depuis le `node_modules` racine ; en l'état, `express`, `cors`, `socket.io` et `dotenv` manquent dans ces dépendances (voir le README racine, « Limitations connues »)
+- le port par défaut est `25566` ; `PORT` prime sur `WATCHPARTY_PORT` (nom historique), qui prime sur ce défaut
+- le service a désormais son propre `package.json` (`"type": "module"`) et `package-lock.json` : `npm ci` depuis `API/watchpartyAPI/` suffit, le `node_modules` racine n'est plus requis
+- `GET /health` (liveness) et `GET /ready` (rooms restaurées et écoute ouverte) répondent sans authentification
 
 ## Configuration
 
@@ -122,6 +123,23 @@ Les familles d'événements à connaître :
 - les rooms vides sont nettoyées après 5 minutes
 - un cleanup périodique ferme aussi les rooms trop vieilles ou inactives
 - l'historique de chat est plafonné à 100 messages, messages système compris
+- un client Socket.IO encore connecté ne peut plus retarder indéfiniment le shutdown : l'arrêt se force après 10 s, une fois la sauvegarde écrite
+
+## Conteneur
+
+```bash
+docker build --platform linux/amd64 -t cinehd-watchparty:check API/watchpartyAPI
+docker run --rm -e PORT=25566 -p 25566:25566 cinehd-watchparty:check
+```
+
+| Route | Réponse | Sens |
+| --- | --- | --- |
+| `GET /health` | `200 {"status":"ok"}` | Le processus sert du HTTP. |
+| `GET /ready` | `200 {"status":"ready"}` / `503 {"status":"not-ready"}` | Rooms restaurées et écoute ouverte ; repasse à 503 pendant l'arrêt. |
+
+`.dockerignore` exclut `.env` et `cache/` : les secrets et l'instantané des rooms ne sont jamais dans l'image.
+
+**Durabilité :** `cache/watchparty-rooms.json` est écrit à l'arrêt propre et supprimé au démarrage suivant. Sur un Container, le disque est éphémère : les rooms vivent en mémoire et un remplacement d'instance les perd. C'est le point que la Task 6 doit prouver (upgrade Socket.IO, reconnexion, salle retrouvée) avant d'héberger ce service sur Containers ; sinon il reste sur un hôte Docker externe.
 
 ## Robustesse des événements Socket.IO
 

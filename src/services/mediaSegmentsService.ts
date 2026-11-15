@@ -17,6 +17,7 @@
 import axios from 'axios';
 import { MAIN_API } from '../config/runtime';
 import type { ProviderId, SegmentKind } from '../utils/skipSegmentPrefs';
+import { installSessionCredentials } from '../utils/sessionCredentials';
 
 export interface SegmentCandidate {
   source: ProviderId;
@@ -125,6 +126,9 @@ const segmentsApi = axios.create({
   baseURL: `${MAIN_API}/api/segments`,
   timeout: 15000,
 });
+// Chaque instance axios a ses propres intercepteurs : sans cet appel, les
+// requêtes ne joindraient pas le cookie de session (voir utils/sessionCredentials.ts).
+installSessionCredentials(segmentsApi);
 
 /**
  * Le jeton est envoye meme en lecture : c'est lui qui permet au serveur de

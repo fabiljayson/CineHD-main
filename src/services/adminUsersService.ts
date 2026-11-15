@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { MAIN_API } from '../config/runtime';
+import { installSessionCredentials } from '../utils/sessionCredentials';
 
 export type UserSubscriptionState = 'active' | 'expired' | 'disabled' | 'no-timer' | 'none';
 
@@ -86,6 +87,9 @@ const authHeaders = () => {
 };
 
 const client = axios.create({ baseURL: MAIN_API, timeout: 20000 });
+// Le cookie de session ne suit pas `axios.create()` : chaque instance a ses
+// propres intercepteurs (voir utils/sessionCredentials.ts).
+installSessionCredentials(client);
 
 export async function fetchAdminUsers(query: AdminUsersQuery): Promise<AdminUsersResponse> {
   const res = await client.get<AdminUsersResponse>('/api/admin/users', {

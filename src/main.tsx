@@ -9,6 +9,7 @@ import { api } from './services/api'
 import { registerBlockDetection } from './services/blockDetection'
 import { initAnalytics } from './utils/analytics'
 import { installHttpCache } from './utils/httpCache'
+import { installSessionCredentials, installSessionFetchCredentials } from './utils/sessionCredentials'
 import { installSegmentedSeasons } from './utils/segmentedSeasons'
 import { installManualEpisodes } from './utils/manualEpisodes'
 import './index.css'
@@ -179,6 +180,13 @@ registerBlockDetection(api)
 // surtout pour ce qui ne l'est jamais.
 installHttpCache(axios)
 installHttpCache(api)
+
+// Session en cookie HttpOnly : le cookie n'est joint que si la requête le
+// demande, et le frontend et l'API sont deux origines distinctes. Branché ici
+// pour couvrir d'un coup tous les appels de l'app (voir `utils/sessionCredentials.ts`).
+installSessionFetchCredentials()
+installSessionCredentials(axios)
+installSessionCredentials(api)
 
 // Séries que TMDB découpe en segments de 11 minutes (« Bienvenue chez les
 // Loud ») : les épisodes sont recollés à la volée pour coller aux fichiers.

@@ -1,4 +1,6 @@
 import { readLocalStorage, removeLocalStorage } from './browserStorage';
+import { MAIN_API } from '../config/runtime';
+import { SESSION_MARKER } from './sessionCredentials';
 
 export type AuthMethod = 'discord' | 'bip39';
 export type ResolvedUserType = 'oauth' | 'bip39';
@@ -359,8 +361,33 @@ export function clearPendingAuthAction() {
   clearCookie(PENDING_AUTH_ACTION_COOKIE);
 }
 
-export function clearStoredAuthSession() {
+/**
+ * Révoque la session côté serveur.
+ *
+ * Une déconnexion purement locale laisserait le cookie valide : le navigateur le
+ * renverrait au prochain chargement, et l'utilisateur serait reconnecté tout
+ * seul. L'appel est volontairement « au mieux » : si le réseau est coupé, l'état
+ * local est quand même effacé.
+ */
+function revokeServerSession() {
+  if (typeof window === 'undefined' || !MAIN_API || typeof window.fetch !== 'function') return;
+  try {
+    void window
+      .fetch(`${MAIN_API}/api/auth/logout`, { method: 'POST', credentials: 'include', keepalive: true })
+      .catch(() => undefined);
+  } catch {
+    /* rien à faire : la déconnexion locale prime */
+  }
+}
+
+/** Efface l'état local sans toucher à la session serveur (connexion, migration). */
+function clearStoredAuthSessionLocally() {
   AUTH_KEYS.forEach((key) => localStorage.removeItem(key));
+}
+
+export function clearStoredAuthSession() {
+  revokeServerSession();
+  clearStoredAuthSessionLocally();
 }
 
 export function clearLegacyGoogleAuthSession() {
@@ -424,7 +451,10 @@ export function persistResolvedSession(
     throw new Error('Impossible de déterminer l’identifiant du compte résolu');
   }
 
-  clearStoredAuthSession();
+  // Variante locale : une connexion ne doit pas révoquer la session qu'elle est
+  // en train de créer (la réponse de `/logout` peut arriver après celle du
+  // login et effacer le cookie fraîchement posé).
+  clearStoredAuthSessionLocally();
 
   localStorage.setItem('auth_method', method);
   localStorage.setItem('resolved_user_type', resolvedUserType);
@@ -432,7 +462,11 @@ export function persistResolvedSession(
   localStorage.setItem('user_id', resolvedUserId);
 
   if (payload.sessionId) localStorage.setItem('session_id', payload.sessionId);
-  if (payload.token) localStorage.setItem('auth_token', payload.token);
+  // Le jeton lui-même n'est plus stocké : le serveur l'a déposé dans un cookie
+  // HttpOnly, illisible par JavaScript (voir `middleware/sessionCookie.js`).
+  // La clé reste, avec un marqueur non secret : toute l'app s'en sert comme
+  // test « une session est ouverte ».
+  if (payload.token) localStorage.setItem('auth_token', SESSION_MARKER);
 
   if (method === 'discord') {
     const providerId = String(rawUser?.id || resolvedUserId);

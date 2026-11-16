@@ -86,6 +86,87 @@ jobs:
       working-directory: API/Mainapi
       run: node --test tests/*.test.js
 
+  postgres-migration:
+    # Les suites E2E de bascule s'ignorent elles-mêmes sans URLs de base : sans
+    # ce job, le portage PostgreSQL n'était vérifié par personne sur une push.
+    # Les identifiants ci-dessous sont ceux des conteneurs de service, jetables
+    # et propres à ce job : ce ne sont pas des secrets du dépôt.
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cinehd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: cinehd
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+      redis:
+        # Le limiteur de débit des routes d'authentification échoue fermé sans
+        # Redis : la suite auth/profils ne peut pas passer sans ce service.
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: 'npm'
+        cache-dependency-path: API/Mainapi/package-lock.json
+    - name: Installation (lockfile)
+      working-directory: API/Mainapi
+      run: npm ci
+    - name: Tests PostgreSQL, MySQL et Redis
+      working-directory: API/Mainapi
+      env:
+        # Même contrato que les scripts db:* : la source MySQL et la cible
+        # PostgreSQL sont deux bases distinctes, toutes deux jetables.
+        MYSQL_MIGRATION_URL: mysql://root:root@127.0.0.1:3306/cinehd
+        DATABASE_MIGRATION_URL: postgres://postgres:postgres@127.0.0.1:5432/cinehd
+        REDIS_HOST: 127.0.0.1
+        REDIS_PORT: '6379'
+        JWT_SECRET: ci-postgres-migration
+      run: |
+        set -o pipefail
+        # --test-concurrency=1 : les suites migrent et tronquent les mêmes bases,
+        # un lancement parallèle les ferait échouer l'une sur l'autre.
+        node --test --test-concurrency=1 --test-reporter=tap \
+          tests/postgresCoreMedia.e2e.test.js \
+          tests/mysqlPostgresMigration.e2e.test.js \
+          tests/postgresAuthProfiles.e2e.test.js \
+          | tee "$RUNNER_TEMP/pg-e2e.tap"
+        # Un test ignoré passerait pour un succès : sans cette garde, un
+        # changement de nom de variable rendrait le job vert sans rien vérifier.
+        if grep -q '# SKIP' "$RUNNER_TEMP/pg-e2e.tap"; then
+          echo "::error::Des tests ont été ignorés : vérifier MYSQL_MIGRATION_URL, DATABASE_MIGRATION_URL et Redis."
+          exit 1
+        fi
+
   proxies:
     # Le proxy est le seul service Python du dépôt ; il n'était vérifié nulle part.
     runs-on: ubuntu-latest

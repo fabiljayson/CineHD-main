@@ -313,5 +313,5 @@ jobs:
           gh release create "${GITHUB_REF_NAME}" \
             Movix-unsigned.ipa \
             Movix-unsigned.ipa.sha256 \
-            --title "Movix ${{ needs.build.outputs.version }} (iOS, non signee)" \
+            --title "CineHD ${{ needs.build.outputs.version }} (iOS, non signee)" \
             --notes "IPA non signee. Son installation est impossible tant qu'un utilisateur ne l'a pas signee par ses propres moyens. Verifiez l'archive avec: shasum -a 256 -c Movix-unsigned.ipa.sha256 — Source AltStore/SideStore : https://raw.githubusercontent.com/${{ github.repository }}/${{ github.event.repository.default_branch }}/app/movix-ios-source.json — Source Scarlet : https://raw.githubusercontent.com/${{ github.repository }}/${{ github.event.repository.default_branch }}/app/movix-scarlet-source.json"

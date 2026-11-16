@@ -1,13 +1,13 @@
 {
-  "version": "2.6.5",
-  "buildNumber": 42,
+  "version": "2.7.0",
+  "buildNumber": 43,
   "apkUrl": "https://github.com/fabiljayson/CineHD-main/releases/download/app-android-latest/cinehd-android.apk",
-  "apkSizeBytes": 64290469,
-  "apkSha256": "3df4f53e17abfbe90804e012004f81b821d26fd41b25c1ccc5f5a44917356e88",
-  "mandatory": false,
-  "releasedAt": "2026-10-08T19:09:58.000Z",
+  "apkSizeBytes": 64290269,
+  "apkSha256": "f23177e47deec284eed84aa5cad5dd424e751d2fa271a6fdd4516c82c6db6668",
+  "mandatory": true,
+  "releasedAt": "2026-11-16T10:30:20.580Z",
   "releaseNotes": {
-    "fr": "Nouveau logo Movix ! Le support passe aussi sur WhatsApp : +237 678 42 69 69.",
-    "en": "New Movix logo! Support also moves to WhatsApp: +237 678 42 69 69."
+    "fr": "- L'application porte maintenant le nom CineHD (ex-Movix), avec le nouveau logo\n- Paiement VIP par Orange Money et MTN MoMo (confirmation manuelle)\n- Connexion par code de paiement et demandes de compte mobile money\n- Pages légales ajoutées : mentions légales, conditions d'utilisation, confidentialité\n- Consentement aux CGU à l'inscription et bandeau cookies avec blocage réel des mesures\n- Support désormais sur WhatsApp : +237 678 42 69 69\n- Sécurité renforcée : session par cookie HttpOnly, routes publiques limitées, correctifs d'injection de commandes\n- Cette version change la clé de signature : si la mise à jour échoue, désinstallez puis réinstallez l'application",
+    "en": "- The app is now named CineHD (ex-Movix), with the new logo\n- VIP payments via Orange Money and MTN MoMo (manual confirmation)\n- Payment-code sign-in and mobile-money account requests\n- New legal pages: legal notices, terms of service, privacy policy\n- Terms consent at sign-up and a cookie banner that really blocks measurement\n- Support moves to WhatsApp: +237 678 42 69 69\n- Security hardening: HttpOnly cookie sessions, restricted public routes, command-injection fixes\n- This release changes the signing key: if the update fails, uninstall then reinstall the app"
   }
 }

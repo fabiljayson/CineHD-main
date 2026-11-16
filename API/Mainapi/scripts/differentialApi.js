@@ -53,6 +53,7 @@ function defaultRequests(env = process.env) {
     { label: 'serie complete', path: `/api/admin/links/tv/${series}` },
     { label: 'episode precis', path: `/api/admin/links/tv/${series}?season=1&episode=1` },
     { label: 'type invalide', path: '/api/admin/links/book/1' },
+    { label: 'compteurs de votes', path: `/api/likes/movie/${film}` },
     { label: 'offres publiques', path: '/api/account-requests/plans' },
   ];
 }

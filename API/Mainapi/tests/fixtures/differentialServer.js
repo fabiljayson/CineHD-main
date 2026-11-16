@@ -23,6 +23,9 @@ app.use('/api/admin', require('../../routes/admin'));
 // GET /account-requests/plans — reponse purement calculée, utile comme témoin
 // de forme (aucun accès base) en plus des routes SQL.
 app.use('/api', require('../../routes/accountRequests'));
+// GET /likes/:contentType/:contentId — compteurs issus de COUNT(*), le cas
+// type où les deux moteurs peuvent différer de type.
+app.use('/api/likes', require('../../likesRoutes'));
 
 const server = app.listen(0, '127.0.0.1', () => {
   const { port } = server.address();

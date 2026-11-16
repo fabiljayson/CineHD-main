@@ -172,6 +172,55 @@ function primaryKey(columns) {
   return keys;
 }
 
+const SEQUENCE_IDENTIFIER = /^[A-Za-z0-9_]+$/;
+
+/**
+ * Recale les séquences d'identité après un import.
+ *
+ * Le transfert insère les identifiants d'origine. PostgreSQL n'avance pas la
+ * séquence quand la valeur est fournie explicitement : sans ce recalage, la
+ * première insertion applicative réutilise un identifiant déjà présent et
+ * échoue sur la clé primaire — après une bascule déclarée réussie.
+ */
+async function resetSequences(client, tables) {
+  const adjusted = [];
+
+  for (const table of tables) {
+    const { rows: columns } = await client.query(
+      `SELECT a.attname AS column_name, pg_get_serial_sequence($1, a.attname) AS sequence_name
+         FROM pg_attribute a
+        WHERE a.attrelid = $1::regclass AND a.attnum > 0 AND NOT a.attisdropped`,
+      [table],
+    );
+
+    for (const column of columns) {
+      if (!column.sequence_name) continue;
+      // Le nom de table vient du catalogue de la source, mais il est réinjecté
+      // dans une requête : il reste validé, jamais concaténé sans contrôle.
+      if (!SEQUENCE_IDENTIFIER.test(table) || !SEQUENCE_IDENTIFIER.test(column.column_name)) {
+        throw new Error(`Identifiant inattendu pour une séquence : ${table}.${column.column_name}`);
+      }
+
+      // `MAX` reste un bigint côté serveur : le passer par `Number` perdrait
+      // les valeurs au-delà de 2^53 et `setval` refuserait la valeur arrondie.
+      const { rows: maxRows } = await client.query(
+        `SELECT MAX("${column.column_name}")::text AS maximum FROM "${table}"`,
+      );
+      const maximum = maxRows[0]?.maximum ?? null;
+
+      await client.query(
+        `SELECT setval($1,
+                        COALESCE((SELECT MAX("${column.column_name}") FROM "${table}"), 1),
+                        (SELECT MAX("${column.column_name}") FROM "${table}") IS NOT NULL)`,
+        [column.sequence_name],
+      );
+      adjusted.push({ table, column: column.column_name, maximum: maximum ?? '0' });
+    }
+  }
+
+  return adjusted;
+}
+
 module.exports = {
   categoryOf,
   canonicalRow,
@@ -183,6 +232,7 @@ module.exports = {
   normalizeTimestamp,
   postgresColumns,
   primaryKey,
+  resetSequences,
   stableStringify,
   toPgValue,
   typeMap,

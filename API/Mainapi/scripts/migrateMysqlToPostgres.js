@@ -37,6 +37,7 @@ const {
   primaryKey,
   toPgValue,
   typeMap,
+  resetSequences,
 } = require('./lib/pgTransfer');
 
 const BATCH_SIZE = 500;
@@ -271,12 +272,21 @@ async function main() {
       results.push(await transferTable({ source, target, table, options, state }));
     }
 
+    // Les identifiants copiés n'avancent pas les séquences : sans ce recalage,
+    // la première insertion applicative échoue sur une clé déjà prise.
+    const sequences = await resetSequences(target, results.filter((item) => !item.stopped).map((item) => item.table));
+
     const summary = {
       tables: results,
       copied: results.reduce((sum, item) => sum + (item.rows || 0), 0),
       stoppedEarly: results.some((item) => item.stopped),
+      sequences,
     };
-    console.log(options.json ? JSON.stringify(summary) : `Transfert terminé : ${summary.copied} ligne(s) sur ${results.length} table(s).`);
+    console.log(
+      options.json
+        ? JSON.stringify(summary)
+        : `Transfert terminé : ${summary.copied} ligne(s) sur ${results.length} table(s), ${sequences.length} séquence(s) recalée(s).`,
+    );
   } finally {
     await source.end().catch(() => {});
     await target.end().catch(() => {});

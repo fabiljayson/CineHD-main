@@ -93,10 +93,26 @@ function call(method, route, { token, body } = {}) {
 before(async () => {
   if (!PG_URL) return;
 
-  execFileSync(process.execPath, [path.join(__dirname, '..', 'db', 'migratePostgres.js')], {
-    env: { ...process.env, DATABASE_MIGRATION_URL: PG_URL },
-    stdio: 'pipe',
-  });
+  // Une base tout juste créée redémarre une fois son initialisation terminée.
+  // `pg_isready` répond alors que le serveur va se couper : la migration échoue
+  // sur une connexion perdue alors qu'elle est valide. On ne retente que ce cas
+  // — une erreur de schéma ou de dérive doit remonter immédiatement.
+  const migrate = () => execFileSync(
+    process.execPath,
+    [path.join(__dirname, '..', 'db', 'migratePostgres.js')],
+    { env: { ...process.env, DATABASE_MIGRATION_URL: PG_URL }, stdio: 'pipe' },
+  );
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      migrate();
+      break;
+    } catch (error) {
+      const detail = String(error.stderr || '');
+      const transient = /Connection terminated|ECONNREFUSED|the database system is starting up/i.test(detail);
+      if (!transient || attempt >= 2) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
 
   const { Client } = require('pg');
   const client = new Client({ connectionString: PG_URL });

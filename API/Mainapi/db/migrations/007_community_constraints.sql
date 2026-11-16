@@ -1,0 +1,11 @@
+-- Migration additionnelle — contraintes présentes côté MySQL mais absentes du
+-- rendu généré (db/schema).
+--
+-- Ajoutée dans un nouveau fichier plutôt que modifiée dans 001_core.sql : une
+-- migration déjà appliquée enregistre sa somme de contrôle, donc la réécrire
+-- casserait les environnements existants et effacerait la trace du changement.
+--
+-- `help_feedback` porte `UNIQUE (slug, ip_hash)` en MySQL (uniq_slug_ip). Sans
+-- cette contrainte, l'upsert de `routes/helpFeedback.js` insère un doublon à
+-- chaque envoi au lieu de mettre à jour la ligne existante.
+CREATE UNIQUE INDEX IF NOT EXISTS "uniq_slug_ip" ON "help_feedback" ("slug", "ip_hash");

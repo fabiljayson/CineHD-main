@@ -4,7 +4,9 @@ const fs = require("fs").promises;
 const path = require("path");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
-const { getPool } = require("./mysqlPool");
+const { getPool, isPostgres } = require("./db/dialect");
+const { insertReturningId } = require("./db/pgCompat");
+const { upsertNotificationPreferences } = require("./db/communitySql");
 const { isDuplicateKeyError } = require("./db/pgCompat");
 // Réutiliser l'instance Redis partagée au lieu d'en créer une nouvelle (évite les fuites mémoire)
 const { redis } = require("./config/redis");
@@ -303,9 +305,15 @@ flagged doit être un booléen. Si flagged=false, reason doit être null. Si fla
 // Fonctions helper MySQL pour remplacer SQLite (#16: pool caché)
 const dbRun = async (sql, params = []) => {
   const pool = getCachedPool();
+  // Sur MySQL l'identité générée arrive dans `insertId` ; PostgreSQL la rend
+  // seulement avec `RETURNING`, donc un INSERT passe par l'adaptateur.
+  if (/^\s*insert\b/i.test(sql)) {
+    const id = await insertReturningId(pool, sql, params);
+    return { lastID: id || 0, changes: 1 };
+  }
   const [result] = await pool.execute(sql, params);
   return {
-    lastID: result.insertId || 0,
+    lastID: 0,
     changes: result.affectedRows || 0,
   };
 };
@@ -396,6 +404,10 @@ const writeRateLimit = rateLimit({
 let _notificationTablesInitialized = false;
 let _notificationTablesInitPromise = null;
 async function ensureNotificationTables() {
+  // Sur PostgreSQL le schéma appartient aux migrations : ce DDL MySQL
+  // (`AUTO_INCREMENT`, `INDEX` dans CREATE TABLE) ne s'y applique pas et ne doit
+  // pas être traduit, seulement sauté.
+  if (isPostgres()) return;
   if (_notificationTablesInitialized) return;
   if (_notificationTablesInitPromise) return _notificationTablesInitPromise;
   _notificationTablesInitPromise = (async () => {
@@ -611,6 +623,7 @@ async function isNotificationDisabledForUser(userId, userType) {
 
 let pushTableReady = false;
 async function ensurePushTable() {
+  if (isPostgres()) return;
   if (pushTableReady) return;
   try {
     await getPool().execute(
@@ -1380,9 +1393,7 @@ router.put("/notifications/preferences", requireAuth, writeRateLimit, async (req
     const disabled = req.body?.notificationsDisabled === true;
     const pool = getCachedPool();
     await pool.execute(
-      `INSERT INTO user_notification_preferences (user_id, user_type, notifications_disabled, updated_at)
-       VALUES (?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE notifications_disabled = VALUES(notifications_disabled), updated_at = VALUES(updated_at)`,
+      upsertNotificationPreferences(),
       [req.user.userId, req.user.userType, disabled ? 1 : 0, Date.now()]
     );
 
@@ -3490,13 +3501,13 @@ router.get("/admin/reports", requireAuth, async (req, res) => {
 
     const statsResult = await dbGet(`
       SELECT
-        IFNULL(COUNT(*), 0) as total,
-        IFNULL(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) as pending,
-        IFNULL(SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END), 0) as resolved,
-        IFNULL(SUM(CASE WHEN status = 'dismissed' THEN 1 ELSE 0 END), 0) as dismissed,
-        IFNULL(SUM(CASE WHEN target_type = 'comment' OR target_type = 'reply' THEN 1 ELSE 0 END), 0) as comments,
-        IFNULL(SUM(CASE WHEN target_type = 'shared_list' THEN 1 ELSE 0 END), 0) as lists,
-        IFNULL(SUM(CASE WHEN target_type = 'segment' THEN 1 ELSE 0 END), 0) as segments
+        COALESCE(COUNT(*), 0) as total,
+        COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) as pending,
+        COALESCE(SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END), 0) as resolved,
+        COALESCE(SUM(CASE WHEN status = 'dismissed' THEN 1 ELSE 0 END), 0) as dismissed,
+        COALESCE(SUM(CASE WHEN target_type = 'comment' OR target_type = 'reply' THEN 1 ELSE 0 END), 0) as comments,
+        COALESCE(SUM(CASE WHEN target_type = 'shared_list' THEN 1 ELSE 0 END), 0) as lists,
+        COALESCE(SUM(CASE WHEN target_type = 'segment' THEN 1 ELSE 0 END), 0) as segments
       FROM reports
     `);
 

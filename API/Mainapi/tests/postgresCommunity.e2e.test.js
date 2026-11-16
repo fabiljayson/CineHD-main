@@ -21,6 +21,9 @@ if (process.env.DATABASE_MIGRATION_URL) process.env.DATABASE_URL = process.env.D
 
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
+const fsSync = require('node:fs');
+const fs = require('node:fs/promises');
+const os = require('node:os');
 const path = require('node:path');
 const http = require('node:http');
 const { execFileSync } = require('node:child_process');
@@ -32,6 +35,13 @@ const skip = PG_URL ? false : 'DATABASE_MIGRATION_URL requis (PostgreSQL jetable
 const USER = 'community-user';
 const SESSION = 'community-session';
 const CONTENT_ID = '4001';
+const PROFILE = 'profile-1';
+const LIST = 'list-1';
+
+// Les listes partagées lisent les listes personnalisées du profil sur le disque :
+// ce dossier temporaire évite d'écrire dans le checkout.
+const USER_DATA_DIR = fsSync.mkdtempSync(path.join(os.tmpdir(), 'cinehd-community-e2e-'));
+process.env.USER_DATA_DIR = USER_DATA_DIR;
 
 let server;
 let token;
@@ -89,9 +99,25 @@ before(async () => {
     }
   }
 
+  // Données de profil minimales attendues par les listes partagées.
+  await fs.mkdir(path.join(USER_DATA_DIR, 'users', 'profiles', 'bip39', USER), { recursive: true });
+  await fs.writeFile(
+    path.join(USER_DATA_DIR, 'users', `bip39-${USER}.json`),
+    JSON.stringify({ profiles: [{ id: PROFILE, name: 'Profil test', avatar: '/avatars/disney/disney_avatar_1.png' }] }),
+  );
+  await fs.writeFile(
+    path.join(USER_DATA_DIR, 'users', 'profiles', 'bip39', USER, `${PROFILE}.json`),
+    JSON.stringify({
+      custom_lists: JSON.stringify([{ id: LIST, name: 'Ma liste', items: [{ tmdbId: 4001, type: 'movie', title: 'Film' }] }]),
+    }),
+  );
+
   const app = express();
   app.use(express.json());
   app.use('/api/likes', require('../likesRoutes'));
+  app.use('/api/comments', require('../commentsRoutes'));
+  app.use('/api/help', require('../routes/helpFeedback'));
+  app.use('/api/shared-lists', require('../sharedListsRoutes'));
   await new Promise((resolve) => { server = app.listen(0, '127.0.0.1', resolve); });
 
   pool = require('../db/dialect').getPool();
@@ -112,7 +138,37 @@ after(async () => {
     server.close(resolve);
     server.closeAllConnections?.();
   });
+  await fs.rm(USER_DATA_DIR, { recursive: true, force: true }).catch(() => {});
   await require('../postgresPool').closePostgresPool().catch(() => {});
+  require('../config/redis').redis.disconnect();
+});
+
+test('partager une liste écrit la référence en base et la relit', { skip }, async () => {
+  const created = await call('POST', '/api/shared-lists/share', {
+    profileId: PROFILE,
+    listId: LIST,
+    publishToCatalog: false,
+  });
+
+  // Sur PostgreSQL, cette route passait d'abord par un DDL MySQL
+  // (`CREATE TABLE … ENGINE=InnoDB`) : le garde-fou est ce qui la rend possible.
+  assert.equal(created.status, 200, JSON.stringify(created.body));
+  const shareCode = created.body.shareCode || created.body.shared?.shareCode;
+  assert.ok(shareCode, `un code de partage est renvoyé : ${JSON.stringify(created.body)}`);
+
+  const rows = await pool.execute(
+    'SELECT share_code, list_id FROM shared_lists WHERE user_id = ? AND profile_id = ?',
+    [USER, PROFILE],
+  );
+  assert.equal(rows[0].length, 1, 'la liste partagée existe en base');
+  assert.equal(rows[0][0].share_code, shareCode);
+  assert.equal(rows[0][0].list_id, LIST);
+
+  const fetched = await call('GET', `/api/shared-lists/list/${shareCode}`, null, false);
+  assert.equal(fetched.status, 200, JSON.stringify(fetched.body));
+  assert.equal(fetched.body.listName, 'Ma liste');
+  assert.equal(fetched.body.itemCount, 1);
+  assert.equal(fetched.body.username, 'Profil test');
 });
 
 test('un contenu sans vote renvoie des compteurs numériques', { skip }, async () => {
@@ -164,6 +220,39 @@ test('un vote contraire remplace le précédent au lieu de s’ajouter', { skip 
 
   const rows = await pool.execute('SELECT COUNT(*) AS total FROM likes WHERE content_id = ?', [CONTENT_ID]);
   assert.equal(Number(rows[0][0].total), 1, 'un seul vote par utilisateur et par contenu');
+});
+
+test('deux avis du même visiteur ne créent qu’une ligne d’aide', { skip }, async () => {
+  // Slug de la liste blanche du routeur : ce n'est pas un identifiant libre.
+  const slug = 'dns';
+  await pool.execute('DELETE FROM help_feedback WHERE slug = ?', [slug]);
+  const first = await call('POST', '/api/help/feedback', { slug, helpful: true }, false);
+  assert.equal(first.status, 200, JSON.stringify(first.body));
+
+  const second = await call('POST', '/api/help/feedback', { slug, helpful: false }, false);
+  assert.equal(second.status, 200, JSON.stringify(second.body));
+
+  // L'upsert doit mettre à jour et non ajouter : sur PostgreSQL cela dépend de
+  // la contrainte (slug, ip_hash) que migrations/007 rétablit.
+  const rows = await pool.execute('SELECT helpful FROM help_feedback WHERE slug = ?', [slug]);
+  assert.equal(rows[0].length, 1, 'une seule ligne malgré deux envois');
+  assert.equal(Number(rows[0][0].helpful), 0, 'le dernier avis remplace le précédent');
+});
+
+test('les préférences de notifications sont upsertées, pas dupliquées', { skip }, async () => {
+  const off = await call('PUT', '/api/comments/notifications/preferences', { notificationsDisabled: true });
+  assert.equal(off.status, 200, JSON.stringify(off.body));
+  assert.equal(off.body.notificationsDisabled, true);
+
+  const on = await call('PUT', '/api/comments/notifications/preferences', { notificationsDisabled: false });
+  assert.equal(on.status, 200, JSON.stringify(on.body));
+
+  const rows = await pool.execute(
+    'SELECT notifications_disabled FROM user_notification_preferences WHERE user_id = ? AND user_type = ?',
+    [USER, 'bip39'],
+  );
+  assert.equal(rows[0].length, 1, 'la clé primaire (user_id, user_type) fait l’upsert');
+  assert.equal(Number(rows[0][0].notifications_disabled), 0);
 });
 
 test('un type de contenu inconnu est refusé, et voter exige un jeton', { skip }, async () => {

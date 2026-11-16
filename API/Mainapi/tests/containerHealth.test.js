@@ -92,6 +92,9 @@ test('container lifecycle: liveness without dependencies, 503 readiness, clean S
       ...process.env,
       ...UNREACHABLE_DEPENDENCIES,
       PORT: String(port),
+      // server.js refuse de démarrer sans JWT_SECRET : valeur de test, jamais
+      // un secret réel (même principe que la sonde d'image en CI).
+      JWT_SECRET: process.env.JWT_SECRET || 'container-health-test-only',
       // Un seul worker : le test ne doit pas démarrer un cluster non borné.
       NUM_WORKERS: '1',
       WORKER_RECYCLE_INTERVAL_MS: '0',

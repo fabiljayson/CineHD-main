@@ -26,7 +26,7 @@
           "date": "2026-11-16",
           "localizedDescription": "Version 2.7.0 (build 43). Notes de version : https://github.com/fabiljayson/CineHD-main/releases/tag/ios-v2.7.0",
           "downloadURL": "https://github.com/fabiljayson/CineHD-main/releases/download/app-ios-latest/cinehd-ios-unsigner.ipa",
-          "size": 7311559,
+          "size": 7339967,
           "minOSVersion": "15.6"
         }
       ],
@@ -34,7 +34,7 @@
       "versionDate": "2026-11-16",
       "versionDescription": "Version 2.7.0 (build 43). Notes de version : https://github.com/fabiljayson/CineHD-main/releases/tag/ios-v2.7.0",
       "downloadURL": "https://github.com/fabiljayson/CineHD-main/releases/download/app-ios-latest/cinehd-ios-unsigner.ipa",
-      "size": 7311559,
+      "size": 7339967,
       "beta": false
     }
   ],

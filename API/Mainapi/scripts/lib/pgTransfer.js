@@ -182,16 +182,21 @@ const SEQUENCE_IDENTIFIER = /^[A-Za-z0-9_]+$/;
  * première insertion applicative réutilise un identifiant déjà présent et
  * échoue sur la clé primaire — après une bascule déclarée réussie.
  */
+async function sequenceColumns(client, table) {
+  const { rows } = await client.query(
+    `SELECT a.attname AS column_name, pg_get_serial_sequence($1, a.attname) AS sequence_name
+       FROM pg_attribute a
+      WHERE a.attrelid = $1::regclass AND a.attnum > 0 AND NOT a.attisdropped`,
+    [table],
+  );
+  return rows.filter((column) => column.sequence_name);
+}
+
 async function resetSequences(client, tables) {
   const adjusted = [];
 
   for (const table of tables) {
-    const { rows: columns } = await client.query(
-      `SELECT a.attname AS column_name, pg_get_serial_sequence($1, a.attname) AS sequence_name
-         FROM pg_attribute a
-        WHERE a.attrelid = $1::regclass AND a.attnum > 0 AND NOT a.attisdropped`,
-      [table],
-    );
+    const columns = await sequenceColumns(client, table);
 
     for (const column of columns) {
       if (!column.sequence_name) continue;
@@ -221,6 +226,50 @@ async function resetSequences(client, tables) {
   return adjusted;
 }
 
+/**
+ * Refuse une bascule où une séquence est restée derrière son maximum.
+ *
+ * `resetSequences` est censé suffire ; ce contrôle existe parce que le défaut
+ * qu'il couvre ne se voit qu'après le cutover, sous trafic, sur une insertion
+ * qui échoue en clé dupliquée. Un recalage oublié doit casser ici.
+ */
+async function assertSequencesAhead(client, tables) {
+  const behind = [];
+  let checked = 0;
+
+  for (const table of tables) {
+    if (!SEQUENCE_IDENTIFIER.test(table)) {
+      throw new Error(`Identifiant de table inattendu : ${table}`);
+    }
+
+    for (const column of await sequenceColumns(client, table)) {
+      // `pg_get_serial_sequence` rend un nom éventuellement qualifié par le
+      // schéma ; il finit dans une requête, donc il est validé puis cité.
+      if (!/^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)?$/.test(column.sequence_name)) {
+        throw new Error(`Nom de séquence inattendu : ${column.sequence_name}`);
+      }
+      const sequence = column.sequence_name.split('.').map((part) => `"${part}"`).join('.');
+
+      const { rows: stateRows } = await client.query(`SELECT last_value FROM ${sequence}`);
+      const { rows: maxRows } = await client.query(
+        `SELECT MAX("${column.column_name}")::text AS maximum FROM "${table}"`,
+      );
+
+      const maximum = maxRows[0]?.maximum ?? null;
+      checked += 1;
+      if (maximum !== null && BigInt(maximum) > BigInt(stateRows[0].last_value)) {
+        behind.push(`${table}.${column.column_name} (${stateRows[0].last_value} < ${maximum})`);
+      }
+    }
+  }
+
+  if (behind.length > 0) {
+    throw new Error(`Séquences en retard après transfert : ${behind.join(', ')}`);
+  }
+
+  return { checked };
+}
+
 module.exports = {
   categoryOf,
   canonicalRow,
@@ -233,6 +282,7 @@ module.exports = {
   postgresColumns,
   primaryKey,
   resetSequences,
+  assertSequencesAhead,
   stableStringify,
   toPgValue,
   typeMap,

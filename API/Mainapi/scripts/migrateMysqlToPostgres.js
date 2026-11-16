@@ -38,6 +38,7 @@ const {
   toPgValue,
   typeMap,
   resetSequences,
+  assertSequencesAhead,
 } = require('./lib/pgTransfer');
 
 const BATCH_SIZE = 500;
@@ -274,18 +275,23 @@ async function main() {
 
     // Les identifiants copiés n'avancent pas les séquences : sans ce recalage,
     // la première insertion applicative échoue sur une clé déjà prise.
-    const sequences = await resetSequences(target, results.filter((item) => !item.stopped).map((item) => item.table));
+    const transferredTables = results.filter((item) => !item.stopped).map((item) => item.table);
+    const sequences = await resetSequences(target, transferredTables);
+    // Puis on vérifie : un recalage oublié doit faire échouer la bascule
+    // maintenant, pas la première écriture réelle.
+    const sequenceCheck = await assertSequencesAhead(target, transferredTables);
 
     const summary = {
       tables: results,
       copied: results.reduce((sum, item) => sum + (item.rows || 0), 0),
       stoppedEarly: results.some((item) => item.stopped),
       sequences,
+      sequencesChecked: sequenceCheck.checked,
     };
     console.log(
       options.json
         ? JSON.stringify(summary)
-        : `Transfert terminé : ${summary.copied} ligne(s) sur ${results.length} table(s), ${sequences.length} séquence(s) recalée(s).`,
+        : `Transfert terminé : ${summary.copied} ligne(s) sur ${results.length} table(s), ${sequenceCheck.checked} séquence(s) vérifiée(s).`,
     );
   } finally {
     await source.end().catch(() => {});

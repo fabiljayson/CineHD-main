@@ -9,7 +9,8 @@
     "db:postgres:generate": "node db/generatePostgresMigrations.js",
     "db:postgres:migrate": "node db/migratePostgres.js",
     "db:postgres:transfer": "node scripts/migrateMysqlToPostgres.js",
-    "db:postgres:verify": "node scripts/verifyMysqlPostgresData.js"
+    "db:postgres:verify": "node scripts/verifyMysqlPostgresData.js",
+    "db:differential": "node scripts/differentialApi.js"
   },
   "dependencies": {
     "@fastify/compress": "^8.3.1",

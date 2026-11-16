@@ -5,6 +5,7 @@ const path = require("path");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const { getPool } = require("./mysqlPool");
+const { isDuplicateKeyError } = require("./db/pgCompat");
 // Réutiliser l'instance Redis partagée au lieu d'en créer une nouvelle (évite les fuites mémoire)
 const { redis } = require("./config/redis");
 const { verifyTurnstileFromRequest } = require("./utils/turnstile");
@@ -3327,7 +3328,9 @@ router.post("/report", requireAuth, reportRateLimit, async (req, res) => {
         ],
       );
     } catch (err) {
-      if (err.code === "ER_DUP_ENTRY") {
+      // Doublon d'unicité : MySQL le signale en ER_DUP_ENTRY, PostgreSQL en
+      // SQLSTATE 23505. Sans ce test, le même signalement renverrait 500.
+      if (isDuplicateKeyError(err)) {
         return res
           .status(409)
           .json({ error: "Vous avez déjà signalé ce contenu" });

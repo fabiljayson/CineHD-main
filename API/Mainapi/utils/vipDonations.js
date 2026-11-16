@@ -5,6 +5,7 @@ const ecc = require('tiny-secp256k1');
 const { BIP32Factory } = require('bip32');
 
 const { invalidateVipCache } = require('../checkVip');
+const { isDuplicateKeyError } = require('../db/pgCompat');
 const { fetchAddressTxs, fetchTipHeight } = require('./chainExplorer');
 const vipPaygate = require('./vipPaygate');
 const vipCryptoGate = require('./vipCryptoGate');
@@ -1993,7 +1994,9 @@ async function applyPaygatePaymentObservation(pool, invoiceId, payment, options 
     }
   } catch (error) {
     await connection.rollback();
-    if (error?.code === 'ER_DUP_ENTRY' || Number(error?.errno) === 1062) {
+    // Rejeu d'un callback paygate : même transaction déjà enregistrée. Sur
+    // PostgreSQL le doublon arrive en SQLSTATE 23505, pas en ER_DUP_ENTRY.
+    if (isDuplicateKeyError(error)) {
       throw createPaygateCallbackError('PAYGATE_TXID_ALREADY_USED', 409);
     }
     throw error;

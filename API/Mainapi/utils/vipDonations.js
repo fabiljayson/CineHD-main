@@ -5,7 +5,7 @@ const ecc = require('tiny-secp256k1');
 const { BIP32Factory } = require('bip32');
 
 const { invalidateVipCache } = require('../checkVip');
-const { isDuplicateKeyError } = require('../db/pgCompat');
+const { isDuplicateKeyError, insertOne } = require('../db/pgCompat');
 const { fetchAddressTxs, fetchTipHeight } = require('./chainExplorer');
 const vipPaygate = require('./vipPaygate');
 const vipCryptoGate = require('./vipCryptoGate');
@@ -1361,7 +1361,8 @@ async function createCryptoVipInvoice(pool, payload, context = {}) {
   const createdIpHash = hashIp(context.ipAddress);
   const auth = context.auth || null;
 
-  const [insertResult] = await pool.execute(
+  const insertResult = await insertOne(
+    pool,
     `INSERT INTO vip_invoices
       (public_id, payment_method, status, coin, pack_eur, amount_eur, amount_usd, amount_crypto_expected,
        amount_crypto_received, vip_years, recipient_mode, payment_address, address_type,
@@ -1471,7 +1472,8 @@ async function createPaygateVipInvoice(pool, payload, context = {}) {
 
     try {
       await connection.beginTransaction();
-      const [insertResult] = await connection.execute(
+      const insertResult = await insertOne(
+        connection,
         `INSERT INTO vip_invoices
           (public_id, payment_method, status, pack_eur, amount_eur, amount_usd,
            amount_crypto_expected, amount_crypto_received, vip_years, recipient_mode,
@@ -1602,7 +1604,8 @@ async function createCryptoGateVipInvoice(pool, payload, context = {}) {
 
   try {
     await connection.beginTransaction();
-    const [insertResult] = await connection.execute(
+    const insertResult = await insertOne(
+      connection,
       `INSERT INTO vip_invoices
         (public_id, payment_method, status, coin, pack_eur, amount_eur, amount_usd,
          amount_crypto_expected, amount_crypto_received, vip_years, recipient_mode,
@@ -1715,7 +1718,8 @@ async function createPayblisVipInvoice(pool, { pack, recipientMode, payerEmail, 
   });
   const checkoutUrl = payblisMod.buildPayblisCheckoutUrl(payload);
 
-  const [insertResult] = await pool.execute(
+  const insertResult = await insertOne(
+    pool,
     `INSERT INTO vip_invoices
       (public_id, payment_method, status, coin, pack_eur, amount_eur, amount_usd, amount_crypto_expected,
        amount_crypto_received, vip_years, recipient_mode, payment_address, address_type, derivation_index,

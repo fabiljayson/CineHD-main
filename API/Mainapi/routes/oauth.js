@@ -6,7 +6,7 @@ const { ipKeyGenerator } = require('express-rate-limit');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
 const { getTrustedClientIp } = require('../utils/clientIp');
 const { getAuthIfValid } = require('../middleware/auth');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const {
   getOAuthClient,
   getOAuthClientPublicMetadata,

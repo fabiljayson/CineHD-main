@@ -105,6 +105,16 @@ function isDuplicateKeyError(error) {
  * par ici évite d'écrire un `RETURNING` que MySQL refuserait, et évite de lire
  * un `insertId` que l'adaptateur ne fournit pas.
  */
+/**
+ * Même chose, mais sous la forme `{ insertId }` que certains appelants lisent
+ * directement. Explicite plutôt que magique : la valeur vient de `RETURNING`
+ * sur PostgreSQL, de `insertId` sur MySQL.
+ */
+async function insertOne(executor, sql, params = [], options = {}) {
+  const id = await insertReturningId(executor, sql, params, options);
+  return { insertId: id };
+}
+
 async function insertReturningId(executor, sql, params = [], { idColumn = 'id' } = {}) {
   if (executor?.dialect === POSTGRES_DIALECT) {
     const [rows] = await executor.execute(`${sql}\nRETURNING ${idColumn}`, params);
@@ -146,5 +156,6 @@ module.exports = {
   toPgPlaceholders,
   createPostgresCompat,
   insertReturningId,
+  insertOne,
   isDuplicateKeyError,
 };

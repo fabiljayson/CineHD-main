@@ -10,7 +10,8 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
+const { upsertOauthClient } = require('../db/oauthSql');
 const { redis } = require('../config/redis');
 const { ensureTableGroup } = require('../db/runtimeEnsure');
 
@@ -101,12 +102,7 @@ async function migrateLegacyJsonIfNeeded() {
       const requirePkce = entry.requirePkce === false ? 0 : 1;
       const clientSecret = entry.clientSecret ? String(entry.clientSecret) : null;
       await pool.execute(
-        `INSERT INTO oauth_clients
-           (client_id, client_name, description, homepage_url, redirect_uris,
-            allowed_scopes, public_client, require_pkce, client_secret,
-            is_active, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
-         ON DUPLICATE KEY UPDATE updated_at = VALUES(updated_at)`,
+        upsertOauthClient(),
         [
           clientId,
           clientName,

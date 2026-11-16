@@ -748,7 +748,9 @@ const appReady = (async () => {
         initWrappedRoutes,
         initTables: initWrappedTables,
       } = require("./wrappedRoutes");
-      initWrappedRoutes(pool, redis);
+      // Le pool de dialecte, pas celui de MySQL : Wrapped est servi par le
+      // moteur sélectionné comme le reste de l'API après bascule.
+      initWrappedRoutes(require("./db/dialect").getPool(), redis);
       await initWrappedTables();
       app.use("/api/wrapped", wrappedRouter);
       console.log("Wrapped routes initialized successfully");

@@ -167,6 +167,72 @@ jobs:
           exit 1
         fi
 
+  postgres-e2e:
+    # Suites PostgreSQL seules : elles s'ignoraient tant que
+    # DATABASE_MIGRATION_URL était absent, donc un changement de requête ou de
+    # schéma passait la CI sans être exécuté. MySQL n'est pas requis ici.
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cinehd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+      redis:
+        # La suite auth/profils passe par le limiteur de débit des routes de
+        # connexion, qui échoue fermé sans Redis.
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: 'npm'
+        cache-dependency-path: API/Mainapi/package-lock.json
+    - name: Installation (lockfile)
+      working-directory: API/Mainapi
+      run: npm ci
+    - name: Tests PostgreSQL (core/media, auth/profils)
+      working-directory: API/Mainapi
+      env:
+        # Identifiants du conteneur de service, jetables et propres au job : ce
+        # ne sont pas des secrets du dépôt.
+        DATABASE_MIGRATION_URL: postgres://postgres:postgres@127.0.0.1:5432/cinehd
+        REDIS_HOST: 127.0.0.1
+        REDIS_PORT: '6379'
+        JWT_SECRET: ci-postgres-e2e
+      run: |
+        set -o pipefail
+        # Série : les deux suites migrent puis tronquent la même base, un
+        # lancement parallèle les ferait échouer l'une sur l'autre.
+        node --test --test-concurrency=1 --test-reporter=tap \
+          tests/postgresCoreMedia.e2e.test.js \
+          tests/postgresAuthProfiles.e2e.test.js \
+          | tee "$RUNNER_TEMP/pg-e2e.tap"
+        # Sans URL valide, node --test sort en 0 avec tout ignoré : cette garde
+        # empêche un job vert qui n'a rien vérifié.
+        if grep -q '# SKIP' "$RUNNER_TEMP/pg-e2e.tap"; then
+          echo "::error::Tests ignorés : vérifier DATABASE_MIGRATION_URL et le service Redis."
+          exit 1
+        fi
+
   proxies:
     # Le proxy est le seul service Python du dépôt ; il n'était vérifié nulle part.
     runs-on: ubuntu-latest

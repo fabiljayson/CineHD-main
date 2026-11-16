@@ -16,7 +16,7 @@ Docs branding rule: everything user-facing says **CineHD (ex-Movix)**; runtime i
 | watchparty (Express + socket.io) | 25566 | from `API/watchpartyAPI/`; needs `npm install --no-save` of express/cors/socket.io@4/dotenv (deps deliberately out of package.json) |
 | proxiesembed (Python) | 25569 | its own uv venv, **Python 3.13 only** (lxml 5.3.0 wheels don't exist for 3.14), `secrets MEDIA_SIGNING_SECRET`/`INTERNAL_API_KEY` must equal mainapi's |
 
-Containers `cinehd-mysql` (8.4, 3306) + `cinehd-redis` (7, 6379) are already living on this machine. MySQL auth through the bundled `mariadb` client needs `--skip-ssl` (self-signed container cert). Complete DB (37 tables) is created via the `db/schema` module + `renderCreateTable` — app bootstrap alone does NOT create core/media/community tables.
+Containers `cinehd-mysql` (8.4, 3306) + `cinehd-redis` (7, 6379) are already living on this machine. MySQL auth through the bundled `mariadb` client needs `--skip-ssl` (self-signed container cert). Complete DB (40 tables across six groups) is created via the `db/schema` module + `renderCreateTable`, non-interactively with `npm run db:schema:apply` in `API/Mainapi/` — app bootstrap alone does NOT create core/media/community tables.
 
 ## Known bugs
 

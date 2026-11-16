@@ -14,9 +14,11 @@
  * profil renvoyé, refus d'un profil qui ne lui appartient pas. Pas la forme des
  * requêtes.
  *
- * Les comptes de test s'appuient sur les fichiers de données du service
- * (`data/users`), comme en production : une session valide exige un compte de
- * secours lisible, pas seulement une ligne SQL.
+ * Les comptes de test s'appuient sur les fichiers de données du service, comme
+ * en production : une session valide exige un compte de secours lisible, pas
+ * seulement une ligne SQL. Ils sont écrits dans un dossier temporaire via
+ * `USER_DATA_DIR`, pour qu'une exécution interrompue ne laisse rien dans le
+ * dépôt.
  */
 
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-only-secret';
@@ -27,6 +29,8 @@ if (process.env.DATABASE_MIGRATION_URL) process.env.DATABASE_URL = process.env.D
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
+const fsSync = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const http = require('node:http');
 const { execFileSync } = require('node:child_process');
@@ -35,20 +39,22 @@ const express = require('express');
 const PG_URL = process.env.DATABASE_MIGRATION_URL;
 const skip = PG_URL ? false : 'DATABASE_MIGRATION_URL requis (PostgreSQL jetable)';
 
-const USERS_DIR = path.join(__dirname, '..', 'data', 'users');
+// Posé avant tout require de route : ces modules lisent USER_DATA_DIR à
+// l'import, et le dossier temporaire disparaît avec le test.
+const TEST_DATA_DIR = fsSync.mkdtempSync(path.join(os.tmpdir(), 'cinehd-auth-e2e-'));
+process.env.USER_DATA_DIR = TEST_DATA_DIR;
+
+const USERS_DIR = path.join(TEST_DATA_DIR, 'users');
 const USER_A = 'auth-user-a';
 const USER_B = 'auth-user-b';
 const CODE_A = 'CINE-11111-22222-33333';
 
 let server;
 let pool;
-let createdFiles = [];
 
 async function writeUserFile(userId, data) {
   await fs.mkdir(USERS_DIR, { recursive: true });
-  const file = path.join(USERS_DIR, `bip39-${userId}.json`);
-  await fs.writeFile(file, JSON.stringify(data));
-  createdFiles.push(file);
+  await fs.writeFile(path.join(USERS_DIR, `bip39-${userId}.json`), JSON.stringify(data));
 }
 
 function tokenFor(userId, sessionId) {
@@ -175,7 +181,7 @@ after(async () => {
     server.close(resolve);
     server.closeAllConnections?.();
   });
-  for (const file of createdFiles) await fs.unlink(file).catch(() => {});
+  await fs.rm(TEST_DATA_DIR, { recursive: true, force: true }).catch(() => {});
   await require('../postgresPool').closePostgresPool().catch(() => {});
   require('../config/redis').redis.disconnect();
 });

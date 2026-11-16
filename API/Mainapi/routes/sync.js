@@ -41,9 +41,7 @@ const {
 } = require('../utils/syncPolicy');
 
 // === Data directories ===
-const USER_DATA_DIR = path.join(__dirname, '..', 'data');
-const GUESTS_DIR = path.join(USER_DATA_DIR, 'guests');
-const USERS_DIR = path.join(USER_DATA_DIR, 'users');
+const { USER_DATA_DIR, GUESTS_DIR, USERS_DIR } = require('../utils/userDataPaths');
 
 // Ensure directories exist
 (async () => {

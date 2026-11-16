@@ -10,6 +10,7 @@
 
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const { USERS_DIR } = require('./utils/userDataPaths');
 const fs = require('fs').promises;
 const path = require('path');
 const { verifyAccessKey } = require('./checkVip');
@@ -112,9 +113,9 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
             const safeUserId = String(userId).replace(/[^a-zA-Z0-9_\-]/g, '');
             let userFilePath;
             if (userType === 'bip39') {
-                userFilePath = path.join(__dirname, 'data', 'users', `bip39-${safeUserId}.json`);
+                userFilePath = path.join(USERS_DIR, `bip39-${safeUserId}.json`);
             } else {
-                userFilePath = path.join(__dirname, 'data', 'users', `${safeUserId}.json`);
+                userFilePath = path.join(USERS_DIR, `${safeUserId}.json`);
             }
             const userFile = await fs.readFile(userFilePath, 'utf8');
             const user = JSON.parse(userFile);
@@ -135,9 +136,9 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
 
             let userFilePath;
             if (userType === 'bip39') {
-                userFilePath = path.join(__dirname, 'data', 'users', `bip39-${safeUserId}.json`);
+                userFilePath = path.join(USERS_DIR, `bip39-${safeUserId}.json`);
             } else {
-                userFilePath = path.join(__dirname, 'data', 'users', `${safeUserId}.json`);
+                userFilePath = path.join(USERS_DIR, `${safeUserId}.json`);
             }
 
             try {
@@ -497,7 +498,7 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
                 try {
                     let userType = 'oauth';
                     try {
-                        await fs.access(path.join(__dirname, 'data', 'users', `bip39-${sub.user_id}.json`));
+                        await fs.access(path.join(USERS_DIR, `bip39-${sub.user_id}.json`));
                         userType = 'bip39';
                     } catch { /* keep oauth */ }
                     user = await getUserData(sub.user_id, userType, sub.profile_id);

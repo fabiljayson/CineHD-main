@@ -17,9 +17,7 @@ const {
 } = require('./sessionCookie');
 const { getUserDataFilePath } = require('../utils/syncPolicy');
 const AUTH_METHODS = ['discord', 'google', 'bip39'];
-const USER_DATA_DIR = path.join(__dirname, '..', 'data');
-const GUESTS_DIR = path.join(USER_DATA_DIR, 'guests');
-const USERS_DIR = path.join(USER_DATA_DIR, 'users');
+const { GUESTS_DIR, USERS_DIR } = require('../utils/userDataPaths');
 
 // Lazy pool getter -- avoids requiring the pool at module load time
 let _pool = null;

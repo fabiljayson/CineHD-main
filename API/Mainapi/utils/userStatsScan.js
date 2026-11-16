@@ -3,8 +3,8 @@ const fsp = require('fs').promises;
 const path = require('path');
 const { bucketIsoByDay } = require('./statsAggregate');
 
-// data/users lives at API/Mainapi/data/users; this file is at API/Mainapi/utils.
-const USERS_DIR = path.join(__dirname, '..', 'data', 'users');
+// data/users vit à API/Mainapi/data/users, sauf si USER_DATA_DIR le déplace.
+const { USERS_DIR } = require('./userDataPaths');
 const SKIP_FILES = new Set(['cinepulse_accounts.json']);
 const CONCURRENCY = 20;
 

@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const { USERS_DIR } = require('./utils/userDataPaths');
 const axios = require('axios');
 const {
   getPool,
@@ -28,7 +29,6 @@ function getCachedPool() {
 }
 
 const SHARED_LIST_CACHE_TTL = 600; // 10 minutes
-const USERS_DIR = path.join(__dirname, 'data', 'users');
 
 // === ZZAPI API Configuration for content moderation ===
 const ZZAPI_API_KEY = process.env.ZZAPI_API_KEY;

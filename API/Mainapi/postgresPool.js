@@ -11,10 +11,22 @@
  * pour les verrous consultatifs.
  */
 
-const { Pool } = require('pg');
+const { Pool, types } = require('pg');
 const { resolvePoolLimit } = require('./utils/connectionBudget');
 const { withPgAdvisoryLock } = require('./utils/pgAdvisoryLock');
 const { schema } = require('./db/schema');
+
+// Fidélité des types face à mysql2, qui est le moteur de référence.
+//
+// `pg` rend les colonnes `bigint` (COUNT, SUM) en chaîne ; mysql2 les rend en
+// nombre. Sans ce parseur, une route convertie change la forme de son JSON de
+// `5` à `"5"`, ce qui ne casse aucun test mais casse les clients.
+//
+// Volontairement laissés tels quels, parce que mysql2 les rend déjà ainsi :
+//   - `numeric`/DECIMAL → chaîne des deux côtés (mysql2 ne convertit pas) ;
+//   - `timestamp(tz)` → objet Date des deux côtés.
+// Comme mysql2, la conversion en nombre perd la précision au-delà de 2^53.
+types.setTypeParser(20, (value) => (value === null ? null : Number(value)));
 
 const CONNECTION_TIMEOUT_MS = 10000;
 const IDLE_TIMEOUT_MS = 30000;

@@ -11,6 +11,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { USERS_DIR } = require('./utils/userDataPaths');
+const { insertReturningId } = require('./db/pgCompat');
 const fs = require('fs').promises;
 const path = require('path');
 const { verifyAccessKey } = require('./checkVip');
@@ -277,7 +278,8 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
             const episodeNum = (media_type === 'tv' && episode_number !== undefined && episode_number !== null) ? parseInt(episode_number, 10) : null;
             const sourceName = source_name ? source_name.trim().substring(0, 100) : null;
 
-            const [result] = await mysqlPool.execute(
+            const submissionId = await insertReturningId(
+                mysqlPool,
                 `INSERT INTO link_submissions 
                  (user_id, profile_id, tmdb_id, media_type, season_number, episode_number, url, source_name, status) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
@@ -285,7 +287,7 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
             );
 
             res.status(201).json({
-                id: result.insertId,
+                id: submissionId,
                 message: 'Lien soumis avec succès ! Il sera examiné par notre équipe.'
             });
         } catch (error) {

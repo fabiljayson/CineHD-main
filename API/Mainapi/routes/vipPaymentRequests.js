@@ -16,6 +16,7 @@ const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
 const { getPool } = require('../mysqlPool');
+const { isDuplicateKeyError } = require('../db/pgCompat');
 const { getAuthIfValid, isAdmin } = require('../middleware/auth');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
 const { getTrustedClientIp } = require('../utils/clientIp');
@@ -192,7 +193,7 @@ async function insertUniqueAccessKey(conn, { expiresAtMs, planDays }) {
       );
       return keyValue;
     } catch (error) {
-      if (!error || error.code !== 'ER_DUP_ENTRY') throw error;
+      if (!isDuplicateKeyError(error)) throw error;
     }
   }
   throw new Error('Impossible de générer une clé unique.');

@@ -24,6 +24,7 @@ const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
 const { getPool } = require('../mysqlPool');
+const { insertReturningId, isDuplicateKeyError } = require('../db/pgCompat');
 const { isAdmin } = require('../middleware/auth');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
 const { getTrustedClientIp } = require('../utils/clientIp');
@@ -262,14 +263,14 @@ router.post('/account-requests', setNoStore, createRequestRateLimit, ...authBody
 
     let insertId;
     try {
-      const [result] = await pool.execute(
+      insertId = await insertReturningId(
+        pool,
         `INSERT INTO account_requests (reference, plan_id, amount_fcfa, payment_method, payer_msisdn, username, status, terms_accepted_at)
          VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW())`,
         [cleanReference, plan.id, amountFcfa, method.id, msisdn, cleanUsername]
       );
-      insertId = result.insertId;
     } catch (error) {
-      if (error && error.code === 'ER_DUP_ENTRY') {
+      if (isDuplicateKeyError(error)) {
         return res.status(409).json({
           success: false,
           error: 'Cette référence de transaction a déjà été utilisée.',
@@ -384,9 +385,9 @@ async function settleCamPayPayment(pool, request, camPayStatus) {
       await conn.commit();
     } catch (error) {
       try { await conn.rollback(); } catch { /* rollback best effort */ }
-      // ER_DUP_ENTRY = reçu déjà émis (rejeu après un crash entre la validation
-      // et le reçu) : le minuteur est déjà bon, rien à refaire.
-      if (!error || error.code !== 'ER_DUP_ENTRY') {
+      // Doublon = reçu déjà émis (rejeu après un crash entre la validation et
+      // le reçu) : le minuteur est déjà bon, rien à refaire.
+      if (!isDuplicateKeyError(error)) {
         console.error('CamPay receipt creation failed:', error);
       }
     } finally {
@@ -458,14 +459,14 @@ router.post('/account-requests/checkout', setNoStore, createRequestRateLimit, ..
     const reference = generateCheckoutReference();
     let insertId;
     try {
-      const [result] = await pool.execute(
+      insertId = await insertReturningId(
+        pool,
         `INSERT INTO account_requests (reference, plan_id, amount_fcfa, payment_method, payer_msisdn, username, status, campay_status, terms_accepted_at)
          VALUES (?, ?, ?, ?, ?, ?, 'pending', 'PENDING', NOW())`,
         [reference, plan.id, amountFcfa, method.id, msisdn, cleanUsername]
       );
-      insertId = result.insertId;
     } catch (error) {
-      if (error && error.code === 'ER_DUP_ENTRY') {
+      if (isDuplicateKeyError(error)) {
         return res.status(409).json({ success: false, error: 'Ce pseudo est déjà utilisé.', code: 'USERNAME_TAKEN' });
       }
       throw error;

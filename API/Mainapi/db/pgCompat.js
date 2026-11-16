@@ -61,23 +61,64 @@ function toPgPlaceholders(sql) {
   return output;
 }
 
+// Erreurs de doublon : MySQL utilise un code texte, PostgreSQL un SQLSTATE.
+const MYSQL_DUPLICATE_KEY = 'ER_DUP_ENTRY';
+const MYSQL_DUPLICATE_KEY_ERRNO = 1062;
+const POSTGRES_UNIQUE_VIOLATION = '23505';
+
 function createRunner(queryable) {
   return async function run(sql, params = []) {
     const result = await queryable.query(toPgPlaceholders(sql), params);
     const command = result.command || '';
-    if (command === 'SELECT' || command === 'SHOW') {
+    // `INSERT … RETURNING` est un ordre d'écriture qui rend des lignes : sans
+    // ce cas, l'identifiant généré serait perdu et la route relirait `null`.
+    const returnsRows = command === 'SELECT' || command === 'SHOW' || /\breturning\b/i.test(sql);
+    if (returnsRows) {
       return [result.rows, undefined];
     }
     // `insertId` n'est pas fourni : aucune route convertie ne l'utilise, et
-    // inventer un identifiant serait pire que l'absence.
+    // inventer un identifiant serait pire que l'absence. Les routes qui en ont
+    // besoin passent par `insertReturningId`.
     return [{ affectedRows: result.rowCount, rowCount: result.rowCount }, undefined];
   };
+}
+
+/**
+ * Un doublon d'unicité, quel que soit le moteur.
+ *
+ * Les routes idempotentes (rejeu d'un webhook de paiement, demande revalidée
+ * après un crash) en dépendent : ne tester que `ER_DUP_ENTRY` ferait passer un
+ * rejeu pour une erreur serveur sur PostgreSQL, et l'idempotence disparaîtrait
+ * silencieusement au changement de moteur.
+ */
+function isDuplicateKeyError(error) {
+  if (!error) return false;
+  return error.code === MYSQL_DUPLICATE_KEY
+    || error.code === POSTGRES_UNIQUE_VIOLATION
+    || Number(error.errno) === MYSQL_DUPLICATE_KEY_ERRNO;
+}
+
+/**
+ * INSERT dont on veut l'identifiant généré, sur les deux moteurs.
+ *
+ * MySQL le rend dans `result.insertId` ; PostgreSQL exige `RETURNING`. Passer
+ * par ici évite d'écrire un `RETURNING` que MySQL refuserait, et évite de lire
+ * un `insertId` que l'adaptateur ne fournit pas.
+ */
+async function insertReturningId(executor, sql, params = [], { idColumn = 'id' } = {}) {
+  if (executor?.dialect === POSTGRES_DIALECT) {
+    const [rows] = await executor.execute(`${sql}\nRETURNING ${idColumn}`, params);
+    return rows[0]?.[idColumn];
+  }
+  const [result] = await executor.execute(sql, params);
+  return result.insertId;
 }
 
 function createPostgresCompat(pool) {
   const run = createRunner(pool);
 
   return {
+    dialect: POSTGRES_DIALECT,
     execute: run,
     query: run,
     /**
@@ -88,6 +129,7 @@ function createPostgresCompat(pool) {
       const client = await pool.connect();
       const runOnClient = createRunner(client);
       return {
+        dialect: POSTGRES_DIALECT,
         execute: runOnClient,
         query: runOnClient,
         beginTransaction: () => client.query('BEGIN'),
@@ -99,4 +141,10 @@ function createPostgresCompat(pool) {
   };
 }
 
-module.exports = { isPostgresDialect, toPgPlaceholders, createPostgresCompat };
+module.exports = {
+  isPostgresDialect,
+  toPgPlaceholders,
+  createPostgresCompat,
+  insertReturningId,
+  isDuplicateKeyError,
+};

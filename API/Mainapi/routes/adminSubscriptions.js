@@ -22,6 +22,7 @@ const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
 const { getPool } = require('../mysqlPool');
+const { insertReturningId, isDuplicateKeyError } = require('../db/pgCompat');
 const { isAdmin } = require('../middleware/auth');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
 const { getTrustedClientIp } = require('../utils/clientIp');
@@ -365,7 +366,7 @@ router.post('/admin/subscriptions/transactions/:id/receipt', setNoStore, isAdmin
       await conn.commit();
     } catch (error) {
       try { await conn.rollback(); } catch { /* rollback best effort */ }
-      if (error?.code === 'ER_DUP_ENTRY') {
+      if (isDuplicateKeyError(error)) {
         const [existing] = await pool.execute(
           'SELECT * FROM subscription_receipts WHERE request_id = ? LIMIT 1',
           [requestId],
@@ -486,7 +487,8 @@ router.post('/admin/subscriptions/bargains', setNoStore, isAdmin, ...authBodyPar
       return res.status(400).json({ success: false, error: errors.join(' ') });
     }
 
-    const [result] = await pool.execute(
+    const insertId = await insertReturningId(
+      pool,
       `INSERT INTO subscription_bargains
          (title, description, plan_id, price_fcfa, active, starts_at, ends_at, created_by)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -502,7 +504,7 @@ router.post('/admin/subscriptions/bargains', setNoStore, isAdmin, ...authBodyPar
       ],
     );
 
-    const [rows] = await pool.execute('SELECT * FROM subscription_bargains WHERE id = ?', [result.insertId]);
+    const [rows] = await pool.execute('SELECT * FROM subscription_bargains WHERE id = ?', [insertId]);
     return res.status(201).json({ success: true, bargain: serializeBargain(rows[0]) });
   } catch (error) {
     console.error('Admin bargain create error:', error);

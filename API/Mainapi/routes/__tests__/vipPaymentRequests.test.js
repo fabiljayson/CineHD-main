@@ -190,7 +190,11 @@ function fixture(t, { methods = { PAYMENT_ORANGE_MONEY_NUMBER: '237600000000' } 
     './sync': sync,
   };
   // Modules purs chargés tels quels (aucune connexion réseau ni base).
-  const realModules = new Set(['crypto', 'express', '../utils/accountPlans', '../utils/mobileMoney', '../utils/manualVipPayments']);
+  const realModules = new Set([
+    'crypto', 'express', '../utils/accountPlans', '../utils/mobileMoney', '../utils/manualVipPayments',
+    // Pur : aucune connexion, seulement la détection de doublon et RETURNING.
+    '../db/pgCompat',
+  ]);
 
   const module = { exports: {} };
   vm.runInNewContext(fs.readFileSync(ROUTE_FILE, 'utf8'), {

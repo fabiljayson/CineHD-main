@@ -228,7 +228,9 @@ Verified against a disposable PostgreSQL 16 container: six migrations applied in
 
 Deux défauts de portage trouvés en écrivant ce test, tous deux corrigés : les alias `AS createdAt` sont repliés en minuscules par PostgreSQL, si bien que `GET /api/sessions` renvoyait `userAgent` et les dates à `null` ; et `utils/accountLinks.js` interrogeait encore MySQL — en créant sa table au démarrage — sur le chemin de **chaque** connexion, ce qui aurait cassé l'authentification sur Neon. `db/pgCompat.js` fournit désormais `getConnection()` (transactions) et `accountLinks` n'émet plus de DDL côté PostgreSQL, où le schéma appartient aux migrations.
 
-Still open: sync conflict handling and media row lookup are not asserted; `routes/sync.js` still stores payloads on disk; and the runtime bootstrap is untouched, so MySQL remains the default engine.
+`tests/postgresSyncMedia.e2e.test.js` couvre les deux flux restants (7/7) : des écritures concurrentes sur un même profil passent par le verrou consultatif PostgreSQL sans s'écraser, un profil non possédé est refusé (404 `PROFILE_NOT_FOUND`), et `GET /links/:type/:id` lit `films`/`series` dans le moteur sélectionné, renvoie les épisodes demandés et masque `added_by`. Cette dernière route est publique : elle était la seule lecture media hors admin, et elle utilisait encore le pool MySQL avant ce portage.
+
+Still open: `routes/sync.js` stores payloads on disk rather than in PostgreSQL; and the runtime bootstrap is untouched, so MySQL remains the default engine.
 
 One behaviour the conversion fixed in the schema: the generated `ON UPDATE` trigger overwrote explicit writes, so `accessed_at` could not be set to a past value. MySQL only bumps such a column when the `UPDATE` doesn't assign it, and the trigger now matches.
 

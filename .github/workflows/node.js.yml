@@ -209,7 +209,7 @@ jobs:
     - name: Installation (lockfile)
       working-directory: API/Mainapi
       run: npm ci
-    - name: Tests PostgreSQL (core/media, auth/profils)
+    - name: Tests PostgreSQL (core/media, auth/profils, sync/media)
       working-directory: API/Mainapi
       env:
         # Identifiants du conteneur de service, jetables et propres au job : ce
@@ -225,6 +225,7 @@ jobs:
         node --test --test-concurrency=1 --test-reporter=tap \
           tests/postgresCoreMedia.e2e.test.js \
           tests/postgresAuthProfiles.e2e.test.js \
+          tests/postgresSyncMedia.e2e.test.js \
           | tee "$RUNNER_TEMP/pg-e2e.tap"
         # Sans URL valide, node --test sort en 0 avec tout ignoré : cette garde
         # empêche un job vert qui n'a rien vérifié.

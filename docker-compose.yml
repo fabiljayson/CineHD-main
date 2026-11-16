@@ -1,0 +1,67 @@
+# Services de développement CineHD (MySQL + Redis).
+#
+# Ces deux conteneurs étaient lancés à la main (`docker run …`) : ni les
+# paramètres ni les volumes n'étaient reproductibles, et les données vivaient
+# dans le conteneur plutôt que dans un volume. Ce fichier fige l'image, le port
+# et le volume documentés dans AGENTS.md.
+#
+#   docker compose --env-file API/Mainapi/.env up -d
+#   docker compose ps
+#   docker compose logs -f mysql
+#
+# Les identifiants viennent de `API/Mainapi/.env` (DB_PASSWORD, DB_NAME,
+# DB_PORT, REDIS_PORT) : jamais de secret dans ce fichier, et une seule source
+# de vérité pour le service et les conteneurs.
+#
+# `docker compose down` arrête les conteneurs sans toucher aux volumes ;
+# `down -v` supprime les données. Pour tout effacer volontairement, préférer le
+# premier et recréer la base avec `npm run db:schema:apply` dans API/Mainapi.
+
+name: cinehd
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: cinehd-mysql
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD manquant — utiliser --env-file API/Mainapi/.env}
+      MYSQL_DATABASE: ${DB_NAME:-movix}
+      # Autorise la connexion depuis l'hôte (le client de l'API n'est pas dans
+      # le réseau compose).
+      MYSQL_ROOT_HOST: "%"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      # `$$` échappe l'interpolation compose : la variable est lue dans le
+      # conteneur, pas dans le shell appelant.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: cinehd-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    # Persistance append-only : sans elle, un redémarrage perd le cache et les
+    # compteurs de limitation de débit.
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  # Noms explicites : ceux des conteneurs lancés à la main. Compose réutilise
+  # donc les données existantes au lieu de repartir sur des volumes vides.
+  mysql-data:
+    name: cinehd-mysql-data
+  redis-data:
+    name: cinehd-redis-data

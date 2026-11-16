@@ -84,7 +84,7 @@ Le skill d’origine est [.opencode/skills/cinehd/SKILL.md](.opencode/skills/cin
 | proxiesembed | 25569 | Python, port en dur dans `server.py` |
 
 - proxiesembed exige **Python 3.13** (pas de wheels lxml pour 3.14) ; `MEDIA_SIGNING_SECRET` et `INTERNAL_API_KEY` doivent être identiques à ceux de la Main API.
-- Conteneurs locaux attendus : `cinehd-mysql` (8.4, 3306) et `cinehd-redis` (7, 6379). Le client `mariadb` a besoin de `--skip-ssl` face au certificat auto-signé.
+- Conteneurs locaux attendus : `cinehd-mysql` (8.4, 3306) et `cinehd-redis` (7, 6379). Recréation reproductible depuis la racine : `docker compose --env-file API/Mainapi/.env up -d` (volumes nommés `cinehd-mysql-data` et `cinehd-redis-data`, `down` les conserve). Le client `mariadb` a besoin de `--skip-ssl` face au certificat auto-signé.
 - Le schéma complet (37 tables) se crée via le module `db/schema` + `renderCreateTable` ; le bootstrap de `app.js` ne crée pas les tables core/media/community.
 - `docs/*.md` n’est **pas** ignoré par git (exception explicite `!docs/*.md`) : garder les documents bilingues synchronisés.
 

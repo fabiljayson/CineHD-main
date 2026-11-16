@@ -80,11 +80,18 @@ jobs:
       working-directory: API/Mainapi
       run: npm ci
     - name: Tests
-      # Les tests E2E de bascule se désactivent d'eux-mêmes sans
-      # MYSQL_MIGRATION_URL / DATABASE_MIGRATION_URL : aucun secret n'est requis
-      # sur une pull request.
+      # Les suites E2E de bascule exigent PostgreSQL, MySQL ou Redis. Sans URLs,
+      # elles se marquent « skipped » et `node --test` sort en 0 : les lancer ici
+      # afficherait une couverture qui n'a rien vérifié. Elles tournent dans le
+      # job `postgres-migration`, qui fournit les moteurs et échoue si un test
+      # est ignoré. Ce job ne garde donc que les tests autonomes.
       working-directory: API/Mainapi
-      run: node --test tests/*.test.js
+      run: |
+        node --test $(find tests -maxdepth 1 -name '*.test.js' \
+          ! -name 'postgresCoreMedia.e2e.test.js' \
+          ! -name 'postgresAuthProfiles.e2e.test.js' \
+          ! -name 'postgresSyncMedia.e2e.test.js' \
+          ! -name 'mysqlPostgresMigration.e2e.test.js')
 
   postgres-migration:
     # Les suites E2E de bascule s'ignorent elles-mêmes sans URLs de base : sans

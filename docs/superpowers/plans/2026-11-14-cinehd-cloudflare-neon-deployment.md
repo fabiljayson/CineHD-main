@@ -230,7 +230,9 @@ Deux défauts de portage trouvés en écrivant ce test, tous deux corrigés : le
 
 `tests/postgresSyncMedia.e2e.test.js` couvre les deux flux restants (7/7) : des écritures concurrentes sur un même profil passent par le verrou consultatif PostgreSQL sans s'écraser, un profil non possédé est refusé (404 `PROFILE_NOT_FOUND`), et `GET /links/:type/:id` lit `films`/`series` dans le moteur sélectionné, renvoie les épisodes demandés et masque `added_by`. Cette dernière route est publique : elle était la seule lecture media hors admin, et elle utilisait encore le pool MySQL avant ce portage.
 
-Still open: `routes/sync.js` stores payloads on disk rather than in PostgreSQL; and the runtime bootstrap is untouched, so MySQL remains the default engine.
+La synchronisation a désormais un contrat de conflit **optionnel** : une écriture peut envoyer `baseUpdatedAt` (la version rendue par la lecture), et la route répond `409 SYNC_CONFLICT` avec l'état courant si le profil a changé entre-temps. Sans ce champ, le comportement existant est inchangé, donc les clients actuels ne voient aucune différence. La version est la date de modification du fichier en microsecondes : la milliseconde laisserait passer deux écritures rapprochées. Vérifié par deux tests (base périmée refusée, deux écritures concurrentes sur la même version → une réussite, un conflit), en plus du test de sérialisation sans version.
+
+Still open: `routes/sync.js` stores payloads on disk rather than in PostgreSQL; the frontend does not yet send `baseUpdatedAt` (the control is available but unused); and the runtime bootstrap is untouched, so MySQL remains the default engine.
 
 One behaviour the conversion fixed in the schema: the generated `ON UPDATE` trigger overwrote explicit writes, so `accessed_at` could not be set to a past value. MySQL only bumps such a column when the `UPDATE` doesn't assign it, and the trigger now matches.
 

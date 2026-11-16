@@ -214,6 +214,79 @@ test('des écritures concurrentes sur le même profil ne s’écrasent pas', { s
   }
 });
 
+test('une écriture fondée sur une version périmée remonte un conflit', { skip }, async () => {
+  const before = await call('GET', `/api/sync/bip39/${SYNC_USER}/${SYNC_PROFILE}`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  assert.equal(before.status, 200);
+  const base = before.body.data.updatedAt;
+  assert.ok(Number.isSafeInteger(base) && base > 0, 'la lecture expose une version');
+
+  // Un autre appareil écrit d'abord : la version change.
+  const first = await call('POST', '/api/sync', {
+    headers: { authorization: `Bearer ${token}` },
+    body: {
+      userType: 'bip39',
+      profileId: SYNC_PROFILE,
+      baseUpdatedAt: base,
+      ops: [{ op: 'set', key: 'settings_other_device', value: 'gagne' }],
+    },
+  });
+  assert.equal(first.status, 200, JSON.stringify(first.body));
+  assert.notEqual(first.body.updatedAt, base, 'la version avance après écriture');
+
+  // La seconde écriture part de la version d'origine : elle doit être refusée
+  // au lieu d'écraser silencieusement la première.
+  const stale = await call('POST', '/api/sync', {
+    headers: { authorization: `Bearer ${token}` },
+    body: {
+      userType: 'bip39',
+      profileId: SYNC_PROFILE,
+      baseUpdatedAt: base,
+      ops: [{ op: 'set', key: 'settings_stale_write', value: 'perdu' }],
+    },
+  });
+  assert.equal(stale.status, 409, JSON.stringify(stale.body));
+  assert.equal(stale.body.code, 'SYNC_CONFLICT');
+  assert.equal(stale.body.updatedAt, first.body.updatedAt, 'le conflit renvoie l’état courant');
+  assert.equal(stale.body.data.settings_other_device, 'gagne');
+
+  const after = await call('GET', `/api/sync/bip39/${SYNC_USER}/${SYNC_PROFILE}`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  assert.equal(after.body.data.settings_stale_write, undefined, 'l’écriture périmée n’a rien appliqué');
+});
+
+test('deux écritures concurrentes sur la même version : une seule aboutit', { skip }, async () => {
+  const current = await call('GET', `/api/sync/bip39/${SYNC_USER}/${SYNC_PROFILE}`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  const base = current.body.data.updatedAt;
+
+  const write = (key) => call('POST', '/api/sync', {
+    headers: { authorization: `Bearer ${token}` },
+    body: {
+      userType: 'bip39',
+      profileId: SYNC_PROFILE,
+      baseUpdatedAt: base,
+      ops: [{ op: 'set', key, value: 'ecrit' }],
+    },
+  });
+
+  const [first, second] = await Promise.all([write('settings_race_a'), write('settings_race_b')]);
+  const statuses = [first.status, second.status].sort((a, b) => a - b);
+  assert.deepEqual(statuses, [200, 409], JSON.stringify([first.body, second.body]));
+
+  const winnerKey = first.status === 200 ? 'settings_race_a' : 'settings_race_b';
+  const loserKey = winnerKey === 'settings_race_a' ? 'settings_race_b' : 'settings_race_a';
+
+  const final = await call('GET', `/api/sync/bip39/${SYNC_USER}/${SYNC_PROFILE}`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  assert.equal(final.body.data[winnerKey], 'ecrit');
+  assert.equal(final.body.data[loserKey], undefined, 'la requête en conflit n’a rien écrit');
+});
+
 test('un profil qui n’appartient pas à l’utilisateur est refusé', { skip }, async () => {
   const response = await syncRequest([{ op: 'set', key: 'progress_other', value: 'y' }], 'profil-d-un-autre');
   assert.equal(response.status, 404);

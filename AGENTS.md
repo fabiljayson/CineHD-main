@@ -1,4 +1,4 @@
-# AGENTS.md — CineHD (ex-Movix)
+# AGENTS.md — CineHD
 
 ## Documentation
 

@@ -1,6 +1,6 @@
 ---
 name: cinehd
-description: CineHD (ex-Movix) open-source streaming site work — React+TS+Vite frontend, Node APIs (main 25565, watchparty 25566), Python proxiesembed 25569, MySQL+Redis, 11 mirror zones. Use for ANY task under /home/fabiljayson/Projects/MovixOpenSource-main; also use when asked about CineHD docs/features.
+description: CineHD  open-source streaming site work — React+TS+Vite frontend, Node APIs (main 25565, watchparty 25566), Python proxiesembed 25569, MySQL+Redis, 11 mirror zones. Use for ANY task under /home/fabiljayson/Projects/MovixOpenSource-main; also use when asked about CineHD docs/features.
 ---
 
 # CineHD (ex-Movix) work playbook

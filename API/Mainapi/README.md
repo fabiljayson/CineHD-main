@@ -181,6 +181,28 @@ Une valeur `BIGINT UNSIGNED` au-delà de `9223372036854775807` est **refusée** 
 nommant la colonne : PostgreSQL `BIGINT` est signé et tronquer un identifiant
 serait pire qu'un échec.
 
+### Séquences
+
+Le transfert recopie les identifiants existants ; les séquences PostgreSQL, elles,
+resteraient à `1`. Il repositionne donc chaque séquence copiée (`setval`), puis
+`assertSequencesAhead()` échoue explicitement si l'une est encore en retard. Sans
+ce garde-fou, la première ligne insérée par l'API entrerait en collision avec une
+clé déjà transférée. Le test ne dépend pas du nombre de lignes : une séquence en
+avance est acceptée, une séquence en retard arrête la commande.
+
+### Harnais différentiel
+
+```bash
+MYSQL_MIGRATION_URL='mysql://…' DATABASE_MIGRATION_URL='postgres://…' \
+  npm run db:differential
+```
+
+Le harnais démarre la même API deux fois, une fois par moteur, rejoue une liste
+fixe de requêtes (`tests/fixtures/differentialServer.js`) et compare statut et
+corps. C'est le filet des conversions : une requête qui répond `200` d'un côté et
+`500` de l'autre nomme la route à corriger. Il ne remplace pas les suites
+`postgres*.e2e.test.js`, qui vérifient les effets en base.
+
 ### Fenêtre d'arrêt et point de non-retour
 
 Voir [la décision D2](../../docs/superpowers/specs/2026-11-15-cinehd-cutover-decisions.md) :
@@ -198,6 +220,8 @@ distinctes**, chacune explicitement autorisée. Ce dépôt ne les autorise pas.
 ## À garder en tête
 
 - Le backend actif est ici, pas dans l'ancien contenu direct de `API/`.
-- Plusieurs tables MySQL sont initialisées automatiquement au démarrage.
+- Plusieurs tables sont initialisées automatiquement au démarrage, par du DDL
+  MySQL. Sur PostgreSQL ce DDL est **sauté** : le schéma vient des migrations, et
+  une nouvelle table doit donc arriver par un fichier de migration.
 - Une partie du comportement applicatif dépend de caches disque et de proxys externes ; un bug peut venir d'ailleurs que du code route lui-même.
 - Si une feature touche la lecture vidéo, regarde aussi `API/proxiesembed/` et parfois l'extension navigateur.

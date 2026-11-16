@@ -79,7 +79,7 @@ Le skill d’origine est [.opencode/skills/cinehd/SKILL.md](.opencode/skills/cin
 | Service | Port | Lancement |
 | --- | --- | --- |
 | Frontend Vite | 3000 | `npm run dev` |
-| Main API | 25565 | `cd API/Mainapi && node server.js` (port en dur, `PORT` du `.env` n’est pas lu) |
+| Main API | 25565 | `cd API/Mainapi && node server.js` (`PORT` est lu, 25565 par défaut ; nécessaire aux Containers) |
 | WatchParty | 25566 | depuis `API/watchpartyAPI/`, dépendances résolues depuis le `node_modules` racine |
 | proxiesembed | 25569 | Python, port en dur dans `server.py` |
 

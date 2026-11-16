@@ -32,7 +32,9 @@ Row counts, data volume, concurrency and regions require an authorized staging o
 | `vip` | 3 | `vip_derivation_counters`, `vip_invoices`, `vip_invoice_events` |
 | `wrapped` | 2 | `wrapped_viewing_data`, `wrapped_pages_data` |
 
-The plan's "40 tables" figure is confirmed. `db/schema/index.js` concatenates the groups in the order `core, community, oauth, vip, wrapped`; `media` tables are defined alongside but are not part of that concatenation, so `getTablesByGroup('media')` returns nothing. Migration `002_media.sql` must therefore source `films`, `series` and `clone_links` from the schema module directly (`media.js`), not from `schema`.
+The plan's "40 tables" figure is confirmed. `db/schema/index.js` concatenates the groups in the order `core, community, oauth, vip, wrapped`; `media` tables are defined alongside but are not part of that concatenation.
+
+> **Correction (2026-11-16).** This paragraph previously concluded that `getTablesByGroup('media')` returns nothing and that `002_media.sql` had to source `films`, `series` and `clone_links` from `media.js` directly. That is no longer true: the function now resolves the `media` group and returns those three tables. `media.js` is still the definition site, but nothing has to bypass `getTablesByGroup` any more.
 
 ### Row counts and data size
 

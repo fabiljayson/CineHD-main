@@ -224,7 +224,11 @@ Verified against a disposable PostgreSQL 16 container: six migrations applied in
 
 `tests/postgresCoreMedia.e2e.test.js` passes 9/9 against a disposable PostgreSQL 16: adapter contract, session lookup by clientId (including a non-JSON `device`), session ordering and scoped deletion, the activity interval guard, credential lookup plus `last_login_at`, profile-scoped vote deletion, sync-lock serialization, and the empty-result path.
 
-Still open: account authentication end to end through the routes, profile isolation/age restriction, sync conflict handling and media row lookup are not asserted; `routes/sync.js` still stores payloads on disk; and the runtime bootstrap is untouched, so MySQL remains the default engine.
+`tests/postgresAuthProfiles.e2e.test.js` covers the same flows through real HTTP requests (8/8) : connexion par code puis jeton utilisable, refus d'un code invalide, session absente de la base, isolation des profils entre deux comptes, restriction d'âge (barème et relecture), liaisons de compte, et refus sans jeton.
+
+Deux défauts de portage trouvés en écrivant ce test, tous deux corrigés : les alias `AS createdAt` sont repliés en minuscules par PostgreSQL, si bien que `GET /api/sessions` renvoyait `userAgent` et les dates à `null` ; et `utils/accountLinks.js` interrogeait encore MySQL — en créant sa table au démarrage — sur le chemin de **chaque** connexion, ce qui aurait cassé l'authentification sur Neon. `db/pgCompat.js` fournit désormais `getConnection()` (transactions) et `accountLinks` n'émet plus de DDL côté PostgreSQL, où le schéma appartient aux migrations.
+
+Still open: sync conflict handling and media row lookup are not asserted; `routes/sync.js` still stores payloads on disk; and the runtime bootstrap is untouched, so MySQL remains the default engine.
 
 One behaviour the conversion fixed in the schema: the generated `ON UPDATE` trigger overwrote explicit writes, so `accessed_at` could not be set to a past value. MySQL only bumps such a column when the `UPDATE` doesn't assign it, and the trigger now matches.
 

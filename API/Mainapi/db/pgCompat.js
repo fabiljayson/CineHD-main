@@ -61,9 +61,9 @@ function toPgPlaceholders(sql) {
   return output;
 }
 
-function createPostgresCompat(pool) {
-  async function run(sql, params = []) {
-    const result = await pool.query(toPgPlaceholders(sql), params);
+function createRunner(queryable) {
+  return async function run(sql, params = []) {
+    const result = await queryable.query(toPgPlaceholders(sql), params);
     const command = result.command || '';
     if (command === 'SELECT' || command === 'SHOW') {
       return [result.rows, undefined];
@@ -71,11 +71,31 @@ function createPostgresCompat(pool) {
     // `insertId` n'est pas fourni : aucune route convertie ne l'utilise, et
     // inventer un identifiant serait pire que l'absence.
     return [{ affectedRows: result.rowCount, rowCount: result.rowCount }, undefined];
-  }
+  };
+}
+
+function createPostgresCompat(pool) {
+  const run = createRunner(pool);
 
   return {
     execute: run,
     query: run,
+    /**
+     * Même contrat que `pool.getConnection()` de mysql2 : les routes qui ont
+     * besoin d'une transaction (DELETE puis INSERT atomiques) restent inchangées.
+     */
+    async getConnection() {
+      const client = await pool.connect();
+      const runOnClient = createRunner(client);
+      return {
+        execute: runOnClient,
+        query: runOnClient,
+        beginTransaction: () => client.query('BEGIN'),
+        commit: () => client.query('COMMIT'),
+        rollback: () => client.query('ROLLBACK'),
+        release: () => client.release(),
+      };
+    },
   };
 }
 

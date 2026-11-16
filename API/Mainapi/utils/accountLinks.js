@@ -1,4 +1,4 @@
-const { getPool } = require('../mysqlPool');
+const { getPool, isPostgres } = require('../db/dialect');
 
 const SUPPORTED_PROVIDERS = ['discord', 'google', 'bip39'];
 const SUPPORTED_USER_TYPES = ['oauth', 'bip39'];
@@ -21,7 +21,18 @@ async function ensureAccountLinksStorage() {
   ensureAccountLinksStoragePromise = (async () => {
     const pool = getPool();
     if (!pool) {
-      throw new Error('MySQL pool not ready for account links');
+      throw new Error('SQL pool not ready for account links');
+    }
+
+    // Sur PostgreSQL, le schéma appartient aux migrations : créer une table au
+    // démarrage donnerait deux sources de vérité, et le DDL MySQL ci-dessous y
+    // est invalide. On vérifie plutôt que la migration a bien été appliquée.
+    if (isPostgres()) {
+      const [rows] = await pool.execute("SELECT to_regclass('account_links') AS table_name");
+      if (!rows[0]?.table_name) {
+        throw new Error('Table account_links absente : appliquer les migrations PostgreSQL');
+      }
+      return;
     }
 
     await pool.execute(`
@@ -127,8 +138,20 @@ async function setLink({ provider, providerUserId, targetUserType, targetUserId 
       [targetUserType, String(targetUserId), provider, String(providerUserId)]
     );
 
-    await connection.execute(
-      `INSERT INTO account_links (
+    const upsertSql = isPostgres()
+      ? `INSERT INTO account_links (
+        provider,
+        provider_user_id,
+        target_user_type,
+        target_user_id,
+        linked_at,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT (provider, provider_user_id) DO UPDATE SET
+        target_user_type = EXCLUDED.target_user_type,
+        target_user_id = EXCLUDED.target_user_id,
+        updated_at = EXCLUDED.updated_at`
+      : `INSERT INTO account_links (
         provider,
         provider_user_id,
         target_user_type,
@@ -140,9 +163,9 @@ async function setLink({ provider, providerUserId, targetUserType, targetUserId 
         target_user_type = VALUES(target_user_type),
         target_user_id = VALUES(target_user_id),
         linked_at = account_links.linked_at,
-        updated_at = VALUES(updated_at)`,
-      [provider, String(providerUserId), targetUserType, String(targetUserId), now, now]
-    );
+        updated_at = VALUES(updated_at)`;
+
+    await connection.execute(upsertSql, [provider, String(providerUserId), targetUserType, String(targetUserId), now, now]);
 
     await connection.commit();
   } catch (error) {

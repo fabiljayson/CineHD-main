@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "db:schema:apply": "node scripts/applySchema.js",
     "db:postgres:generate": "node db/generatePostgresMigrations.js",
     "db:postgres:migrate": "node db/migratePostgres.js",
     "db:postgres:transfer": "node scripts/migrateMysqlToPostgres.js",

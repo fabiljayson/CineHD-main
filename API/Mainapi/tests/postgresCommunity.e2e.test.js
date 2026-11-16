@@ -255,6 +255,61 @@ test('les préférences de notifications sont upsertées, pas dupliquées', { sk
   assert.equal(Number(rows[0][0].notifications_disabled), 0);
 });
 
+test('deux propositions du même auteur ne créent qu’une ligne de segment', { skip }, async () => {
+  const store = require('../services/mediaSegments/communityStore');
+  const author = { userType: 'bip39', userId: USER };
+  const target = {
+    mediaType: 'movie', tmdbId: 4001, season: -1, episode: -1,
+    segmentType: 'intro', durationMs: 600000,
+  };
+
+  const first = await store.submitSegment({ ...target, startMs: 1000, endMs: 90000, author });
+  const second = await store.submitSegment({ ...target, startMs: 2000, endMs: 88000, author });
+
+  assert.equal(first.id, second.id, 'la proposition est mise à jour, pas dupliquée');
+
+  const rows = await pool.execute(
+    'SELECT id, start_ms FROM segment_submissions WHERE media_type = ? AND tmdb_id = ?',
+    ['movie', 4001],
+  );
+  assert.equal(rows[0].length, 1, 'une seule ligne en base');
+  assert.equal(Number(rows[0][0].start_ms), 2000, 'les bornes sont celles de la dernière proposition');
+});
+
+test('un votant n’a qu’une voix, et la changer met à jour la ligne', { skip }, async () => {
+  const store = require('../services/mediaSegments/communityStore');
+  const author = { userType: 'bip39', userId: USER };
+  const voter = { userType: 'bip39', userId: 'voter-1' };
+
+  const submission = await store.submitSegment({
+    mediaType: 'movie', tmdbId: 4001, season: -1, episode: -1,
+    segmentType: 'outro', durationMs: 600000, startMs: 500000, endMs: 590000, author,
+  });
+
+  // Deux votes hauts du même votant : la ligne est mise à jour, pas dupliquée.
+  // (Un vote bas ensuite ferait passer le score sous le seuil de rejet, ce qui
+  // supprime la proposition et ses votes : autre comportement, autre test.)
+  await store.voteSegment({ submissionId: submission.id, value: 1, voter });
+  await store.voteSegment({ submissionId: submission.id, value: 1, voter });
+
+  const votes = await pool.execute(
+    'SELECT value FROM segment_votes WHERE submission_id = ? AND voter_user_id = ?',
+    [submission.id, 'voter-1'],
+  );
+  assert.equal(votes[0].length, 1, 'un seul vote par votant et par proposition');
+  assert.equal(Number(votes[0][0].value), 1);
+
+  // Vote 0 = retrait explicite : la ligne disparaît, la proposition reste.
+  await store.voteSegment({ submissionId: submission.id, value: 0, voter });
+  const cleared = await pool.execute(
+    'SELECT 1 FROM segment_votes WHERE submission_id = ? AND voter_user_id = ?',
+    [submission.id, 'voter-1'],
+  );
+  assert.equal(cleared[0].length, 0, 'le retrait supprime le vote');
+  const stillThere = await pool.execute('SELECT 1 FROM segment_submissions WHERE id = ?', [submission.id]);
+  assert.equal(stillThere[0].length, 1, 'la proposition survit au retrait du vote');
+});
+
 test('un type de contenu inconnu est refusé, et voter exige un jeton', { skip }, async () => {
   const unknown = await call('POST', '/api/likes', { contentType: 'podcast', contentId: CONTENT_ID, voteType: 'like' });
   assert.equal(unknown.status, 400);

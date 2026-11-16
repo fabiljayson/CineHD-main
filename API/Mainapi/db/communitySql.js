@@ -50,4 +50,65 @@ function upsertHelpFeedback(sqlDialect = dialectOf()) {
        ON DUPLICATE KEY UPDATE helpful = VALUES(helpful), user_agent = VALUES(user_agent)`;
 }
 
-module.exports = { upsertNotificationPreferences, upsertHelpFeedback };
+/**
+ * Proposition de segment : une par (cible, type, auteur).
+ *
+ * Le recalage des compteurs à zéro fait partie de l'upsert : reproposer
+ * invalide les votes portés sur les bornes précédentes.
+ */
+function upsertSegmentSubmission(sqlDialect = dialectOf()) {
+  const columns = `INSERT INTO segment_submissions
+       (media_type, tmdb_id, season, episode, reference_duration_ms,
+        segment_type, start_ms, end_ms, author_user_type, author_user_id, author_label)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  if (sqlDialect === POSTGRES) {
+    return `${columns}
+     ON CONFLICT (media_type, tmdb_id, season, episode, segment_type, author_user_type, author_user_id)
+     DO UPDATE SET
+       start_ms = EXCLUDED.start_ms,
+       end_ms = EXCLUDED.end_ms,
+       reference_duration_ms = EXCLUDED.reference_duration_ms,
+       author_label = EXCLUDED.author_label,
+       votes_up = 0, votes_down = 0, score = 0`;
+  }
+  return `${columns}
+     ON DUPLICATE KEY UPDATE
+       start_ms = VALUES(start_ms),
+       end_ms = VALUES(end_ms),
+       reference_duration_ms = VALUES(reference_duration_ms),
+       author_label = VALUES(author_label),
+       votes_up = 0, votes_down = 0, score = 0`;
+}
+
+/** Vote d'un utilisateur sur une proposition : une ligne par votant. */
+function upsertSegmentVote(sqlDialect = dialectOf()) {
+  const columns = `INSERT INTO segment_votes (submission_id, voter_user_type, voter_user_id, value, weight)
+     VALUES (?, ?, ?, ?, ?)`;
+  if (sqlDialect === POSTGRES) {
+    return `${columns}
+     ON CONFLICT (submission_id, voter_user_type, voter_user_id)
+     DO UPDATE SET value = EXCLUDED.value, weight = EXCLUDED.weight`;
+  }
+  return `${columns}
+     ON DUPLICATE KEY UPDATE value = VALUES(value), weight = VALUES(weight)`;
+}
+
+/**
+ * Écart de durée toléré dans le filtre d'un épisode.
+ *
+ * `CAST(x AS SIGNED)` est une conversion MySQL ; PostgreSQL n'accepte que les
+ * types SQL (`BIGINT`). La valeur reste un bigint des deux côtés.
+ */
+function durationToleranceClause(sqlDialect = dialectOf()) {
+  return sqlDialect === POSTGRES
+    ? 'AND ABS(CAST(s.reference_duration_ms AS BIGINT) - ?) <= ?'
+    : 'AND ABS(CAST(s.reference_duration_ms AS SIGNED) - ?) <= ?';
+}
+
+module.exports = {
+  upsertNotificationPreferences,
+  upsertHelpFeedback,
+  upsertSegmentSubmission,
+  upsertSegmentVote,
+  durationToleranceClause,
+};

@@ -13,8 +13,8 @@
  *     node scripts/seedAdminAccounts.js
  *
  * Options (toutes facultatives) :
- *   ADMIN_FRED_USERNAME   défaut « fred bitek »
- *   ADMIN_FABL_USERNAME   défaut « fabil jayson »
+ *   ADMIN_FRED_USERNAME   défaut « admin1 »
+ *   ADMIN_FABL_USERNAME   défaut « admin2 »
  *   ADMIN_SUBSCRIPTION_DAYS  durée posée sur les comptes admin (défaut 3650)
  *
  * Idempotent : relancer le script met à jour les mots de passe et garantit la
@@ -38,12 +38,12 @@ function readAdminDefinitions() {
   return [
     {
       key: 'fred',
-      username: (process.env.ADMIN_FRED_USERNAME || 'fred bitek').trim(),
+      username: (process.env.ADMIN_FRED_USERNAME || 'admin1').trim(),
       password: process.env.ADMIN_FRED_PASSWORD,
     },
     {
       key: 'fabil',
-      username: (process.env.ADMIN_FABL_USERNAME || 'fabil jayson').trim(),
+      username: (process.env.ADMIN_FABL_USERNAME || 'admin2').trim(),
       password: process.env.ADMIN_FABL_PASSWORD,
     },
   ];

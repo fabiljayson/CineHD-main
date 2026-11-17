@@ -2,7 +2,7 @@
   "name": "cinehd",
   "private": true,
   "version": "0.1.0",
-  "license": "MIT",
+  "license": "CC-BY-NC-4.0",
   "type": "module",
   "workspaces": [
     "server"

@@ -14,8 +14,8 @@ const PLANS = Object.freeze([
 ]);
 
 const PAYMENT_METHODS = Object.freeze([
-  Object.freeze({ id: 'mtn_momo',     label: 'MTN MoMo',      envVar: 'PAYMENT_MTN_MOMO_NUMBER', defaultNumber: '237678426969' }),
-  Object.freeze({ id: 'orange_money', label: 'Orange Money',  envVar: 'PAYMENT_ORANGE_MONEY_NUMBER', defaultNumber: '237692996791' }),
+  Object.freeze({ id: 'mtn_momo',     label: 'MTN MoMo',      envVar: 'PAYMENT_MTN_MOMO_NUMBER', defaultNumber: '' }),
+  Object.freeze({ id: 'orange_money', label: 'Orange Money',  envVar: 'PAYMENT_ORANGE_MONEY_NUMBER', defaultNumber: '' }),
 ]);
 
 function getPlanById(planId) {

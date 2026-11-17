@@ -4002,7 +4002,7 @@
     "perfectOffer": "The perfect offer for those who don't want to bother with ad blocker installation and DNS changes.",
     "howToSubscribe": "How to subscribe?",
     "contactToActivate": "Contact us directly to activate your VIP access.",
-    "vip.whatsappChannel": "WhatsApp Channel (+237 678 42 69 69)",
+    "vip.whatsappChannel": "WhatsApp Channel",
     "discordContact": "Discord: mysticsaba_alt",
     "vip.whatsappPersonal": "Or on personal WhatsApp:",
     "supportMessage": "VIPs keep the site alive! Servers, internal proxies, and testing new features in development... All of this costs money, and every contribution helps us keep going 💛",
@@ -5558,7 +5558,7 @@
     "likeOurSite": "Do you like our site?",
     "wantToSupport": "Want to support us?",
     "shareTikTok": "Share the site, make a TikTok video!",
-    "tikTokReward": "If your TikTok video gets 4000+ views, we'll give you a VIP key! Contact us on WhatsApp: +237 678 42 69 69!"
+    "tikTokReward": "If your TikTok video gets 4000+ views, we'll give you a VIP key! Contact us on WhatsApp!"
   },
   "markdownToolbar": {
     "guideTitle": "Formatting guide",
@@ -7414,7 +7414,7 @@
     "otherChangeTonDns": "changetondns.fr — step-by-step tutorial (FR)",
     "otherMirrors": "Active mirrors — list on rentry.co",
     "otherMirrorsMovixHealth": "Active mirrors — also listed on movix.online",
-    "helpDns.otherWhatsApp": "WhatsApp support +237 678 42 69 69",
+    "helpDns.otherWhatsApp": "WhatsApp support",
     "backCta": "Back"
   },
   "help": {
@@ -7824,7 +7824,7 @@
       "officialListTitle": "Where to see the official list",
       "officialListBody": "Two places publish the canonical alive-mirror list: <1>movix.online</1> (domain status with real-time up/down indicator) and <2>rentry.co/movix</2> (raw list, edited by the CineHD team, always current). If you doubt a URL claiming to be CineHD, check it against one of these — anything NOT on the list is a fake (sacrificial domains designed to fool anti-piracy bots, or phishing attempts).",
       "newDeviceTitle": "New phone / new browser — the redirect doesn't kick in",
-      "newDeviceBody": "The service worker can only redirect you if it's been installed at least once before the block. On a brand-new device that has never visited {{currentDomain}}, if the domain is already ISP-blocked, you'll hit an ISP error page with no redirect. Solution: open movix.online or rentry.co/movix from any browser (those pages are hosted outside the ISP block), grab an alive mirror, and visit it. Or join <1>WhatsApp +237 678 42 69 69</1> where the list is always up to date.",
+      "newDeviceBody": "The service worker can only redirect you if it's been installed at least once before the block. On a brand-new device that has never visited {{currentDomain}}, if the domain is already ISP-blocked, you'll hit an ISP error page with no redirect. Solution: open movix.online or rentry.co/movix from any browser (those pages are hosted outside the ISP block), grab an alive mirror, and visit it. Or join <1>WhatsApp</1> where the list is always up to date.",
       "reliabilityTitle": "How often things change",
       "reliabilityBody": "A domain can go down overnight (new ARCOM order) or stay stable for months. The team rotates multiple domains in parallel — when one goes down, another takes over automatically. The rentry.co list is updated within 24h of any change.",
       "limitsTitle": "Limits",

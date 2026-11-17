@@ -1,7 +1,9 @@
 CineHD — THIRD-PARTY NOTICES
 ============================
 
-CineHD is distributed under the MIT License (see LICENSE). This file lists
+CineHD is derived from Movix and distributed under the Creative Commons
+Attribution-NonCommercial 4.0 International license (see LICENSE). Credits to
+the original Movix authors are retained as that license requires. This file lists
 third-party components bundled with the software and their notices, as
 required by their licenses.
 
@@ -32,6 +34,7 @@ bootstrap-icons
 All other npm dependencies remain under their own licenses; see
 package-lock.json and node_modules for the full dependency list.
 
-CineHD's own contributions are released under the MIT License (LICENSE),
-Copyright (c) 2026 fabiljayson. Redistribution — commercial or not — must
-keep the copyright notice and this file intact.
+The project as a whole, a derivative of Movix, is released under CC BY-NC 4.0
+(LICENSE). Redistribution must keep the credits and this file intact, and
+commercial use of the Movix-derived code requires the original authors'
+permission.

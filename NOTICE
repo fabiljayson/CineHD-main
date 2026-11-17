@@ -34,6 +34,7 @@ bootstrap-icons
 All other npm dependencies remain under their own licenses; see
 package-lock.json and node_modules for the full dependency list.
 
-CineHD's own contributions are released under the MIT License (LICENSE),
-Copyright (c) 2026 fabiljayson. Redistribution — commercial or not — must
-keep the copyright notice and this file intact.
+The project as a whole, a derivative of Movix, is released under CC BY-NC 4.0
+(LICENSE). Redistribution must keep the credits and this file intact, and
+commercial use of the Movix-derived code requires the original authors'
+permission.

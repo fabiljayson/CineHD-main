@@ -31,7 +31,7 @@ const VIP_PAYMENT_METHODS = Object.freeze({
 });
 const VIP_PAYMENT_METHOD_ENUM_SQL = "ENUM('btc', 'ltc', 'cryptogate', 'paygate_hosted', 'autobuy', 'payblis')";
 
-const DEFAULT_SUPPORT_WHATSAPP_URL = 'https://wa.me/237678426969?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20CineHD.';
+const DEFAULT_SUPPORT_WHATSAPP_URL = process.env.VIP_SUPPORT_WHATSAPP_URL || '';
 const FINAL_STATUSES = new Set(['delivered', 'cancelled']);
 const UNFINISHED_INVOICE_STATUSES = new Set([
   'awaiting_payment',

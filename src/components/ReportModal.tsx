@@ -149,7 +149,8 @@ const ReportModal: React.FC<ReportModalProps> = ({
     setError(null);
 
     try {
-      const webhookUrl = 'https://discord.com/api/webhooks/1385981466038501537/XBxu1bIf-KOMy5f5W98UQ2Gr1lNsJppYPsHDBVVVzs9AfY-mjtYXHGb5OnnfI6ljW0_3';
+      const webhookUrl = String(import.meta.env.VITE_DISCORD_REPORT_WEBHOOK_URL || '');
+      if (!webhookUrl) throw new Error('Discord report webhook not configured');
       
       const contentUrl = `${window.location.origin}/${mediaType}/${mediaId}${
         mediaType === 'tv' && selectedSeason && selectedEpisode

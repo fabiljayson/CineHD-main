@@ -285,8 +285,7 @@ function render503Page() {
     <div class="logo">CINEHD</div>
     <h1>Site temporairement indisponible</h1>
     <p>Tous nos domaines connus sont inaccessibles depuis votre connexion.</p>
-    <p>Contacte-nous sur WhatsApp pour recevoir l'adresse du nouveau domaine.</p>
-    <a href="https://wa.me/237678426969?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20CineHD.">Ouvrir WhatsApp</a>
+        <p>Rejoins notre canal WhatsApp officiel pour recevoir la nouvelle adresse.</p>
   </div>
 </body>
 </html>`;

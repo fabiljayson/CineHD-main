@@ -25,9 +25,7 @@ Frameworks: brand trueline · story arc · chapter framing
   is the point" proof.
 - **Design rebirth (2026-10)**: full editorial true-black redesign; premium
   craft made visible.
-- **Founder identity**: solo builder (fabiljayson, + one external commit that
-  turned out to be the same person's alt account); multi-founder mode chosen
-  but co-founders unrecorded.
+- **Founder identity**: small team; multi-founder mode chosen.
 
 ## Synthesis
 

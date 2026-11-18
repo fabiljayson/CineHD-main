@@ -10,64 +10,24 @@ main = "src/index.ts"
 compatibility_date = "2026-11-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Offre gratuite (Workers Free) : pas de Containers, les trois services tournent
+# sur Render (voir render.yaml à la racine) et le Worker les atteint en origine
+# externe (`origin:https://…`), le repli prévu par la décision D4.
+# Ajuster les URL si Render a suffixé un nom de service déjà pris.
+#
 # Hôte servant les préfixes de chemin ; les autres hôtes sont dédiés à un service.
 [vars]
-FALLBACK_HOST = "cinehd.example.test"
+FALLBACK_HOST = "cinehd-router.jasonfranckkenmognw.workers.dev"
 MAIN_API_HOST = "api.cinehd.example.test"
 WATCHPARTY_HOST = "watch.cinehd.example.test"
 PROXY_HOST = "proxy.cinehd.example.test"
 PATH_ROUTES = "/api=mainapi,/watchparty=watchparty,/proxy=proxy"
-MAIN_API_TARGET = "container:MAIN_API"
-WATCHPARTY_TARGET = "container:WATCHPARTY"
-PROXY_TARGET = "container:PROXY"
+MAIN_API_TARGET = "origin:https://cinehd-mainapi.onrender.com"
+WATCHPARTY_TARGET = "origin:https://cinehd-watchparty.onrender.com"
+PROXY_TARGET = "origin:https://cinehd-proxy.onrender.com"
 
-# --- Containers -------------------------------------------------------------
-# `max_instances` et `instance_type` portent le budget de la décision D3 :
-# une seule instance par service en staging, à réviser avec le plafond Neon.
-
-[[containers]]
-class_name = "MainApiContainer"
-image = "../../API/Mainapi/Dockerfile"
-max_instances = 1
-instance_type = "basic"
-
-[[containers]]
-class_name = "WatchPartyContainer"
-image = "../../API/watchpartyAPI/Dockerfile"
-max_instances = 1
-instance_type = "basic"
-
-[[containers]]
-class_name = "ProxyContainer"
-image = "../../API/proxiesembed/Dockerfile"
-max_instances = 1
-instance_type = "basic"
-
-# --- Bindings Durable Object ------------------------------------------------
-
-[[durable_objects.bindings]]
-name = "MAIN_API"
-class_name = "MainApiContainer"
-
-[[durable_objects.bindings]]
-name = "WATCHPARTY"
-class_name = "WatchPartyContainer"
-
-[[durable_objects.bindings]]
-name = "PROXY"
-class_name = "ProxyContainer"
-
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["MainApiContainer", "WatchPartyContainer", "ProxyContainer"]
-
-# --- Stockage ---------------------------------------------------------------
-# Icônes OAuth : durables, référencées par `oauth_clients` (rétention décidée en R1).
-[[r2_buckets]]
-binding = "OAUTH_ICONS"
-bucket_name = "cinehd-oauth-icons"
-
-# Cache des sources scrapées : jetable, jamais une source de vérité.
-[[kv_namespaces]]
-binding = "SOURCE_CACHE"
-id = "00000000000000000000000000000000"
+# --- Containers, Durable Objects, R2, KV -------------------------------------
+# Retirés pour tenir sur l'offre gratuite : Cloudflare Containers exige Workers
+# Paid, et R2 doit être activé avec un moyen de paiement. Aucun code ne lit
+# encore OAUTH_ICONS ni SOURCE_CACHE. Pour revenir aux Containers, restaurer ce
+# bloc depuis l'historique git et repasser les cibles en `container:BINDING`.

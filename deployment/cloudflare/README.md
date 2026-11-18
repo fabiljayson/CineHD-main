@@ -1,5 +1,11 @@
 # Worker CineHD — routage, Containers et bindings
 
+> **Mode actuel : offre gratuite.** Containers, DO, R2 et KV sont retirés de
+> `wrangler.toml`. Les services tournent sur Render (`render.yaml`) et le Worker
+> les atteint en `origin:https://…`. URL de staging :
+> `https://cinehd-router.jasonfranckkenmognw.workers.dev/api` (variable de dépôt
+> `STAGING_MAIN_API_URL`).
+
 Le Worker est le seul point d'entrée Cloudflare. Il ne sert aucune route métier :
 il résout le service visé (hôte ou préfixe de chemin) puis délègue au Container
 ou à une origine Docker externe.

@@ -1,7 +1,7 @@
 # Render Blueprint — les trois services CineHD sur l'offre gratuite de Render.
 # Le Worker Cloudflare (deployment/cloudflare) les atteint en `origin:https://…`.
 # Offre gratuite : mise en veille après inactivité, démarrage à froid au réveil.
-# Les valeurs `sync: false` se saisissent dans le tableau de bord Render, jamais ici.
+# Les secrets se saisissent dans le tableau de bord Render, jamais ici.
 services:
   - type: web
     name: cinehd-mainapi
@@ -12,20 +12,11 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
+      # Généré par Render au premier déploiement : suffit pour /health.
       - key: JWT_SECRET
-        sync: false
-      - key: DB_HOST
-        sync: false
-      - key: DB_PORT
-        sync: false
-      - key: REDIS_HOST
-        sync: false
-      - key: REDIS_PORT
-        sync: false
-      - key: REDIS_PASSWORD
-        sync: false
-      - key: TMDB_API_KEY
-        sync: false
+        generateValue: true
+      # DB_HOST, DB_PORT, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, TMDB_API_KEY :
+      # à ajouter dans Render (Environment) quand les bases sont prêtes.
 
   - type: web
     name: cinehd-watchparty

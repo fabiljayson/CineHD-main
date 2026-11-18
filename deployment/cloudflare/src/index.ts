@@ -8,9 +8,9 @@
  */
 
 import { dispatch, parseConfig } from './routing.mjs';
-import { MainApiContainer, ProxyContainer, WatchPartyContainer } from './containers';
-
-export { MainApiContainer, ProxyContainer, WatchPartyContainer };
+// Containers désactivés (offre gratuite) : voir wrangler.toml. Pour les
+// réactiver, réexporter MainApiContainer, ProxyContainer et WatchPartyContainer
+// depuis './containers'.
 
 let cachedConfig = null;
 

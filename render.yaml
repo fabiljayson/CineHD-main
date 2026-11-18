@@ -15,6 +15,9 @@ services:
       # Généré par Render au premier déploiement : suffit pour /health.
       - key: JWT_SECRET
         generateValue: true
+      # L'instance gratuite (512 Mo) ne tient pas 12 workers cluster : un seul.
+      - key: NUM_WORKERS
+        value: "1"
       # DB_HOST, DB_PORT, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, TMDB_API_KEY :
       # à ajouter dans Render (Environment) quand les bases sont prêtes.
 

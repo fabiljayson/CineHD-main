@@ -64,7 +64,13 @@ async function main() {
     'le corps contient un hôte ou un identifiant',
   );
 
-  const guarded = await probe('/api/sync');
+  // /api/sync n'existe qu'en POST côté Main API : un GET renvoie 404 et ne
+  // prouve rien sur l'authentification.
+  const guarded = await probe('/api/sync', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{}',
+  });
   record(
     'route protégée sans jeton : 401/403',
     guarded.status === 401 || guarded.status === 403,

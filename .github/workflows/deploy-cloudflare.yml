@@ -1,9 +1,10 @@
-# Déploiement Cloudflare — staging automatique, production sur approbation.
+# Déploiement Cloudflare — manuel uniquement (staging et production).
 #
 # Règles tenues par ce workflow :
 #
-# - aucune pull request ne peut déployer : les déclencheurs sont `push` sur
-#   `main` et `workflow_dispatch` ;
+# - aucun déploiement automatique : le seul déclencheur est `workflow_dispatch`
+#   (lancement manuel depuis l'onglet Actions), décidé d'un commun accord
+#   entre les porteurs du projet ; aucune pull request ni push ne déploie ;
 # - chaque job déclare ses permissions ; seul le déploiement touche à l'API
 #   Cloudflare ;
 # - la production passe par l'environnement protégé `production` (approbation
@@ -14,8 +15,6 @@
 name: Deploy Cloudflare
 
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
     inputs:
       action:

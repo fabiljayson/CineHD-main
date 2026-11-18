@@ -10,6 +10,15 @@ const dbConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  // MySQL managé (Aiven, TiDB…) : TLS obligatoire. DB_SSL=true l'active ;
+  // DB_SSL_CA (PEM) vérifie le certificat, sinon DB_SSL_REJECT_UNAUTHORIZED=false
+  // accepte un CA privé.
+  ssl: process.env.DB_SSL === 'true'
+    ? {
+        ...(process.env.DB_SSL_CA ? { ca: process.env.DB_SSL_CA.replace(/\\n/g, '\n') } : {}),
+        rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false',
+      }
+    : undefined,
   waitForConnections: true,
   // Overridables via .env sans toucher au code. Attention : connectionLimit × nb
   // workers doit rester sous le max_connections de MySQL (défaut serveur: 151).

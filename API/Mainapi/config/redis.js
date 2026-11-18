@@ -11,6 +11,8 @@ const redis = new Redis({
   host: process.env.REDIS_HOST,
   port: parseInt(process.env.REDIS_PORT),
   password: process.env.REDIS_PASSWORD,
+  // Redis managé (Upstash…) : REDIS_TLS=true active TLS.
+  ...(process.env.REDIS_TLS === 'true' ? { tls: {} } : {}),
   retryDelayOnFailover: 100,
   maxRetriesPerRequest: 3,
   lazyConnect: true

@@ -3,7 +3,8 @@ const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 const router = express.Router();
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
+const { upsertHelpFeedback } = require('../db/communitySql');
 const { verifyTurnstileFromRequest } = require('../utils/turnstile');
 const { isAdmin } = require('../middleware/auth');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
@@ -102,10 +103,10 @@ router.post('/feedback', feedbackRateLimit, async (req, res) => {
     const helpfulInt = helpful ? 1 : 0;
 
     const pool = getPool();
+    // Même visiteur qui revote = mise à jour de la ligne existante, pas une
+    // seconde ligne : le SQL diffère selon le moteur, le résultat non.
     await pool.execute(
-      `INSERT INTO help_feedback (slug, helpful, ip_hash, user_agent)
-       VALUES (?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE helpful = VALUES(helpful), user_agent = VALUES(user_agent)`,
+      upsertHelpFeedback(),
       [slug, helpfulInt, ipHash, userAgent],
     );
 

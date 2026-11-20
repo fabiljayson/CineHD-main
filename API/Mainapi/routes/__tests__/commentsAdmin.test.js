@@ -68,6 +68,9 @@ function fixture(t, { role = 'admin', userType = 'oauth', cachedAdmin } = {}) {
     } },
     './utils/redisRateLimitStore': { createRedisRateLimitStore: () => ({}) },
     './utils/turnstile': {}, './services/mediaSegments/communityStore': {},
+    // Pur : la détection de doublon doit rester la vraie, pour que le test qui
+    // vérifie le 409 exerce le même chemin qu'en production.
+    './db/pgCompat': require('../../db/pgCompat'),
   };
   const filename = path.resolve(__dirname, '../../commentsRoutes.js');
   const module = { exports: {} };

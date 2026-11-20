@@ -386,7 +386,7 @@ const WatchAnime: React.FC = () => {
               setIsBlocked(true);
               return;
             }
-          } catch (e) {
+          } catch {
             console.log('Could not fetch certifications for age check');
           }
         }

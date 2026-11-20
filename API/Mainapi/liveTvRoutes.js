@@ -23,7 +23,6 @@ const streamedSource = createStreamedSource({
   readCache: (key, maxAgeMs) => getFromCacheMs(generateCacheKey(`streamed_${key}`), maxAgeMs),
   writeCache: (key, value) => saveToCache(generateCacheKey(`streamed_${key}`), value),
 });
-const { verifyAccessKey, requireVip } = require("./checkVip");
 const {
   appendSignature,
   buildSignedProxyUrl,
@@ -58,8 +57,8 @@ const router = express.Router();
 // signées et le navigateur ne sait pas signer.
 //
 // Il n'y a délibérément PAS d'endpoint « signe-moi cette URL » : ce serait un
-// oracle de signature, un porteur de clé VIP pourrait faire signer la
-// destination de son choix. À la place, après vérification VIP, le serveur joint
+// oracle de signature, un client pourrait faire signer la destination de son
+// choix. À la place, le serveur joint
 // une `proxyUrl` signée aux flux qu'il annonce, et le client se contente de
 // choisir entre `url` (direct) et `proxyUrl` (proxifié).
 //
@@ -72,7 +71,7 @@ const LIVETV_PROXY_BASE = (
   (process.env.IPTV_STREAM_PROXY || "http://localhost:25569/proxy").replace(/\/proxy\/?$/, "")
 ).replace(/\/+$/, "");
 registerStreamedNativeRoutes(router, {
-  source: streamedSource, verifyAccessKey, proxyBase: LIVETV_PROXY_BASE,
+  source: streamedSource, proxyBase: LIVETV_PROXY_BASE,
   pickProxy: () => pickDedicatedSocks5Proxy({ poolName: 'STREAMED_SOCKS5' }),
 });
 
@@ -93,44 +92,34 @@ function proxyHeadersForStream(stream) {
   return headers;
 }
 
-function attachSignedProxyUrls(payload, isVip = false) {
+function attachSignedProxyUrls(payload) {
   if (!payload || !Array.isArray(payload.streams)) {
     return payload;
   }
 
-  // Ne jamais délivrer une signature à un non-VIP, même si un ancien cache
-  // ou une réponse amont contient déjà une proxyUrl. Ne pas modifier le cache.
-  if (!isVip) {
-    return {
-      ...payload,
-      streams: payload.streams.map((stream) => {
-        if (!stream || typeof stream !== "object" || !("proxyUrl" in stream)) return stream;
-        const directStream = { ...stream };
-        delete directStream.proxyUrl;
-        return directStream;
-      }),
-    };
-  }
-
-  if (!signingConfigured()) return payload;
+  const canSign = signingConfigured();
 
   return {
     ...payload,
     streams: payload.streams.map((stream) => {
-      if (!stream || typeof stream !== "object" || stream.proxyUrl || stream._isEmbed) return stream;
+      if (!stream || typeof stream !== "object") return stream;
 
-      const target = typeof stream.url === "string" ? stream.url : "";
+      const directStream = { ...stream };
+      delete directStream.proxyUrl;
+      if (!canSign || directStream._isEmbed) return directStream;
+
+      const target = typeof directStream.url === "string" ? directStream.url : "";
       // Déjà proxifié en amont, ou cible inexploitable : on ne double pas la couche.
-      if (!target || target.includes("/proxy?url=") || target.includes("/proxy/")) return stream;
-      if (!isPublicHttpUrl(target)) return stream;
+      if (!target || target.includes("/proxy?url=") || target.includes("/proxy/")) return directStream;
+      if (!isPublicHttpUrl(target)) return directStream;
 
-      const headers = proxyHeadersForStream(stream);
+      const headers = proxyHeadersForStream(directStream);
       const extraParams = Object.keys(headers).length
         ? { headers: JSON.stringify(headers) }
         : {};
 
       return {
-        ...stream,
+        ...directStream,
         proxyUrl: buildSignedProxyUrl(LIVETV_PROXY_BASE, "/proxy", target, { extraParams }),
       };
     }),
@@ -141,11 +130,9 @@ router.use((req, res, next) => {
   const sendJson = res.json.bind(res);
   res.json = (payload) => {
     if (Array.isArray(payload?.streams)) {
-      // Le cache disque reste partagé ; la réponse enrichie dépend de la clé VIP.
       res.set("Cache-Control", "private, no-store");
-      res.vary("X-Access-Key");
     }
-    return sendJson(attachSignedProxyUrls(payload, req.vipStatus?.vip === true));
+    return sendJson(attachSignedProxyUrls(payload));
   };
   next();
 });
@@ -2201,23 +2188,6 @@ router.get("/stream/:type/:channelId", async (req, res) => {
       : null;
 
   try {
-    const accessKey = req.headers["x-access-key"];
-
-    let isVip = { vip: false };
-    if (accessKey) {
-      isVip = await verifyAccessKey(accessKey);
-    }
-    req.vipStatus = isVip;
-
-    // Block VIP-only sources immediately if not VIP.
-    // Matches (match_/matches_) are free: the IP-locked native stream is resolved
-    // client-side by the extension/userscript (RESOLVE_FCTV), and free users without
-    // it fall back to the embed player (see the match_ branch below). Only IPTV is
-    // strictly VIP.
-    if (channelId.startsWith("iptv_") && !isVip.vip) {
-      return res.status(403).json({ error: "Réservé aux membres VIP" });
-    }
-
     // IPTV Xtream — return proxified m3u8 URL directly
     if (channelId.startsWith("iptv_")) {
       const streamId = channelId.replace("iptv_", "");
@@ -2240,16 +2210,13 @@ router.get("/stream/:type/:channelId", async (req, res) => {
 
     // Le cache externe dure 1 h : bien trop long pour un match, dont la liste
     // de serveurs amont grossit au fil de l'événement (et peut être partielle
-    // sur une réponse tronquée). Un instantané pauvre restait figé une heure
-    // pour la variante concernée — d'où « le VIP ne sort qu'un serveur alors
-    // que l'extension en montre six ». Les matchs ont déjà leur propre cache
-    // interne de 30 s, on saute donc le cache externe pour eux.
+    // sur une réponse tronquée). Les matchs ont déjà leur propre cache interne
+    // de 30 s, on saute donc le cache externe pour eux.
     const skipOuterCache =
       channelId.startsWith("vavoo_") || channelId.startsWith("match_") || channelId.startsWith("streamed_");
     const cacheKey = generateCacheKey(
-      `stream_${type}_${channelId}_${mode}_${sourceIndex ?? "all"}_v7_${isVip.vip ? "vip" : "free"}`,
+      `stream_${type}_${channelId}_${mode}_${sourceIndex ?? "all"}_v8`,
     );
-    const streamCacheVariant = isVip.vip ? "vip" : "free";
 
     // Vérifier le cache (expiration plus courte pour les streams: 1h)
     const cached = skipOuterCache ? null : await getFromCache(cacheKey, 1);
@@ -2288,10 +2255,8 @@ router.get("/stream/:type/:channelId", async (req, res) => {
             title = `Source ${index + 1}`;
 
           const originalUrl = match.stream;
-          // Use proxy server to help with CORS on some players (only if VIP)
-          const proxyUrl = isVip.vip
-            ? buildProxyServerUrl(originalUrl)
-            : originalUrl;
+          // Use the proxy server to help with CORS on players.
+          const proxyUrl = buildProxyServerUrl(originalUrl);
 
           return {
             title: title,
@@ -2360,7 +2325,7 @@ router.get("/stream/:type/:channelId", async (req, res) => {
     } else if (channelId.startsWith("match_")) {
       // === SOURCE MATCHES (FCTV33) ===
       const matchCacheKey = generateCacheKey(
-        `fctv_match_stream_${channelId}_ua2_${streamCacheVariant}`,
+        `fctv_match_stream_${channelId}_ua3`,
       );
 
       // Check for fresh cache (30 seconds)
@@ -2384,51 +2349,23 @@ router.get("/stream/:type/:channelId", async (req, res) => {
         process.env.PUBLIC_API_BASE ||
         `${req.headers["x-forwarded-proto"] || req.protocol}://${req.get("host")}`;
 
-      // VIP -> server proxies the segments. Free -> "raw" mode: the browser
-      // extension / userscript injects the player Referer (no proxy needed).
-      const fctvNativeMode = isVip.vip ? "proxy" : "raw";
-      const fctvPlayerBase = await getFctvPlayerBaseUrl();
-      const fctvApiBase = await getFctvApiBase();
-
       // Build streams array with all FCTV servers.
       const streams = matchStreams.map((stream) => {
         if (stream._fctvNative) {
           const p = stream._fctvNative;
-          // VIP: the server proxies the (IP-consistent) segments via the smart
-          // playlist endpoint + PROXY_SERVER_URL.
-          if (fctvNativeMode === "proxy") {
-            // Le lecteur HLS natif ne transmet pas x-access-key : l'autorisation
-            // voyage dans un jeton signé limité à ce match et à ce serveur.
-            const token = encodeSignedToken(
-              FCTV_PLAYLIST_TOKEN_ROUTE,
-              fctvPlaylistTarget(p.matchId, p.streamId, p.siteType, p.sportType),
-            );
-            const url =
-              `${publicApiBase}/api/livetv/fctv/playlist?matchId=${encodeURIComponent(p.matchId)}` +
-              `&streamId=${encodeURIComponent(p.streamId)}&siteType=${encodeURIComponent(p.siteType)}` +
-              `&sportType=${encodeURIComponent(p.sportType)}&mode=proxy&token=${encodeURIComponent(token)}`;
-            return {
-              title: stream.title,
-              url,
-              originalUrl: url,
-              behaviorHints: { notWebReady: false },
-            };
-          }
-          // Free: the stream is IP-locked, so it must be resolved in the user's
-          // browser by the extension/userscript (RESOLVE_FCTV). Empty url here;
-          // the frontend fills it. Sans extension le stub est écarté et, le
-          // repli « lecteur intégré » ayant été retiré, il ne reste aucun flux.
+          // Each user receives a scoped, expiring token for the server-side relay.
+          const token = encodeSignedToken(
+            FCTV_PLAYLIST_TOKEN_ROUTE,
+            fctvPlaylistTarget(p.matchId, p.streamId, p.siteType, p.sportType),
+          );
+          const url =
+            `${publicApiBase}/api/livetv/fctv/playlist?matchId=${encodeURIComponent(p.matchId)}` +
+            `&streamId=${encodeURIComponent(p.streamId)}&siteType=${encodeURIComponent(p.siteType)}` +
+            `&sportType=${encodeURIComponent(p.sportType)}&mode=proxy&token=${encodeURIComponent(token)}`;
           return {
             title: stream.title,
-            url: "",
-            _fctvLocal: {
-              matchId: p.matchId,
-              streamId: p.streamId,
-              siteType: p.siteType,
-              sportType: p.sportType,
-              apiBase: fctvApiBase,
-            },
-            _fctvReferer: `${fctvPlayerBase}/`,
+            url,
+            originalUrl: url,
             behaviorHints: { notWebReady: false },
           };
         }
@@ -2441,9 +2378,7 @@ router.get("/stream/:type/:channelId", async (req, res) => {
             stream.userAgent || STREAM_PROXY_USER_AGENT,
           ),
         );
-        // Le besoin de Referer ne donne pas accès au proxy : hors VIP,
-        // l'extension/userscript applique les en-têtes au flux direct.
-        const proxyUrl = PROXY_SERVER_URL && isVip.vip
+        const proxyUrl = PROXY_SERVER_URL
           ? buildProxyServerUrl(stream.url, { headers })
           : stream.url;
 
@@ -2502,8 +2437,7 @@ router.get("/fctv/playlist", async (req, res) => {
   const streamId = req.query.streamId;
   const siteType = req.query.siteType || FCTV_DEFAULT_SITE_TYPE;
   const sportType = req.query.sportType || 1;
-  // proxy = segments via PROXY_SERVER_URL (VIP). raw = bare CDN urls; the
-  // browser extension / userscript injects the player Referer (free users).
+  // proxy = segments via PROXY_SERVER_URL; raw remains for the browser extension.
   const mode = req.query.mode === "raw" ? "raw" : "proxy";
   res.set("Cache-Control", "private, no-store");
   if (!matchId || !streamId) {
@@ -2518,7 +2452,7 @@ router.get("/fctv/playlist", async (req, res) => {
   if (mode === "proxy") {
     const target = fctvPlaylistTarget(matchId, streamId, siteType, sportType);
     if (decodeSignedToken(FCTV_PLAYLIST_TOKEN_ROUTE, req.query.token) !== target) {
-      return res.status(403).send("Accès réservé aux membres VIP");
+      return res.status(403).send("Jeton invalide ou expiré");
     }
   }
 
@@ -2597,7 +2531,7 @@ router.get("/resolve/:playId", (req, res) => {
   res.status(410).json({ error: "Cette source Live TV a été retirée", code: "source_removed" });
 });
 
-// === IPTV WEB (Xtream API) — VIP ONLY ===
+// === IPTV WEB (Xtream API) ===
 const XTREAM_URL = (process.env.XTREAM_URL || "").replace(/\/+$/, "");
 const XTREAM_USER = process.env.XTREAM_USER || "";
 const XTREAM_PASS = process.env.XTREAM_PASS || "";
@@ -2638,9 +2572,9 @@ setInterval(() => {
 
 /**
  * GET /api/livetv/iptv/categories
- * Récupère les catégories live de l'API Xtream (VIP only)
+ * Récupère les catégories live de l'API Xtream
  */
-router.get("/iptv/categories", requireVip, async (req, res) => {
+router.get("/iptv/categories", async (req, res) => {
   try {
     const now = Date.now();
     if (
@@ -2679,10 +2613,10 @@ router.get("/iptv/categories", requireVip, async (req, res) => {
 
 /**
  * GET /api/livetv/iptv/streams/:categoryId
- * Récupère les chaînes d'une catégorie Xtream (VIP only)
+ * Récupère les chaînes d'une catégorie Xtream
  * Pas de logos: le proxy d'images a été retiré (SSRF).
  */
-router.get("/iptv/streams/:categoryId", requireVip, async (req, res) => {
+router.get("/iptv/streams/:categoryId", async (req, res) => {
   const { categoryId } = req.params;
 
   try {
@@ -2718,9 +2652,9 @@ router.get("/iptv/streams/:categoryId", requireVip, async (req, res) => {
 
 /**
  * GET /api/livetv/iptv/stream-url/:streamId
- * Construit l'URL m3u8 proxifiée pour un stream Xtream (VIP only)
+ * Construit l'URL m3u8 proxifiée pour un stream Xtream
  */
-router.get("/iptv/stream-url/:streamId", requireVip, async (req, res) => {
+router.get("/iptv/stream-url/:streamId", async (req, res) => {
   const { streamId } = req.params;
 
   try {

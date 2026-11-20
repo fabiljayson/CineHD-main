@@ -4,14 +4,19 @@ const fs = require('fs').promises;
 const path = require('path');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const { USERS_DIR } = require('./utils/userDataPaths');
 const axios = require('axios');
 const {
-  getPool,
   SCHEMA_BOOTSTRAP_LOCK_NAME,
   withMysqlAdvisoryLock
 } = require('./mysqlPool');
+// Pool du moteur sélectionné ; le lock et le DDL ci-dessous ne servent qu'à
+// MySQL, le schéma PostgreSQL appartenant aux migrations.
+const { getPool, isPostgres } = require('./db/dialect');
+const { insertReturningId } = require('./db/pgCompat');
 const { verifyAccessKey } = require('./checkVip');
 const { verifyTurnstileFromRequest } = require('./utils/turnstile');
+const { extractSessionToken } = require('./middleware/sessionCookie');
 // Réutiliser l'instance Redis partagée au lieu d'en créer une nouvelle (évite les fuites mémoire)
 const { redis } = require('./config/redis');
 
@@ -27,7 +32,6 @@ function getCachedPool() {
 }
 
 const SHARED_LIST_CACHE_TTL = 600; // 10 minutes
-const USERS_DIR = path.join(__dirname, 'data', 'users');
 
 // === ZZAPI API Configuration for content moderation ===
 const ZZAPI_API_KEY = process.env.ZZAPI_API_KEY;
@@ -144,6 +148,9 @@ Réponds UNIQUEMENT avec ce format JSON (sans markdown, sans backticks):
 
 // === Helper MySQL (même pattern que commentsRoutes.js) ===
 async function ensureSharedListsTable() {
+  // Le DDL qui suit est du MySQL (`ENGINE=InnoDB`, `INDEX` dans CREATE TABLE).
+  // Sur PostgreSQL la table vient de migrations/003 : on saute, on ne traduit pas.
+  if (isPostgres()) return;
   if (ensureSharedListsTablePromise) {
     return ensureSharedListsTablePromise;
   }
@@ -189,9 +196,13 @@ async function ensureSharedListsTable() {
 const dbRun = async (sql, params = []) => {
   await ensureSharedListsTable();
   const pool = getCachedPool();
+  if (/^\s*insert\b/i.test(sql)) {
+    const id = await insertReturningId(pool, sql, params);
+    return { lastID: id || 0, changes: 1 };
+  }
   const [result] = await pool.execute(sql, params);
   return {
-    lastID: result.insertId || 0,
+    lastID: 0,
     changes: result.affectedRows || 0
   };
 };
@@ -212,7 +223,7 @@ const dbAll = async (sql, params = []) => {
 
 // === Auth middleware (comme commentsRoutes.js) ===
 const requireAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = extractSessionToken(req);
   if (!token) {
     return res.status(401).json({ error: 'Non authentifié' });
   }
@@ -251,7 +262,7 @@ const requireAuth = async (req, res, next) => {
 
 // === Admin middleware — vérifie que l'utilisateur est admin via la table admins MySQL ===
 const requireAdmin = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = extractSessionToken(req);
   if (!token) {
     return res.status(401).json({ error: 'Non authentifié' });
   }
@@ -303,7 +314,7 @@ const requireAdmin = async (req, res, next) => {
 // prouver la propriété d'une liste (liste modérée, par exemple).
 function getOptionalAuthUser(req) {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = extractSessionToken(req);
     if (!token) return null;
     const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
     if (!['oauth', 'bip39'].includes(decoded.userType) || !decoded.sub) return null;

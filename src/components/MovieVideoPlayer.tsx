@@ -16,7 +16,6 @@ interface MovieVideoPlayerProps {
 
 const MovieVideoPlayer: React.FC<MovieVideoPlayerProps> = ({ 
   children, 
-  selectedSource,
   playerData,
   onSelectSource
 }) => {

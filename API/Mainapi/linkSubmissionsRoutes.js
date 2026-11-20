@@ -10,9 +10,12 @@
 
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const { USERS_DIR } = require('./utils/userDataPaths');
+const { insertReturningId } = require('./db/pgCompat');
 const fs = require('fs').promises;
 const path = require('path');
 const { verifyAccessKey } = require('./checkVip');
+const { extractSessionToken } = require('./middleware/sessionCookie');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -31,7 +34,7 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
 
     // Verify JWT token with MySQL session validation (same as wishboardRoutes)
     const requireAuth = async (req, res, next) => {
-        const token = req.headers.authorization?.split(' ')[1];
+        const token = extractSessionToken(req);
         if (!token) {
             return res.status(401).json({ error: 'Non authentifié' });
         }
@@ -111,9 +114,9 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
             const safeUserId = String(userId).replace(/[^a-zA-Z0-9_\-]/g, '');
             let userFilePath;
             if (userType === 'bip39') {
-                userFilePath = path.join(__dirname, 'data', 'users', `bip39-${safeUserId}.json`);
+                userFilePath = path.join(USERS_DIR, `bip39-${safeUserId}.json`);
             } else {
-                userFilePath = path.join(__dirname, 'data', 'users', `${safeUserId}.json`);
+                userFilePath = path.join(USERS_DIR, `${safeUserId}.json`);
             }
             const userFile = await fs.readFile(userFilePath, 'utf8');
             const user = JSON.parse(userFile);
@@ -129,14 +132,14 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
     // Get user data from JSON files
     async function getUserData(userId, userType, profileId = null) {
         try {
-            let userData = { username: 'Utilisateur', avatar: null, isVip: false };
+            let userData = { username: 'Utilisateur', avatar: null };
             const safeUserId = String(userId).replace(/[^a-zA-Z0-9_\-]/g, '');
 
             let userFilePath;
             if (userType === 'bip39') {
-                userFilePath = path.join(__dirname, 'data', 'users', `bip39-${safeUserId}.json`);
+                userFilePath = path.join(USERS_DIR, `bip39-${safeUserId}.json`);
             } else {
-                userFilePath = path.join(__dirname, 'data', 'users', `${safeUserId}.json`);
+                userFilePath = path.join(USERS_DIR, `${safeUserId}.json`);
             }
 
             try {
@@ -155,7 +158,7 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
 
             return userData;
         } catch (error) {
-            return { username: 'Utilisateur', avatar: null, isVip: false };
+            return { username: 'Utilisateur', avatar: null };
         }
     }
 
@@ -275,7 +278,8 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
             const episodeNum = (media_type === 'tv' && episode_number !== undefined && episode_number !== null) ? parseInt(episode_number, 10) : null;
             const sourceName = source_name ? source_name.trim().substring(0, 100) : null;
 
-            const [result] = await mysqlPool.execute(
+            const submissionId = await insertReturningId(
+                mysqlPool,
                 `INSERT INTO link_submissions 
                  (user_id, profile_id, tmdb_id, media_type, season_number, episode_number, url, source_name, status) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
@@ -283,7 +287,7 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
             );
 
             res.status(201).json({
-                id: result.insertId,
+                id: submissionId,
                 message: 'Lien soumis avec succès ! Il sera examiné par notre équipe.'
             });
         } catch (error) {
@@ -496,7 +500,7 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
                 try {
                     let userType = 'oauth';
                     try {
-                        await fs.access(path.join(__dirname, 'data', 'users', `bip39-${sub.user_id}.json`));
+                        await fs.access(path.join(USERS_DIR, `bip39-${sub.user_id}.json`));
                         userType = 'bip39';
                     } catch { /* keep oauth */ }
                     user = await getUserData(sub.user_id, userType, sub.profile_id);

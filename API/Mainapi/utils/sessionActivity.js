@@ -1,5 +1,6 @@
 const { createHash } = require('node:crypto');
 const { LruMap } = require('./lruMap');
+const { touchSessionIfStale } = require('../db/coreSql');
 
 const RESERVE_ACTIVITY = `
 local interval = tonumber(ARGV[1])
@@ -40,9 +41,7 @@ function createSessionActivityUpdater({
       const pool = getPool();
       if (!pool) return false;
       await pool.execute(
-        `UPDATE user_sessions SET accessed_at = NOW()
-         WHERE id = ? AND user_id = ? AND user_type = ?
-         AND (accessed_at IS NULL OR accessed_at <= DATE_SUB(NOW(), INTERVAL ? SECOND))`,
+        touchSessionIfStale(),
         [sessionId, userId, userType, Math.ceil(interval / 1000)],
       );
       return true;

@@ -13,6 +13,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const { fetchTmdbDetails } = require('./utils/tmdbCache');
+const { extractSessionToken } = require('./middleware/sessionCookie');
 const { LruMap } = require('./utils/lruMap');
 
 // ─── Configuration ──────────────────────────────────────────────────────────
@@ -64,8 +65,7 @@ async function redisSet(key, value, ttlSeconds) {
 // ─── JWT middleware ─────────────────────────────────────────────────────────
 
 const verifyToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = extractSessionToken(req);
 
     if (!token) {
         return res.status(401).json({ success: false, error: 'Access denied. No token provided.' });

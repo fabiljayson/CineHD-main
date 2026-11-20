@@ -1,0 +1,25 @@
+# Ne jamais mettre de secrets dans l'image : `.env` reste sur l'hôte et les
+# valeurs viennent de l'environnement du Container.
+.env
+.env.*
+!.env.example
+
+# Dépendances locales et artefacts de build
+node_modules
+
+# Données de runtime, éphémères par définition
+cache
+darkino-backups
+public/oauth-icons
+
+# Tests, couverture et journaux
+tests
+coverage
+*.log
+npm-debug.log*
+.npm
+
+# Divers
+.git
+.github
+*.heapsnapshot

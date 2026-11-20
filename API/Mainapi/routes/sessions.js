@@ -8,7 +8,7 @@ const express = require('express');
 const router = express.Router();
 
 const { getAuthIfValid } = require('../middleware/auth');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const { getSessionDeviceInfo, parseStoredSessionDeviceInfo } = require('../utils/sessionDeviceInfo');
 
 // === Routes ===
@@ -32,19 +32,21 @@ router.get('/', async (req, res) => {
       return res.status(503).json({ success: false, error: 'Service temporairement indisponible' });
     }
 
-    // Get sessions from MySQL
+    // Colonnes brutes, sans alias camelCase : MySQL les conserve mais
+    // PostgreSQL les replie en minuscules (`createdat`), ce qui renvoyait des
+    // dates nulles dès que la route tournait sur le second moteur.
     const [rows] = await pool.execute(
-      'SELECT id, device, user_agent as userAgent, created_at as createdAt, accessed_at as accessedAt FROM user_sessions WHERE user_id = ? AND user_type = ? ORDER BY accessed_at DESC',
+      'SELECT id, device, user_agent, created_at, accessed_at FROM user_sessions WHERE user_id = ? AND user_type = ? ORDER BY accessed_at DESC',
       [userId, userType]
     );
 
     const sessions = rows.map(row => ({
       id: row.id,
       userId: userId,
-      userAgent: row.userAgent,
-      deviceInfo: parseStoredSessionDeviceInfo(row.device) || getSessionDeviceInfo({ userAgent: row.userAgent }),
-      createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : null,
-      accessedAt: row.accessedAt ? new Date(row.accessedAt).toISOString() : null
+      userAgent: row.user_agent,
+      deviceInfo: parseStoredSessionDeviceInfo(row.device) || getSessionDeviceInfo({ userAgent: row.user_agent }),
+      createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
+      accessedAt: row.accessed_at ? new Date(row.accessed_at).toISOString() : null
     }));
 
     res.status(200).json({ success: true, data: { count: sessions.length, items: sessions } });

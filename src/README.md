@@ -77,7 +77,7 @@ Le routeur principal est dans `src/App.tsx`. Les grandes familles de routes sont
 - navigation catalogue : `/`, `/movies`, `/tv-shows`, `/collections`, `/movie/:id`, `/tv/:id`
 - lecture : `/watch/movie/:tmdbid`, `/watch/tv/:tmdbid/s/:season/e/:episode`, `/watch/anime/...`
 - social / communautaire : `/wishboard`, `/list/:shareCode`, `/top10`, `/wrapped`
-- compte / profils / VIP : `/profile`, `/profile-selection`, `/settings`, `/vip`, `/vip/don`
+- compte / profils / VIP : `/profile`, `/profile-selection`, `/settings`, `/help/vip`
 - temps réel : `/watchparty/create`, `/watchparty/join`, `/watchparty/room/:roomId`
 - services annexes : `/live-tv`, `/debrid`, `/extension`, `/ftv`
 

@@ -7,10 +7,10 @@
  */
 
 /** Numéro WhatsApp au format international sans « + » (pays + numéro). */
-export const SUPPORT_WHATSAPP_PHONE = '237678426969';
+export const SUPPORT_WHATSAPP_PHONE: string = String(import.meta.env.VITE_SUPPORT_WHATSAPP_PHONE || '').replace(/\D/g, '');
 
 /** Numéro affiché aux utilisateurs, pour les textes non cliquables. */
-export const SUPPORT_WHATSAPP_DISPLAY = '+237 678 42 69 69';
+export const SUPPORT_WHATSAPP_DISPLAY: string = String(import.meta.env.VITE_SUPPORT_WHATSAPP_DISPLAY || (SUPPORT_WHATSAPP_PHONE ? `+${SUPPORT_WHATSAPP_PHONE}` : 'WhatsApp'));
 
 /** Message pré-rempli par défaut des liens de support. */
 export const SUPPORT_WHATSAPP_MESSAGE = "Bonjour, j'ai besoin d'aide sur CineHD.";

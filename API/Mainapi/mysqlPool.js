@@ -1,5 +1,6 @@
 const mysql = require('mysql2/promise');
 const diagnostics = require('./utils/diagnostics');
+const { resolvePoolLimit } = require('./utils/connectionBudget');
 require('dotenv').config();
 
 // Configuration de la connexion MySQL — credentials from environment variables
@@ -9,10 +10,21 @@ const dbConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  // MySQL managé (Aiven, TiDB…) : TLS obligatoire. DB_SSL=true l'active ;
+  // DB_SSL_CA (PEM) vérifie le certificat, sinon DB_SSL_REJECT_UNAUTHORIZED=false
+  // accepte un CA privé.
+  ssl: process.env.DB_SSL === 'true'
+    ? {
+        ...(process.env.DB_SSL_CA ? { ca: process.env.DB_SSL_CA.replace(/\\n/g, '\n') } : {}),
+        rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false',
+      }
+    : undefined,
   waitForConnections: true,
   // Overridables via .env sans toucher au code. Attention : connectionLimit × nb
   // workers doit rester sous le max_connections de MySQL (défaut serveur: 151).
-  connectionLimit: parseInt(process.env.DB_POOL_CONNECTION_LIMIT || '20'),
+  // Le plafond D3 (DB_CONNECTION_BUDGET) réduit cette taille de pool ; sans
+  // plafond défini, la valeur demandée est utilisée telle quelle.
+  connectionLimit: resolvePoolLimit(),
   maxIdle: 5,                // Libère les connexions inactives au-delà de 5
   idleTimeout: 60000,        // Ferme les connexions idle après 60s
   queueLimit: parseInt(process.env.DB_POOL_QUEUE_LIMIT || '500'), // File d'attente par worker (0 = illimité, risque OOM)

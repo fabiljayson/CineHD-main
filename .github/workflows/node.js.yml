@@ -33,7 +33,26 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependency-path: |
+          package-lock.json
+          API/Mainapi/package-lock.json
     - run: npm ci
+    - name: Install Main API dependencies
+      # tests/streamedPlayback.test.mjs charge le resolver Streamed vendu dans
+      # API/Mainapi/vendor/ : il n'existe que dans API/Mainapi/node_modules.
+      # Sans cette installation, `npm test` échoue dès l'import du test.
+      run: npm ci --prefix API/Mainapi
+    - name: Typecheck
+      # Vite ne type-check pas : sans cette étape, une régression de types
+      # n'apparaît qu'à l'ouverture du fichier dans un éditeur.
+      run: npm run typecheck
+    - name: Lint
+      # La dette actuelle est figée dans eslint-suppressions.json (erreurs) et
+      # plafonnée à 219 avertissements : une nouvelle violation échoue, une
+      # ancienne ne bloque pas. Régénérer la baseline avec
+      # `npx eslint . --suppress-all` quand la dette baisse, et baisser le
+      # plafond en même temps.
+      run: npm run lint
     - name: Build
       run: npm run build --if-present
       env:
@@ -43,3 +62,171 @@ jobs:
         VITE_SITE_URL: https://cinehd.example
     - name: Test
       run: npm test
+
+  main-api:
+    # Le backend a ses propres dépendances et son propre lockfile : le tester
+    # depuis la racine ne vérifie ni son installation ni ses tests.
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: 'npm'
+        cache-dependency-path: API/Mainapi/package-lock.json
+    - name: Installation (lockfile)
+      working-directory: API/Mainapi
+      run: npm ci
+    - name: Tests
+      # Les suites E2E de bascule exigent PostgreSQL, MySQL ou Redis. Sans URLs,
+      # elles se marquent « skipped » et `node --test` sort en 0 : les lancer ici
+      # afficherait une couverture qui n'a rien vérifié. Elles tournent dans le
+      # job `postgres-migration`, qui fournit les moteurs et échoue si un test
+      # est ignoré. Ce job ne garde donc que les tests autonomes.
+      working-directory: API/Mainapi
+      run: |
+        node --test $(find tests -maxdepth 1 -name '*.test.js' \
+          ! -name 'postgresCoreMedia.e2e.test.js' \
+          ! -name 'postgresAuthProfiles.e2e.test.js' \
+          ! -name 'postgresSyncMedia.e2e.test.js' \
+          ! -name 'mysqlPostgresMigration.e2e.test.js')
+
+  postgres-migration:
+    # Les suites E2E de bascule s'ignorent elles-mêmes sans URLs de base : sans
+    # ce job, le portage PostgreSQL n'était vérifié par personne sur une push.
+    # Les identifiants ci-dessous sont ceux des conteneurs de service, jetables
+    # et propres à ce job : ce ne sont pas des secrets du dépôt.
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cinehd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: cinehd
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+      redis:
+        # Le limiteur de débit des routes d'authentification échoue fermé sans
+        # Redis : la suite auth/profils ne peut pas passer sans ce service.
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: 'npm'
+        cache-dependency-path: API/Mainapi/package-lock.json
+    - name: Installation (lockfile)
+      working-directory: API/Mainapi
+      run: npm ci
+    - name: Tests PostgreSQL, MySQL et Redis
+      # Un seul job couvre les quatre suites : core/media, auth/profils,
+      # sync/media et la bascule MySQL → PostgreSQL. Le second job PostgreSQL
+      # dupliquait deux de ces fichiers pour rien.
+      working-directory: API/Mainapi
+      env:
+        # Même contrato que les scripts db:* : la source MySQL et la cible
+        # PostgreSQL sont deux bases distinctes, toutes deux jetables.
+        MYSQL_MIGRATION_URL: mysql://root:root@127.0.0.1:3306/cinehd
+        DATABASE_MIGRATION_URL: postgres://postgres:postgres@127.0.0.1:5432/cinehd
+        REDIS_HOST: 127.0.0.1
+        REDIS_PORT: '6379'
+        JWT_SECRET: ci-postgres-migration
+      run: |
+        set -o pipefail
+        # --test-concurrency=1 : les suites migrent et tronquent les mêmes bases,
+        # un lancement parallèle les ferait échouer l'une sur l'autre.
+        node --test --test-concurrency=1 --test-reporter=tap \
+          tests/postgresCoreMedia.e2e.test.js \
+          tests/postgresAuthProfiles.e2e.test.js \
+          tests/postgresSyncMedia.e2e.test.js \
+          tests/mysqlPostgresMigration.e2e.test.js \
+          | tee "$RUNNER_TEMP/pg-e2e.tap"
+        # Un test ignoré passerait pour un succès : sans cette garde, un
+        # changement de nom de variable rendrait le job vert sans rien vérifier.
+        if grep -q '# SKIP' "$RUNNER_TEMP/pg-e2e.tap"; then
+          echo "::error::Des tests ont été ignorés : vérifier MYSQL_MIGRATION_URL, DATABASE_MIGRATION_URL et Redis."
+          exit 1
+        fi
+
+  proxies:
+    # Le proxy est le seul service Python du dépôt ; il n'était vérifié nulle part.
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    - name: Installation
+      working-directory: API/proxiesembed
+      run: pip install -r requirements.txt
+    - name: Tests
+      working-directory: API/proxiesembed
+      run: python -m unittest discover -s tests -t .
+
+  security:
+    # Contrôles hors matrice : ils ne dépendent pas de la version de Node, et le
+    # scan de secrets a besoin de l'historique complet (clone superficiel =
+    # aucun historique à inspecter).
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # Sans fetch-depth: 0, gitleaks ne voit que le dernier commit or un
+        # secret retiré d'un commit reste lisible dans les blobs précédents.
+        fetch-depth: 0
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: 'npm'
+    - run: npm ci
+    - name: Dépendances (audit)
+      # Échoue sur une vulnérabilité haute ou critique. --omit=dev vise ce qui
+      # est réellement exécuté en production : une faille dans un outil de build
+      # ne touche pas l'utilisateur, et la corriger ne doit pas bloquer une
+      # release.
+      run: |
+        npm audit --omit=dev --audit-level=high
+        npm --prefix API/Mainapi audit --omit=dev --audit-level=high
+    - name: Secrets (gitleaks)
+      # --redact : un secret trouvé n'apparaît jamais en clair dans les logs de
+      # CI. Les allowlists (fixtures de test, corpus de documentation, constantes
+      # publiques de l'extension) sont justifiées une à une dans .gitleaks.toml.
+      run: |
+        VERSION=8.28.0
+        curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" \
+          | tar -xz -C "$RUNNER_TEMP" gitleaks
+        "$RUNNER_TEMP/gitleaks" detect --source . --config .gitleaks.toml \
+          --redact --no-banner --exit-code 1

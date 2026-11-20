@@ -4,12 +4,15 @@ const fs = require("fs").promises;
 const path = require("path");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
-const { getPool } = require("./mysqlPool");
-const { verifyAccessKey } = require("./checkVip");
+const { getPool, isPostgres } = require("./db/dialect");
+const { insertReturningId } = require("./db/pgCompat");
+const { upsertNotificationPreferences } = require("./db/communitySql");
+const { isDuplicateKeyError } = require("./db/pgCompat");
 // Réutiliser l'instance Redis partagée au lieu d'en créer une nouvelle (évite les fuites mémoire)
 const { redis } = require("./config/redis");
 const { verifyTurnstileFromRequest } = require("./utils/turnstile");
 const { getTrustedClientIp } = require("./utils/clientIp");
+const { extractSessionToken } = require("./middleware/sessionCookie");
 // Signalement d'une proposition de sequence deposee depuis le lecteur : elle
 // n'a rien d'un commentaire, mais elle se modere au meme endroit, avec les
 // memes etats et les memes notifications. Voir `target_type = 'segment'`.
@@ -302,9 +305,15 @@ flagged doit être un booléen. Si flagged=false, reason doit être null. Si fla
 // Fonctions helper MySQL pour remplacer SQLite (#16: pool caché)
 const dbRun = async (sql, params = []) => {
   const pool = getCachedPool();
+  // Sur MySQL l'identité générée arrive dans `insertId` ; PostgreSQL la rend
+  // seulement avec `RETURNING`, donc un INSERT passe par l'adaptateur.
+  if (/^\s*insert\b/i.test(sql)) {
+    const id = await insertReturningId(pool, sql, params);
+    return { lastID: id || 0, changes: 1 };
+  }
   const [result] = await pool.execute(sql, params);
   return {
-    lastID: result.insertId || 0,
+    lastID: 0,
     changes: result.affectedRows || 0,
   };
 };
@@ -323,7 +332,7 @@ const dbAll = async (sql, params = []) => {
 
 // Middleware pour vérifier l'authentification avec validation session MySQL
 const requireAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  const token = extractSessionToken(req);
   if (!token) {
     return res.status(401).json({ error: "Non authentifié" });
   }
@@ -395,6 +404,10 @@ const writeRateLimit = rateLimit({
 let _notificationTablesInitialized = false;
 let _notificationTablesInitPromise = null;
 async function ensureNotificationTables() {
+  // Sur PostgreSQL le schéma appartient aux migrations : ce DDL MySQL
+  // (`AUTO_INCREMENT`, `INDEX` dans CREATE TABLE) ne s'y applique pas et ne doit
+  // pas être traduit, seulement sauté.
+  if (isPostgres()) return;
   if (_notificationTablesInitialized) return;
   if (_notificationTablesInitPromise) return _notificationTablesInitPromise;
   _notificationTablesInitPromise = (async () => {
@@ -481,7 +494,6 @@ async function _fetchUserData(userId, userType, profileId = null) {
     let userData = {
       username: "Utilisateur",
       avatar: null,
-      isVip: false,
     };
 
     // Sanitize inputs to prevent path traversal
@@ -489,9 +501,6 @@ async function _fetchUserData(userId, userType, profileId = null) {
     const safeUserType = ["oauth", "bip39"].includes(userType)
       ? userType
       : "oauth";
-    const safeProfileId = profileId
-      ? String(profileId).replace(/[^a-zA-Z0-9_\-]/g, "")
-      : null;
 
     // Chemin vers le fichier utilisateur
     let userFilePath;
@@ -547,39 +556,12 @@ async function _fetchUserData(userId, userType, profileId = null) {
       // Fichier utilisateur introuvable — on garde les valeurs par défaut
     }
 
-    // Vérifier le statut VIP en lisant l'access_code depuis les données du profil
-    // puis en le vérifiant contre la table MySQL access_keys
-    if (safeProfileId && safeUserId) {
-      try {
-        const profileDataPath = path.join(
-          __dirname,
-          "data",
-          "users",
-          "profiles",
-          safeUserType,
-          safeUserId,
-          `${safeProfileId}.json`,
-        );
-        const profileData = JSON.parse(
-          await fs.readFile(profileDataPath, "utf8"),
-        );
-        const storedAccessCode = profileData.access_code || null;
-        if (storedAccessCode) {
-          const vipStatus = await verifyAccessKey(storedAccessCode);
-          userData.isVip = vipStatus.vip;
-        }
-      } catch (err) {
-        // Pas de données de profil ou pas d'access_code — isVip reste false
-      }
-    }
-
     return userData;
   } catch (error) {
     console.error("Erreur _fetchUserData:", error);
     return {
       username: "Utilisateur",
       avatar: null,
-      isVip: false,
     };
   }
 }
@@ -641,6 +623,7 @@ async function isNotificationDisabledForUser(userId, userType) {
 
 let pushTableReady = false;
 async function ensurePushTable() {
+  if (isPostgres()) return;
   if (pushTableReady) return;
   try {
     await getPool().execute(
@@ -1069,7 +1052,6 @@ async function sendDiscordWebhook(type, data) {
       contentType,
       contentId,
       isSpoiler,
-      isVip,
       isAdmin,
       replyToUsername,
       userId,
@@ -1112,7 +1094,7 @@ async function sendDiscordWebhook(type, data) {
     const embed = {
       title: title,
       description: description,
-      color: isAdmin ? 0xff0000 : isVip ? 0xffd700 : 0x3498db,
+      color: isAdmin ? 0xff0000 : 0x3498db,
       url: contentUrl || undefined, // Lien cliquable sur le titre
       fields: [
         {
@@ -1133,9 +1115,7 @@ async function sendDiscordWebhook(type, data) {
       ],
       timestamp: new Date().toISOString(),
       footer: {
-        text: String(
-          isAdmin ? "👑 Administrateur" : isVip ? "⭐ VIP" : "👤 Utilisateur",
-        ).substring(0, 2048),
+        text: String(isAdmin ? "👑 Administrateur" : "👤 Utilisateur").substring(0, 2048),
       },
     };
 
@@ -1413,9 +1393,7 @@ router.put("/notifications/preferences", requireAuth, writeRateLimit, async (req
     const disabled = req.body?.notificationsDisabled === true;
     const pool = getCachedPool();
     await pool.execute(
-      `INSERT INTO user_notification_preferences (user_id, user_type, notifications_disabled, updated_at)
-       VALUES (?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE notifications_disabled = VALUES(notifications_disabled), updated_at = VALUES(updated_at)`,
+      upsertNotificationPreferences(),
       [req.user.userId, req.user.userType, disabled ? 1 : 0, Date.now()]
     );
 
@@ -1702,7 +1680,7 @@ router.get("/:commentId/replies", async (req, res) => {
 
     // Tenter de récupérer l'utilisateur connecté (optionnel)
     let currentUser = null;
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = extractSessionToken(req);
     if (token) {
       try {
         const decoded = jwt.verify(token, JWT_SECRET, {
@@ -1782,7 +1760,7 @@ router.get("/:commentId/replies", async (req, res) => {
           content: formatContentForResponse(reply.content),
           username: userData.username,
           avatar: userData.avatar,
-          is_vip: userData.isVip ? 1 : 0,
+          is_vip: 0,
           is_admin: userData.isAdmin ? 1 : 0,
           reactions: reply.reaction_count,
           userReaction:
@@ -1961,7 +1939,7 @@ router.post("/:commentId/replies", requireAuth, writeRateLimit, async (req, res)
         replyToUsername || null,
         content,
         isSpoiler ? 1 : 0,
-        userData.isVip ? 1 : 0,
+        0,
         userData.isAdmin ? 1 : 0,
         Date.now(),
         hierarchicalPath,
@@ -2022,7 +2000,6 @@ router.post("/:commentId/replies", requireAuth, writeRateLimit, async (req, res)
       contentType: comment.content_type,
       contentId: comment.content_id,
       isSpoiler,
-      isVip: userData.isVip,
       isAdmin: userData.isAdmin,
       replyToUsername,
       userId: req.user.userId,
@@ -2216,7 +2193,7 @@ router.get("/admin/list", requireAuth, async (req, res) => {
           content: formatContentForResponse(comment.content),
           username: userData.username,
           avatar: userData.avatar,
-          is_vip: userData.isVip,
+          is_vip: comment.is_vip,
           is_admin: userData.isAdmin,
         };
       }),
@@ -2301,7 +2278,7 @@ router.get("/admin/moderated", requireAuth, async (req, res) => {
     if (type === "all" || type === "comments") {
       unionParts.push(`
         SELECT c.id, c.user_id, c.user_type, c.profile_id, c.content, c.content_type, c.content_id,
-               c.is_spoiler, c.is_edited, c.created_at, c.moderation_reason, c.moderation_details, c.moderated_at,
+               c.is_spoiler, c.is_vip, c.is_edited, c.created_at, c.moderation_reason, c.moderation_details, c.moderated_at,
                'comment' as item_type,
                (SELECT COUNT(*) FROM comment_reactions WHERE target_type = 'comment' AND target_id = c.id) as reaction_count
         FROM comments c
@@ -2315,7 +2292,7 @@ router.get("/admin/moderated", requireAuth, async (req, res) => {
     if (type === "all" || type === "replies") {
       unionParts.push(`
         SELECT cr.id, cr.user_id, cr.user_type, cr.profile_id, cr.content, c2.content_type, c2.content_id,
-               cr.is_spoiler, cr.is_edited, cr.created_at, cr.moderation_reason, cr.moderation_details, cr.moderated_at,
+               cr.is_spoiler, cr.is_vip, cr.is_edited, cr.created_at, cr.moderation_reason, cr.moderation_details, cr.moderated_at,
                'reply' as item_type,
                (SELECT COUNT(*) FROM comment_reactions WHERE target_type = 'reply' AND target_id = cr.id) as reaction_count
         FROM comment_replies cr
@@ -2371,7 +2348,7 @@ router.get("/admin/moderated", requireAuth, async (req, res) => {
           content: formatContentForResponse(item.content),
           username: ud.username,
           avatar: ud.avatar,
-          is_vip: ud.isVip,
+          is_vip: item.is_vip,
           is_admin: ud.isAdmin,
         };
       }),
@@ -3362,7 +3339,9 @@ router.post("/report", requireAuth, reportRateLimit, async (req, res) => {
         ],
       );
     } catch (err) {
-      if (err.code === "ER_DUP_ENTRY") {
+      // Doublon d'unicité : MySQL le signale en ER_DUP_ENTRY, PostgreSQL en
+      // SQLSTATE 23505. Sans ce test, le même signalement renverrait 500.
+      if (isDuplicateKeyError(err)) {
         return res
           .status(409)
           .json({ error: "Vous avez déjà signalé ce contenu" });
@@ -3522,13 +3501,13 @@ router.get("/admin/reports", requireAuth, async (req, res) => {
 
     const statsResult = await dbGet(`
       SELECT
-        IFNULL(COUNT(*), 0) as total,
-        IFNULL(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) as pending,
-        IFNULL(SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END), 0) as resolved,
-        IFNULL(SUM(CASE WHEN status = 'dismissed' THEN 1 ELSE 0 END), 0) as dismissed,
-        IFNULL(SUM(CASE WHEN target_type = 'comment' OR target_type = 'reply' THEN 1 ELSE 0 END), 0) as comments,
-        IFNULL(SUM(CASE WHEN target_type = 'shared_list' THEN 1 ELSE 0 END), 0) as lists,
-        IFNULL(SUM(CASE WHEN target_type = 'segment' THEN 1 ELSE 0 END), 0) as segments
+        COALESCE(COUNT(*), 0) as total,
+        COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) as pending,
+        COALESCE(SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END), 0) as resolved,
+        COALESCE(SUM(CASE WHEN status = 'dismissed' THEN 1 ELSE 0 END), 0) as dismissed,
+        COALESCE(SUM(CASE WHEN target_type = 'comment' OR target_type = 'reply' THEN 1 ELSE 0 END), 0) as comments,
+        COALESCE(SUM(CASE WHEN target_type = 'shared_list' THEN 1 ELSE 0 END), 0) as lists,
+        COALESCE(SUM(CASE WHEN target_type = 'segment' THEN 1 ELSE 0 END), 0) as segments
       FROM reports
     `);
 
@@ -3708,7 +3687,7 @@ router.get("/:contentType/:contentId", async (req, res) => {
 
     // Tenter de récupérer l'utilisateur connecté (optionnel)
     let currentUser = null;
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = extractSessionToken(req);
     if (token) {
       try {
         const decoded = jwt.verify(token, JWT_SECRET, {
@@ -3796,7 +3775,7 @@ router.get("/:contentType/:contentId", async (req, res) => {
           content: formatContentForResponse(comment.content),
           username: userData.username,
           avatar: userData.avatar,
-          is_vip: userData.isVip ? 1 : 0,
+          is_vip: 0,
           is_admin: userData.isAdmin ? 1 : 0,
           repliesCount: comment.replies_count,
           reactions: comment.reaction_count,
@@ -3944,7 +3923,7 @@ router.post("/", requireAuth, writeRateLimit, async (req, res) => {
         userData.avatar,
         content,
         isSpoiler ? 1 : 0,
-        userData.isVip ? 1 : 0,
+        0,
         userData.isAdmin ? 1 : 0,
         Date.now(),
         getClientIp(req),
@@ -3964,7 +3943,6 @@ router.post("/", requireAuth, writeRateLimit, async (req, res) => {
       contentType,
       contentId,
       isSpoiler,
-      isVip: userData.isVip,
       isAdmin: userData.isAdmin,
       userId: req.user.userId,
       userType: req.user.userType,

@@ -13,6 +13,11 @@ const { ipKeyGenerator } = require('express-rate-limit');
 
 const { isAdmin, isUploaderOrAdmin } = require('../middleware/auth');
 const { getPool } = require('../mysqlPool');
+// Lecture publique des liens : seule requête media de ce fichier qui doit suivre
+// le moteur sélectionné. Les autres handlers admin restent sur MySQL tant que
+// leur conversion n'est pas faite.
+const { getPool: getDialectPool } = require('../db/dialect');
+const { isDuplicateKeyError } = require('../db/pgCompat');
 const { verifyAccessKey, invalidateVipCache } = require('../checkVip');
 const { buildResolvedMaps } = require('../utils/embedExtraction');
 const { ANIME_SAMA_CACHE_DIR } = require('../utils/cacheManager');
@@ -119,7 +124,7 @@ router.get('/links/:type/:id', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Type invalide. Utilisez "movie" ou "tv"' });
     }
 
-    const pool = getPool();
+    const pool = getDialectPool();
     let query, params;
 
     if (type === 'movie') {
@@ -887,7 +892,7 @@ router.post('/admin/admins', isAdmin, async (req, res) => {
       },
     });
   } catch (error) {
-    if (error && error.code === 'ER_DUP_ENTRY') {
+    if (isDuplicateKeyError(error)) {
       return res.status(409).json({ success: false, error: 'Cet utilisateur est déjà admin ou uploader' });
     }
     console.error('Error adding uploader:', error);

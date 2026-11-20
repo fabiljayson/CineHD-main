@@ -22,6 +22,17 @@ if (cluster.isPrimary ?? cluster.isMaster) {
   console.log(`🚀 Master process ${process.pid} démarré en mode cluster`);
   console.log(`📊 Création de ${NUM_WORKERS} workers...`);
 
+  // Budget de connexions (décision D3) : le nombre est rendu visible au lieu
+  // d'être déduit. Le dépassement est signalé, jamais corrigé en silence.
+  const connectionBudget = require('./utils/connectionBudget');
+  const appliedBudget = connectionBudget.applyConnectionBudget();
+  console.log(`🔌 ${connectionBudget.describeConnectionBudget()}`);
+  if (appliedBudget.impossible) {
+    console.error('⛔ DB_CONNECTION_BUDGET est inférieur au nombre de workers : même une connexion par worker dépasse le budget.');
+  } else if (appliedBudget.clamped) {
+    console.warn(`⚠️ Pool réduit à ${appliedBudget.poolSize} connexions par worker pour tenir DB_CONNECTION_BUDGET=${appliedBudget.budget}.`);
+  }
+
   for (let i = 0; i < NUM_WORKERS; i++) {
     const worker = forkWorker(i);
     console.log(
@@ -176,7 +187,15 @@ const { redis } = require('./config/redis');
 const { shutdownCycleTLS, refreshProxyScrapeProxies } = require('./utils/proxyManager');
 const { getPool } = require('./mysqlPool');
 
-const PORT = 25565;
+// Port d'écoute. `PORT` est lu pour les Containers (`docker run -e PORT=…`,
+// Cloudflare, orchestrateur) ; le défaut local reste 25565. Une valeur absente,
+// non entière ou hors bornes retombe sur ce défaut plutôt que de faire échouer
+// le démarrage sur une coquille de configuration.
+const resolvePort = () => {
+  const parsed = Number.parseInt(process.env.PORT, 10);
+  return Number.isInteger(parsed) && parsed > 0 && parsed < 65536 ? parsed : 25565;
+};
+const PORT = resolvePort();
 
 // ===========================================================================
 // === MEMORY DIAGNOSTICS (worker) ===========================================
@@ -243,28 +262,38 @@ process.on('SIGUSR2', () => {
 });
 
 // ---------------------------------------------------------------------------
-// startServer — create HTTP server with retry logic
+// startServer — listen first, then wait for dependencies
 // ---------------------------------------------------------------------------
-const startServer = async (retries = 3) => {
-  try {
-    await appReady;
-  } catch (error) {
-    if (retries > 0) {
-      console.error(`[BOOTSTRAP] Échec avant listen: ${error.message}`);
-      console.log(`Redémarrage... (${retries} restantes)`);
-      return setTimeout(() => startServer(retries - 1), 5000);
+// La liveness ne doit pas dépendre de MySQL ni de Redis : une instance qui n'a
+// pas fini son bootstrap (ou dont la base est momentanément injoignable) a
+// toujours un processus vivant, et `/health` doit répondre pour que
+// l'orchestrateur distingue « démarre » de « mort ». C'est `/ready` qui retient
+// le trafic jusqu'à `appReady` (cf. routes/health.js) : le Worker ne doit pas
+// router vers une instance qui répond 503.
+const LISTEN_ATTEMPTS = 3;
+const LISTEN_RETRY_DELAY_MS = 5000;
+
+const listen = (server, attempt = 1) => new Promise((resolve, reject) => {
+  const onError = (error) => {
+    server.removeListener('listening', onListening);
+    if (attempt < LISTEN_ATTEMPTS) {
+      console.error(`[BOOTSTRAP] Écoute impossible sur le port ${PORT}: ${error.message}`);
+      console.log(`Redémarrage... (${LISTEN_ATTEMPTS - attempt} restantes)`);
+      setTimeout(() => listen(server, attempt + 1).then(resolve, reject), LISTEN_RETRY_DELAY_MS);
+      return;
     }
+    reject(error);
+  };
+  const onListening = () => {
+    server.removeListener('error', onError);
+    resolve();
+  };
+  server.once('error', onError);
+  server.once('listening', onListening);
+  server.listen(PORT, '0.0.0.0', 4096); // Backlog increased to 4096 to handle burst connections
+});
 
-    console.error('Échec du bootstrap applicatif après plusieurs tentatives');
-    process.exit(1);
-  }
-
-  try {
-    await refreshProxyScrapeProxies({ force: false, silent: false });
-  } catch (error) {
-    console.warn(`[PROXYSCRAPE] Initialisation incomplete avant listen: ${error.message}`);
-  }
-
+const startServer = async () => {
   const server = http.createServer(app);
 
   // Configure Keep-Alive settings
@@ -273,34 +302,55 @@ const startServer = async (retries = 3) => {
   server.maxRequestsPerSocket = 0; // Illimité
   server.requestTimeout = 300000;  // 5 minutes timeout to prevent hung sockets
 
-  // Backlog increased to 4096 to handle burst connections
-  server.listen(PORT, '0.0.0.0', 4096, () => {
-    console.log(`Serveur démarré sur le port ${PORT} - Process ${process.pid}`);
-    console.log(`Keep-Alive configuré: timeout=${server.keepAliveTimeout}ms, max=1000`);
-    console.log(`Performance tuning: UV_THREADPOOL_SIZE=${process.env.UV_THREADPOOL_SIZE}, RequestTimeout=${server.requestTimeout}ms`);
-  });
+  await listen(server);
 
-  server.on('error', (err) => {
-    console.error('Erreur de démarrage:', err);
-    if (retries > 0) {
-      console.log(`Redémarrage... (${retries} restantes)`);
-      setTimeout(() => startServer(retries - 1), 5000);
-    } else {
-      console.error('Échec du démarrage après plusieurs tentatives');
-      process.exit(1);
-    }
-  });
+  console.log(`Serveur démarré sur le port ${PORT} - Process ${process.pid}`);
+  console.log(`Keep-Alive configuré: timeout=${server.keepAliveTimeout}ms, max=1000`);
+  console.log(`Performance tuning: UV_THREADPOOL_SIZE=${process.env.UV_THREADPOOL_SIZE}, RequestTimeout=${server.requestTimeout}ms`);
 
   return server;
+};
+
+// `appReady` est une promesse unique : une fois rejetée, l'attendre de nouveau
+// rejette immédiatement. Les tentatives servent uniquement à laisser à la base
+// le temps de redevenir joignable avant de laisser l'orchestrateur remplacer
+// l'instance, comme le faisait l'ancien démarrage.
+const waitForDependencies = async (retries = 3) => {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      await appReady;
+      return true;
+    } catch (error) {
+      if (attempt >= retries) {
+        console.error('Échec du bootstrap applicatif après plusieurs tentatives');
+        return false;
+      }
+      console.error(`[BOOTSTRAP] Échec avant disponibilité: ${error.message}`);
+      console.log(`Nouvelle tentative... (${retries - attempt} restantes)`);
+      await new Promise((resolve) => setTimeout(resolve, LISTEN_RETRY_DELAY_MS));
+    }
+  }
 };
 
 // === DÉMARRAGE DU WORKER ===
 let activeServer = null;
 
-startServer().then((server) => {
+startServer().then(async (server) => {
   activeServer = server;
   console.log(`✅ Worker ${process.pid} - Serveur démarré sur le port ${PORT}`);
   logMemoryUsage(); // baseline [memstats] line at boot
+
+  if (!await waitForDependencies()) {
+    // Sans ses dépendances cette instance ne servira jamais : la laisser sortir
+    // la fait remplacer, au lieu de maintenir une instance qui répond 503.
+    process.exit(1);
+  }
+
+  try {
+    await refreshProxyScrapeProxies({ force: false, silent: false });
+  } catch (error) {
+    console.warn(`[PROXYSCRAPE] Initialisation incomplete: ${error.message}`);
+  }
 }).catch((error) => {
   console.error(`❌ Worker ${process.pid} - Échec du démarrage:`, error);
   process.exit(1);

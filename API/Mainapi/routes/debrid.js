@@ -1,8 +1,6 @@
 const express = require('express');
 const axios = require('axios');
 
-const { requireVip } = require('../checkVip');
-
 const router = express.Router();
 
 // BestDebrid est appelé côté serveur : la clé API ne quitte plus le backend.
@@ -57,7 +55,7 @@ const parseHumanReadableSize = (value) => {
 // POST /api/debrid/generate — génère un lien BestDebrid côté serveur.
 // Body JSON : { link: string }. Renvoie uniquement le lien généré (+ métadonnées),
 // jamais la clé API.
-router.post('/debrid/generate', requireVip, async (req, res) => {
+router.post('/debrid/generate', async (req, res) => {
   const apiKey = (process.env.BESTDEBRID_API_KEY || '').trim();
 
   res.setHeader('Cache-Control', 'no-store, private, max-age=0');

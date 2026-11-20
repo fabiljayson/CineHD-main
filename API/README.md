@@ -1,4 +1,4 @@
-# Services backend CineHD (ex-Movix)
+# Services backend CineHD 
 
 Le dossier `API/` regroupe les services serveurs du projet. Le point clé à retenir : le backend applicatif actif est `API/Mainapi/`. Le vieux backend directement posé sous `API/` n'est plus la référence.
 

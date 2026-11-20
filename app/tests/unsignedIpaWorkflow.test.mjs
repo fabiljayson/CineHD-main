@@ -19,7 +19,7 @@ function generatorEnv(overrides = {}) {
     // N'importe quel fichier lisible fait office d'IPA pour la taille.
     IOS_SOURCE_IPA_PATH: generatorPath,
     IOS_SOURCE_DATE: '2026-01-02T03:04:05+02:00',
-    IOS_SOURCE_DOWNLOAD_URL: 'https://example.test/movix-ios-unsigner.ipa',
+    IOS_SOURCE_DOWNLOAD_URL: 'https://example.test/cinehd-ios-unsigner.ipa',
     IOS_SOURCE_ICON_URL: 'https://example.test/icon-1024.png',
     IOS_SOURCE_NOTES_URL: 'https://example.test/releases/tag/ios-v9.9.9',
     ...overrides,
@@ -48,7 +48,7 @@ test('sidestore source generator produces a source consistent with its inputs', 
     assert.equal(latest.buildVersion, '42');
     assert.equal(latest.date, '2026-01-02');
     assert.equal(latest.minOSVersion, '15.1');
-    assert.equal(latest.downloadURL, 'https://example.test/movix-ios-unsigner.ipa');
+    assert.equal(latest.downloadURL, 'https://example.test/cinehd-ios-unsigner.ipa');
     assert.equal(latest.size, (await stat(generatorPath)).size);
 
     // Champs hérités du premier format : duplication exacte de la dernière

@@ -17,7 +17,12 @@
  * jeter ce travail.
  */
 
-const { getPool } = require('../../mysqlPool');
+const { getPool, isPostgres } = require('../../db/dialect');
+const {
+  upsertSegmentSubmission,
+  upsertSegmentVote,
+  durationToleranceClause,
+} = require('../../db/communitySql');
 const { SEGMENT_TYPES } = require('./constants');
 
 /** Score a partir duquel une proposition devient un vrai saut. */
@@ -132,6 +137,10 @@ async function ensureReportTargets() {
   try {
     const pool = getPool();
     if (!pool) return false;
+    // `information_schema … DATABASE()` et `ALTER … MODIFY COLUMN` sont du
+    // MySQL ; sur PostgreSQL les colonnes et leurs contraintes viennent des
+    // migrations, donc il n'y a rien à élargir ici.
+    if (isPostgres()) return true;
     const [columns] = await pool.execute(
       `SELECT COLUMN_NAME, COLUMN_TYPE
          FROM information_schema.COLUMNS
@@ -170,6 +179,10 @@ async function ensureReportTargets() {
  * l'appeler sans se soucier de l'ordre de demarrage.
  */
 function ensureSchema() {
+  // Le DDL ci-dessous est du MySQL (`ENGINE=InnoDB`, `ENUM`, `KEY` dans CREATE
+  // TABLE, `information_schema` propre à MySQL). Sur PostgreSQL les tables
+  // viennent de migrations/008 : on saute au lieu de traduire.
+  if (isPostgres()) return undefined;
   if (schemaPromise) return schemaPromise;
 
   schemaPromise = (async () => {
@@ -362,7 +375,7 @@ async function listSubmissions({ mediaType, tmdbId, season, episode, durationMs,
 
   let durationClause = '';
   if (Number.isSafeInteger(durationMs) && durationMs > 0) {
-    durationClause = 'AND ABS(CAST(s.reference_duration_ms AS SIGNED) - ?) <= ?';
+    durationClause = durationToleranceClause();
     params.push(durationMs, DURATION_TOLERANCE_MS);
   }
 
@@ -428,16 +441,7 @@ async function submitSegment({
   // precedentes, les conserver reviendrait a adopter des valeurs que personne
   // n'a validees.
   await pool.execute(
-    `INSERT INTO segment_submissions
-       (media_type, tmdb_id, season, episode, reference_duration_ms,
-        segment_type, start_ms, end_ms, author_user_type, author_user_id, author_label)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       start_ms = VALUES(start_ms),
-       end_ms = VALUES(end_ms),
-       reference_duration_ms = VALUES(reference_duration_ms),
-       author_label = VALUES(author_label),
-       votes_up = 0, votes_down = 0, score = 0`,
+    upsertSegmentSubmission(),
     [
       target.mediaType, target.tmdbId, target.season, target.episode, durationMs,
       segmentType, startMs, endMs, author.userType, author.userId, label,
@@ -495,9 +499,7 @@ async function voteSegment({ submissionId, value, voter, weight = 1 }) {
     );
   } else {
     await pool.execute(
-      `INSERT INTO segment_votes (submission_id, voter_user_type, voter_user_id, value, weight)
-       VALUES (?, ?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE value = VALUES(value), weight = VALUES(weight)`,
+      upsertSegmentVote(),
       [submissionId, voter.userType, voter.userId, value, voteWeight],
     );
   }

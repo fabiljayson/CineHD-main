@@ -4,7 +4,13 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "db:schema:apply": "node scripts/applySchema.js",
+    "db:postgres:generate": "node db/generatePostgresMigrations.js",
+    "db:postgres:migrate": "node db/migratePostgres.js",
+    "db:postgres:transfer": "node scripts/migrateMysqlToPostgres.js",
+    "db:postgres:verify": "node scripts/verifyMysqlPostgresData.js",
+    "db:differential": "node scripts/differentialApi.js"
   },
   "dependencies": {
     "@fastify/compress": "^8.3.1",
@@ -39,14 +45,18 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.15.0",
     "openai": "^6.15.0",
+    "pg": "^8.23.1",
     "proper-lockfile": "^4.1.2",
     "socket.io": "^4.8.3",
     "socks-proxy-agent": "^8.0.5",
-    "streamed-pk-hls-stream-resolver": "https://codeload.github.com/sharoon7171/streamed-pk-hls-stream-resolver/tar.gz/7d918be84d47a924373a9304d7c8856a9daba4c6",
+    "streamed-pk-hls-stream-resolver": "file:./vendor/streamed-pk-hls-stream-resolver.tgz",
     "tiny-secp256k1": "^2.2.4",
     "tough-cookie": "^5.1.2",
     "uuid": "^11.1.0",
     "web-push": "^3.6.7",
     "write-file-atomic": "^6.0.0"
+  },
+  "overrides": {
+    "happy-dom": "^21.0.4"
   }
 }

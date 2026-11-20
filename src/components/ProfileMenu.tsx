@@ -34,7 +34,7 @@ const ProfileMenu: React.FC = () => {
   try {
     const vipModal = useVipModal();
     openVipModal = vipModal.openVipModal;
-  } catch (error) {
+  } catch {
     // Silently handle the error - VipModalProvider might not be available yet
     openVipModal = null;
   }

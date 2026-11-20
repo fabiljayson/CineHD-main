@@ -10,7 +10,7 @@ const fsp = require('fs').promises;
 const { v4: uuidv4 } = require('uuid');
 
 const { getAuthIfValid } = require('../middleware/auth');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const {
   ensureSafeProfileId,
   getOwnedProfile,

@@ -17,7 +17,7 @@ const router = express.Router();
 const { getAuthIfValid } = require('../middleware/auth');
 const { createSyncBodyParsers, rejectOversizedSync, getParsedBodyBytes } = require('../middleware/bodyParsing');
 const { jsonParseErrorHandler } = require('../middleware/security');
-const { getPool, withMysqlAdvisoryLock } = require('../mysqlPool');
+const { withAdvisoryLock } = require('../db/dialect');
 const { safeWriteFile, safeWriteJsonFile } = require('../utils/safeFile');
 const { readAccountData } = require('../utils/accountDataCache');
 const { logSyncErrorToDiscord } = require('../utils/discord');
@@ -41,9 +41,7 @@ const {
 } = require('../utils/syncPolicy');
 
 // === Data directories ===
-const USER_DATA_DIR = path.join(__dirname, '..', 'data');
-const GUESTS_DIR = path.join(USER_DATA_DIR, 'guests');
-const USERS_DIR = path.join(USER_DATA_DIR, 'users');
+const { USER_DATA_DIR, GUESTS_DIR, USERS_DIR } = require('../utils/userDataPaths');
 
 // Ensure directories exist
 (async () => {
@@ -195,13 +193,9 @@ function buildSyncLockName(userType, userId, profileId) {
 }
 
 async function withProfileSyncLock(userType, userId, profileId, task) {
-  const pool = getPool();
-  if (!pool) {
-    throw new Error('MySQL pool not ready for sync lock');
-  }
-
-  return withMysqlAdvisoryLock(
-    pool,
+  // Le verrou suit le moteur sélectionné : consultatif MySQL ou PostgreSQL,
+  // même garantie de sérialisation par profil.
+  return withAdvisoryLock(
     buildSyncLockName(userType, userId, profileId),
     task,
     { timeoutSeconds: 30 }
@@ -420,15 +414,24 @@ async function readProfileSnapshot(userType, userId, profileId) {
   const profilePath = getProfileFilePath(USERS_DIR, userType, userId, profileId);
 
   try {
-    const fileContent = await fsp.readFile(profilePath, 'utf8');
+    const [fileContent, fileStat] = await Promise.all([
+      fsp.readFile(profilePath, 'utf8'),
+      fsp.stat(profilePath),
+    ]);
     const parsed = JSON.parse(fileContent);
-    return sanitizeProfileData(parsed);
+    // Version du profil : la date de dernière écriture du fichier, en
+    // microsecondes. La milliseconde ne suffirait pas — deux écritures dans la
+    // même milliseconde rendraient le conflit invisible. Reste un entier sûr
+    // (< 2^53), donc renvoyable tel quel par le client.
+    // Aucun champ n'est ajouté au format stocké : les profils existants restent
+    // lisibles.
+    return { ...sanitizeProfileData(parsed), updatedAt: Math.floor(fileStat.mtimeMs * 1000) };
   } catch (error) {
-    if (error.code === 'ENOENT') return sanitizeProfileData({});
+    if (error.code === 'ENOENT') return { ...sanitizeProfileData({}), updatedAt: 0 };
     if (error instanceof SyncPolicyError) throw error;
 
     console.error(`Erreur lors de la lecture des donnees de profil ${userType}:${userId}:${profileId}:`, error.message);
-    return sanitizeProfileData({});
+    return { ...sanitizeProfileData({}), updatedAt: 0 };
   }
 }
 
@@ -447,6 +450,21 @@ async function readProfileData(userType, userId, profileId) {
   const snapshot = await readProfileSnapshot(userType, userId, profileId);
   if (snapshot.changed) scheduleProfileCleanup(userType, userId, profileId);
   return snapshot.data;
+}
+
+/**
+ * Version attendue par le client sur une écriture, ou `null` s'il n'en fournit
+ * pas. Ce contrôle est optionnel : sans `baseUpdatedAt`, le comportement
+ * existant (dernier écrivain gagne) est conservé, donc les clients actuels ne
+ * voient aucune différence.
+ */
+function normalizeBaseUpdatedAt(rawValue) {
+  if (rawValue === undefined || rawValue === null) return null;
+  const value = Number(rawValue);
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new SyncPolicyError('Version de base invalide', 400, 'INVALID_BASE_UPDATED_AT');
+  }
+  return value;
 }
 
 // Privé : seuls les résultats de sanitizeProfileData sont transmis ici.
@@ -525,6 +543,7 @@ router.post('/sync', syncRateLimit, rejectOversizedSync, authorizeSyncWrite, ...
     }
 
     const profileId = ensureSafeProfileId(req.body?.profileId);
+    const baseUpdatedAt = normalizeBaseUpdatedAt(req.body?.baseUpdatedAt);
     const ops = validateAndNormalizeOps(req.body?.ops);
 
     syncContext.userType = userType;
@@ -537,6 +556,14 @@ router.post('/sync', syncRateLimit, rejectOversizedSync, authorizeSyncWrite, ...
       getOwnedProfile(userData, profileId);
 
       const snapshot = await readProfileSnapshot(userType, finalUserId, profileId);
+
+      // Conflit détecté sous le verrou : la comparaison porte donc sur l'état
+      // que cette écriture remplacerait réellement, jamais sur une lecture
+      // antérieure déjà périmée.
+      if (baseUpdatedAt !== null && baseUpdatedAt !== snapshot.updatedAt) {
+        return { conflict: { updatedAt: snapshot.updatedAt, data: snapshot.data } };
+      }
+
       const serverData = snapshot.data;
       const previousValues = new Map(ops.map(op => [op.key, serverData[op.key]]));
       ops.forEach((op) => applySyncOperation(serverData, op));
@@ -554,14 +581,32 @@ router.post('/sync', syncRateLimit, rejectOversizedSync, authorizeSyncWrite, ...
         }
       }
 
-      return nextSnapshot.stats;
+      const written = changed || snapshot.changed;
+      const updatedAt = written
+        ? (await readProfileSnapshot(userType, finalUserId, profileId)).updatedAt
+        : snapshot.updatedAt;
+
+      return { stats: nextSnapshot.stats, updatedAt };
     });
+
+    if (syncResult.conflict) {
+      return res.status(409).json({
+        success: false,
+        code: 'SYNC_CONFLICT',
+        error: 'Profil modifie depuis la derniere lecture',
+        updatedAt: syncResult.conflict.updatedAt,
+        data: syncResult.conflict.data
+      });
+    }
 
     return res.status(200).json({
       success: true,
+      // `updatedAt` permet au client de fournir `baseUpdatedAt` à l'écriture
+      // suivante, et donc de voir un conflit au lieu d'écraser un autre appareil.
+      updatedAt: syncResult.updatedAt,
       stats: {
-        profileBytes: syncResult.bytes,
-        profileKeyCount: syncResult.keyCount,
+        profileBytes: syncResult.stats.bytes,
+        profileKeyCount: syncResult.stats.keyCount,
         profileQuotaBytes: SYNC_LIMITS.maxProfileBytes
       }
     });
@@ -649,6 +694,7 @@ router.get('/sync/:userType/:userId/:profileId?', async (req, res) => {
     const hasProfiles = Array.isArray(userData?.profiles) && userData.profiles.length > 0;
     let data = {};
     let lastUpdated = 0;
+    let updatedAt = 0;
 
     if (!profileId && hasProfiles) {
       const defaultProfile = userData.profiles.find((profile) => profile && profile.isDefault) || userData.profiles[0] || null;
@@ -662,7 +708,10 @@ router.get('/sync/:userType/:userId/:profileId?', async (req, res) => {
 
     if (profileId) {
       getOwnedProfile(userData, profileId);
-      data = await readProfileData(userType, userId, profileId);
+      const snapshot = await readProfileSnapshot(userType, userId, profileId);
+      if (snapshot.changed) scheduleProfileCleanup(userType, userId, profileId);
+      data = snapshot.data;
+      updatedAt = snapshot.updatedAt;
     } else {
       data = sanitizeLegacySyncData(userData).data;
       lastUpdated = normalizeLastUpdated(userData?.lastUpdated);
@@ -672,7 +721,8 @@ router.get('/sync/:userType/:userId/:profileId?', async (req, res) => {
       success: true,
       data: {
         ...data,
-        lastUpdated
+        lastUpdated,
+        updatedAt
       }
     });
   } catch (error) {

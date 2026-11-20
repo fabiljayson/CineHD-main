@@ -339,7 +339,6 @@ router.get('/tv/:id/season/:season', async (req, res) => {
 // coûterait — ces fichiers pèsent plusieurs gigaoctets.
 
 const { verifyTurnstile, turnstileSecretFor } = require('../utils/turnstile');
-const { verifyAccessKey } = require('../checkVip');
 
 // Domaine de sortie du CDN, quand il ne doit pas être celui que l'API annonce.
 // Le partenaire fait tourner ses domaines de distribution comme n'importe quel
@@ -433,12 +432,10 @@ router.post('/mp4/resolve', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Aucun fichier disponible' });
     }
 
-    const vipStatus = await verifyAccessKey(req.headers['x-access-key'] || null);
     res.json({
       success: true,
       url: applyCdnOverride(item.url),
       ...mp4Meta(item, wanted),
-      is_vip: Boolean(vipStatus && vipStatus.vip),
     });
   } catch (err) {
     console.error(`[SwiftFlux MP4 RESOLVE] ${kind}/${tmdbId}: ${err.message}`);

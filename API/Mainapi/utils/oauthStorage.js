@@ -1,5 +1,6 @@
 const crypto = require('crypto');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
+const { upsertAuthorizationRequest } = require('../db/oauthSql');
 const { ensureTableGroup } = require('../db/runtimeEnsure');
 
 const AUTHORIZATION_REQUEST_TTL_MS = 10 * 60 * 1000;
@@ -172,19 +173,7 @@ async function registerAuthorizationRequest(pool, payload) {
   const expiresAt = new Date(Date.now() + AUTHORIZATION_REQUEST_TTL_MS);
 
   await pool.execute(
-    `INSERT INTO oauth_authorization_requests
-      (request_hash, client_id, redirect_uri, response_type, scopes, state, code_challenge, code_challenge_method, expires_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-      client_id = VALUES(client_id),
-      redirect_uri = VALUES(redirect_uri),
-      response_type = VALUES(response_type),
-      scopes = VALUES(scopes),
-      state = VALUES(state),
-      code_challenge = VALUES(code_challenge),
-      code_challenge_method = VALUES(code_challenge_method),
-      expires_at = VALUES(expires_at),
-      last_seen_at = NOW()`,
+    upsertAuthorizationRequest(),
     [
       requestHash,
       normalized.clientId,

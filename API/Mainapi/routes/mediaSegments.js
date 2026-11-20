@@ -23,7 +23,7 @@ const { ipKeyGenerator } = require('express-rate-limit');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
 const { getAuthIfValid } = require('../middleware/auth');
 const { listProviders, resolveSegments } = require('../services/mediaSegments');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const {
   ADOPTION_SCORE,
   STAFF_VOTE_WEIGHT,

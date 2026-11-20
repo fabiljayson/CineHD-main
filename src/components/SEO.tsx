@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
-import { SITE_URL } from '../config/runtime';
+import { SITE_URL, buildSiteUrl } from '../config/runtime';
 
 interface SEOProps {
   title?: string;
@@ -18,23 +18,50 @@ interface SEOProps {
   }>;
 }
 
+/**
+ * URL de la page courante sur le domaine de référence (`SITE_URL`) : sans ça,
+ * le canonique par défaut désignait la page d'accueil pour toutes les pages
+ * (signal de contenu dupliqué), y compris les miroirs du domaine.
+ */
+const currentPageUrl = (): string => {
+  if (typeof window === 'undefined') return SITE_URL;
+  const path = window.location.pathname.replace(/\/+$/, '');
+  return path === '' ? SITE_URL : buildSiteUrl(path);
+};
+
 const SEO: React.FC<SEOProps> = (props) => {
   const { t } = useTranslation();
+  const pageUrl = currentPageUrl();
+
+  // Les balises og/twitter statiques d'index.html (data-fallback) servent aux
+  // crawlers sans JavaScript et aux pages sans <SEO>. Une page qui fournit ses
+  // propres balises doit les retirer : Helmet n'écrase pas les balises étrangères
+  // au DOM, donc deux og:url cohabiteraient et les scrapers qui retiennent la
+  // première partageraient toujours la racine du site. Au démontage, les
+  // replis reviennent : une page sans <SEO> atteinte par navigation SPA ne
+  // doit pas se retrouver sans aucune balise og.
+  useEffect(() => {
+    const fallbacks = Array.from(document.querySelectorAll('meta[data-fallback]'));
+    fallbacks.forEach((meta) => meta.remove());
+    return () => {
+      fallbacks.forEach((meta) => document.head.appendChild(meta));
+    };
+  }, []);
   const {
     title = t('seo.defaultTitle'),
     description = t('seo.defaultDescription'),
     keywords = t('seo.defaultKeywords'),
     ogImage = '/movix.png',
-    ogUrl = SITE_URL,
+    ogUrl = pageUrl,
     ogType = 'website',
     twitterCard = 'summary_large_image',
-    canonical = SITE_URL,
+    canonical = pageUrl,
     hreflangLinks = [
-      { lang: 'fr-FR', href: SITE_URL },
-      { lang: 'fr-BE', href: SITE_URL },
-      { lang: 'fr-CH', href: SITE_URL },
-      { lang: 'fr-CA', href: SITE_URL },
-      { lang: 'x-default', href: SITE_URL },
+      { lang: 'fr-FR', href: pageUrl },
+      { lang: 'fr-BE', href: pageUrl },
+      { lang: 'fr-CH', href: pageUrl },
+      { lang: 'fr-CA', href: pageUrl },
+      { lang: 'x-default', href: pageUrl },
     ],
   } = props;
   const siteName = 'CineHD';
@@ -66,8 +93,9 @@ const SEO: React.FC<SEOProps> = (props) => {
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
       
-      {/* Autres balises importantes */}
-      <meta name="robots" content="index, follow" />
+      {/* Autres balises importantes.
+          `robots` est volontairement absent : RouteRobots est son unique
+          propriétaire (mêmes raisons pour le viewport et charset statiques). */}
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />
     </Helmet>

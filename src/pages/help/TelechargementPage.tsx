@@ -34,7 +34,7 @@ const TelechargementPage: React.FC = () => {
       bodyKey: 'help.telechargement.debridBody',
       components: {
         1: <TutoLink to="/help/debrid" />,
-        2: <TutoLink to="/vip" />,
+        2: <TutoLink to="/help/vip" />,
       },
     },
     {

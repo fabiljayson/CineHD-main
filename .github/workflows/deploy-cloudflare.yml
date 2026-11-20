@@ -1,0 +1,258 @@
+# Déploiement Cloudflare — staging automatique, production sur approbation.
+#
+# Règles tenues par ce workflow :
+#
+# - aucune pull request ne peut déployer : les déclencheurs sont `push` sur
+#   `main` et `workflow_dispatch` ;
+# - chaque job déclare ses permissions ; seul le déploiement touche à l'API
+#   Cloudflare ;
+# - la production passe par l'environnement protégé `production` (approbation
+#   obligatoire configurée côté dépôt), et dépend du staging réussi ;
+# - les secrets ne sont jamais imprimés : ils sont passés en variables
+#   d'environnement aux étapes, et Wrangler les consomme directement.
+
+name: Deploy Cloudflare
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Action"
+        required: true
+        default: deploy
+        type: choice
+        options:
+          - deploy
+          - rollback
+      environment:
+        description: "Environnement cible"
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      version_id:
+        description: "Rollback : identifiant de version Worker (vide = version précédente)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  # Un seul déploiement à la fois par environnement : deux `wrangler deploy`
+  # concurrents produisent un état de bindings incohérent.
+  group: deploy-cloudflare-${{ github.event.inputs.environment || 'staging' }}
+  cancel-in-progress: false
+
+jobs:
+  images:
+    name: Images (${{ matrix.service }})
+    # Inutile pour un rollback : rien à construire, rien à pousser.
+    if: github.event.inputs.action != 'rollback'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: main-api
+            context: API/Mainapi
+            port: 8080
+          - service: watchparty
+            context: API/watchpartyAPI
+            port: 25566
+          - service: proxy
+            context: API/proxiesembed
+            port: 25569
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build linux/amd64
+        # Cloudflare Containers exécute des images amd64 : construire sur l'ARM
+        # d'un runner produirait une image déployée mais non démarrable.
+        run: |
+          docker build --platform linux/amd64 \
+            --tag "cinehd/${MATRIX_SERVICE}:${{ github.sha }}" \
+            "$MATRIX_CONTEXT"
+        env:
+          MATRIX_SERVICE: ${{ matrix.service }}
+          MATRIX_CONTEXT: ${{ matrix.context }}
+
+      - name: Santé de l'image
+        # Une image qui ne répond pas à /health ne doit pas partir en staging.
+        # La Main API exige un JWT_SECRET pour démarrer : valeur de CI, jamais un
+        # secret réel, et dépendances volontairement injoignables puisque /health
+        # est une sonde de vivacité.
+        run: |
+          docker run -d --name "smoke-${MATRIX_SERVICE}" \
+            --platform linux/amd64 \
+            -p "${MATRIX_PORT}:${MATRIX_PORT}" \
+            -e "PORT=${MATRIX_PORT}" \
+            -e "JWT_SECRET=ci-health-check-not-a-secret" \
+            -e "DB_HOST=127.0.0.1" -e "DB_PORT=1" \
+            -e "REDIS_HOST=127.0.0.1" -e "REDIS_PORT=1" \
+            "cinehd/${MATRIX_SERVICE}:${{ github.sha }}"
+
+          for attempt in $(seq 1 30); do
+            if curl -fsS "http://127.0.0.1:${MATRIX_PORT}/health" >/dev/null; then
+              echo "santé OK après ${attempt}s"
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "l'image ne répond pas à /health" >&2
+          docker logs "smoke-${MATRIX_SERVICE}" >&2 || true
+          exit 1
+        env:
+          MATRIX_SERVICE: ${{ matrix.service }}
+          MATRIX_PORT: ${{ matrix.port }}
+
+      - name: Nettoyage du conteneur
+        if: always()
+        run: docker rm -f "smoke-${{ matrix.service }}" || true
+
+  deploy-staging:
+    name: Staging
+    needs: images
+    # Toujours exécuté en déploiement, y compris pour une demande de production :
+    # la promotion doit d'abord prouver le staging. Un `if` restreint au staging
+    # ferait sauter ce job, puis la production qui en dépend. Un rollback, lui,
+    # ne construit ni ne déploie rien.
+    if: github.event.inputs.action != 'rollback'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_MAIN_API_URL }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+      - name: Installation
+        run: npm ci
+      - name: Vérification de l'outillage
+        # Wrangler vient du lockfile : la version déployée est celle du dépôt,
+        # pas celle qu'un `npx` récupérerait ce jour-là.
+        run: npx --no-install wrangler --version
+      - name: Déploiement du Worker et des Containers
+        run: npx --no-install wrangler deploy --config deployment/cloudflare/wrangler.toml
+      - name: Sonde de staging (Main API)
+        # Échoue si l'URL n'est pas configurée : une sonde absente n'est pas une
+        # sonde réussie.
+        run: |
+          if [ -z "${DEPLOYMENT_BASE_URL}" ]; then
+            echo "variable STAGING_MAIN_API_URL manquante : impossible de prouver le staging" >&2
+            exit 1
+          fi
+          node tests/deploymentSmoke.mjs
+        env:
+          DEPLOYMENT_BASE_URL: ${{ vars.STAGING_MAIN_API_URL }}
+
+  deploy-production:
+    name: Production
+    needs: [images, deploy-staging]
+    # Promotion uniquement sur demande explicite, jamais sur un push, et jamais
+    # par un dispatch de rollback.
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.environment == 'production' &&
+      github.event.inputs.action != 'rollback'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    environment:
+      # L'approbation obligatoire est configurée sur cet environnement côté
+      # dépôt (Settings → Environments → production → Required reviewers).
+      name: production
+      url: ${{ vars.PRODUCTION_MAIN_API_URL }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+      - run: npm ci
+      - name: Déploiement
+        run: npx --no-install wrangler deploy --config deployment/cloudflare/wrangler.toml
+      - name: Sonde de production
+        run: |
+          if [ -z "${DEPLOYMENT_BASE_URL}" ]; then
+            echo "variable PRODUCTION_MAIN_API_URL manquante" >&2
+            exit 1
+          fi
+          node tests/deploymentSmoke.mjs
+        env:
+          DEPLOYMENT_BASE_URL: ${{ vars.PRODUCTION_MAIN_API_URL }}
+
+  rollback:
+    name: Rollback
+    # Retour arrière depuis Actions, sans poste de travail : même porte
+    # d'approbation que le déploiement quand la cible est la production.
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'rollback'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    environment:
+      name: ${{ github.event.inputs.environment }}
+      url: >-
+        ${{ github.event.inputs.environment == 'production'
+            && vars.PRODUCTION_MAIN_API_URL
+            || vars.STAGING_MAIN_API_URL }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+      - run: npm ci
+      - name: Retour à la version précédente du Worker
+        env:
+          VERSION_ID: ${{ github.event.inputs.version_id }}
+        run: |
+          set -euo pipefail
+          args=(rollback)
+          if [ -n "${VERSION_ID}" ]; then
+            args+=("${VERSION_ID}")
+          fi
+          npx --no-install wrangler "${args[@]}" \
+            --config deployment/cloudflare/wrangler.toml \
+            --yes \
+            --message "rollback ${GITHUB_RUN_ID} par ${GITHUB_ACTOR}"
+      - name: Sonde après retour arrière
+        # Un rollback Worker sur une image incompatible laisse le service en 502 :
+        # sans cette sonde, le job annoncerait un succès trompeur.
+        run: |
+          if [ -z "${DEPLOYMENT_BASE_URL}" ]; then
+            echo "URL de l'environnement manquante : rollback non vérifiable" >&2
+            exit 1
+          fi
+          node tests/deploymentSmoke.mjs
+        env:
+          DEPLOYMENT_BASE_URL: >-
+            ${{ github.event.inputs.environment == 'production'
+                && vars.PRODUCTION_MAIN_API_URL
+                || vars.STAGING_MAIN_API_URL }}

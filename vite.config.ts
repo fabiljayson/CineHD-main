@@ -25,7 +25,7 @@ async function bundleServiceWorker(minify: boolean): Promise<string> {
     logLevel: 'silent',
     resolve: {
       alias: {
-        '@': resolve(__dirname, 'src'),
+        '@': resolve(import.meta.dirname, 'src'),
       },
     },
     build: {
@@ -33,7 +33,7 @@ async function bundleServiceWorker(minify: boolean): Promise<string> {
       minify,
       write: false,
       lib: {
-        entry: resolve(__dirname, 'public', 'sw.js'),
+        entry: resolve(import.meta.dirname, 'public', 'sw.js'),
         formats: ['iife'],
         name: 'MovixServiceWorker',
         fileName: () => 'sw.js',
@@ -94,10 +94,10 @@ function injectPublicConfig(): Plugin {
     // Mode build : injecte la configuration dans les fichiers publics copiés par Vite.
     async closeBundle() {
       const bundledServiceWorker = replacePlaceholders(await bundleServiceWorker(true))
-      writeFileSync(resolve(__dirname, 'dist', 'sw.js'), bundledServiceWorker, 'utf-8')
+      writeFileSync(resolve(import.meta.dirname, 'dist', 'sw.js'), bundledServiceWorker, 'utf-8')
 
       for (const fileName of ['sitemap.xml', 'robots.txt', 'llms.txt']) {
-        const outputPath = resolve(__dirname, 'dist', fileName)
+        const outputPath = resolve(import.meta.dirname, 'dist', fileName)
         if (!existsSync(outputPath)) continue
         const contents = readFileSync(outputPath, 'utf-8')
         writeFileSync(outputPath, replacePlaceholders(contents), 'utf-8')
@@ -106,9 +106,9 @@ function injectPublicConfig(): Plugin {
     // Mode dev : intercepte GET /sw.js et sert une version transformée
     configureServer(server) {
       const serviceWorkerSources = [
-        resolve(__dirname, 'public', 'sw.js'),
-        resolve(__dirname, 'src', 'workers', 'mediaColor.serviceWorker.ts'),
-        resolve(__dirname, 'src', 'utils', 'mediaColors.ts'),
+        resolve(import.meta.dirname, 'public', 'sw.js'),
+        resolve(import.meta.dirname, 'src', 'workers', 'mediaColor.serviceWorker.ts'),
+        resolve(import.meta.dirname, 'src', 'utils', 'mediaColors.ts'),
       ]
       server.watcher.on('change', (changedPath) => {
         if (serviceWorkerSources.includes(resolve(changedPath))) devServiceWorker = undefined
@@ -137,7 +137,7 @@ function injectPublicConfig(): Plugin {
         const publicFile = publicFiles[pathOnly]
         if (!publicFile) return next()
 
-        const publicPath = resolve(__dirname, 'public', publicFile.fileName)
+        const publicPath = resolve(import.meta.dirname, 'public', publicFile.fileName)
         if (!existsSync(publicPath)) return next()
         try {
           const contents = pathOnly === '/sw.js'
@@ -258,7 +258,7 @@ export default defineConfig(({ mode, command }) => {
           'web.structured-clone',
           'es.iterator.to-array',
         ],
-        additionalLegacyPolyfills: [resolve(__dirname, 'src/compat/legacy-dom-polyfills.js')],
+        additionalLegacyPolyfills: [resolve(import.meta.dirname, 'src/compat/legacy-dom-polyfills.js')],
       }),
       ...(process.env.ANALYZE === 'true'
         ? [
@@ -398,7 +398,7 @@ export default defineConfig(({ mode, command }) => {
     },
     resolve: {
       alias: {
-        '@': resolve(__dirname, 'src'),
+        '@': resolve(import.meta.dirname, 'src'),
       }
     }
   }

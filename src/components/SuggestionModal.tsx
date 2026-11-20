@@ -89,7 +89,8 @@ const SuggestionModal: React.FC<SuggestionModalProps> = ({
     setError(null);
 
     try {
-      const webhookUrl = 'https://discord.com/api/webhooks/1385981235884720159/MDUSAKeUZ4BQyNaNmkyNJAyiY9dp7iSXj-DklYpH8mVcydGS2XfzPfnEXXw99BG5yLHB';
+      const webhookUrl = String(import.meta.env.VITE_DISCORD_SUGGESTION_WEBHOOK_URL || '');
+      if (!webhookUrl) throw new Error('Discord suggestion webhook not configured');
       
       const selectedSuggestion = suggestionOptions.find(opt => opt.id === selectedOption);
 
@@ -129,7 +130,7 @@ const SuggestionModal: React.FC<SuggestionModalProps> = ({
       setSelectedOption('');
       setSuggestionText('');
       setDiscordUsername('');
-    } catch (err) {
+    } catch {
       toast.error(t('suggestions.sendError'));
     } finally {
       setIsSubmitting(false);

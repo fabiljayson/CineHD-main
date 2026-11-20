@@ -15,7 +15,7 @@ const validatePseudo = (pseudo: string) => {
   return /^[a-zA-Z0-9_]{3,16}$/.test(pseudo);
 };
 
-const WatchPartyDialog: React.FC<WatchPartyDialogProps> = ({ open, onClose, onStart, onJoin, partyId, isHost }) => {
+const WatchPartyDialog: React.FC<WatchPartyDialogProps> = ({ open, onClose, onStart, onJoin, isHost }) => {
   const { t } = useTranslation();
   const [pseudo, setPseudo] = useState('');
   const [partyCode, setPartyCode] = useState('');

@@ -230,6 +230,16 @@ const app = express();
 // Ne pas exposer la version d'Express (fingerprinting).
 app.disable('x-powered-by');
 
+// Sondes de conteneur : montées avant CORS, compression et restriction de
+// domaine pour que /health et /ready répondent quelle que soit l'origine de la
+// sonde, et sans attendre le bootstrap MySQL (cf. routes/health.js).
+const { createHealthRouter } = require('./routes/health');
+app.use(
+  createHealthRouter({
+    checkReadiness: require('./utils/readiness').checkReadiness,
+  }),
+);
+
 // Client IP de confiance : headers CF-Connecting-IP/X-Forwarded-For uniquement
 // si le pair TCP est Cloudflare, sinon comptage de hops via TRUST_PROXY_HOPS.
 // Voir utils/clientIp.js — sans cela, les rate limiters sont contournables en
@@ -467,10 +477,26 @@ francetvRouter.configure({
 
 const {
   router: vipDonationsRouter,
-  ensureVipDonationsTables
+  ensureVipDonationsTables,
+  cancelUnfinishedGiftInvoices
 } = vipDonationsRoutes;
 const { router: vipPayblisRouter } = require('./routes/vipPayblis');
 const oauthRouter = require('./routes/oauth');
+const {
+  searchReadLimit,
+  catalogReadLimit,
+  franceTvReadLimit,
+  debridReadLimit,
+} = require('./middleware/rateLimits');
+
+// Quotas des API de lecture publiques. Enregistrés AVANT les routeurs
+// concernés : Express applique les middlewares dans l'ordre de montage, et ces
+// chemins sont desservis plus bas par des routeurs montés sur '/api' ou '/'.
+app.use('/api/search', searchReadLimit);
+app.use('/api/tmdb', catalogReadLimit);
+app.use('/api/imdb', catalogReadLimit);
+app.use('/api/ftv', franceTvReadLimit);
+app.use('/api/debrid', debridReadLimit);
 
 // ==========================================================================
 // Mount all route modules
@@ -587,6 +613,8 @@ const appReady = (async () => {
 
     await ensureVipDonationsTables(pool);
     console.log('VIP donations tables initialized successfully');
+    await cancelUnfinishedGiftInvoices(pool);
+    console.log('Unfinished VIP gift invoices cancelled');
 
     await ensureOAuthStorage(pool);
     console.log('OAuth tables initialized successfully');
@@ -694,6 +722,8 @@ const appReady = (async () => {
       await ensureColumn('account_requests', 'campay_status', "campay_status ENUM('PENDING', 'SUCCESSFUL', 'FAILED') DEFAULT NULL");
       await ensureColumn('account_requests', 'campay_operator', 'campay_operator VARCHAR(16) DEFAULT NULL');
       await ensureColumn('account_requests', 'paid_at', 'paid_at DATETIME DEFAULT NULL');
+      // Consentement RGPD : preuve horodatée des CGU acceptées à la demande.
+      await ensureColumn('account_requests', 'terms_accepted_at', 'terms_accepted_at TIMESTAMP DEFAULT NULL');
       // Reçus d'abonnement, offres de renouvellement et déclarations de
       // paiement VIP manuel (rendues depuis le schéma déclaratif pour garder
       // une seule source de vérité).
@@ -718,7 +748,9 @@ const appReady = (async () => {
         initWrappedRoutes,
         initTables: initWrappedTables,
       } = require("./wrappedRoutes");
-      initWrappedRoutes(pool, redis);
+      // Le pool de dialecte, pas celui de MySQL : Wrapped est servi par le
+      // moteur sélectionné comme le reste de l'API après bascule.
+      initWrappedRoutes(require("./db/dialect").getPool(), redis);
       await initWrappedTables();
       app.use("/api/wrapped", wrappedRouter);
       console.log("Wrapped routes initialized successfully");

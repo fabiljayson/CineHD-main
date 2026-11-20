@@ -1,12 +1,12 @@
 /**
- * mediaExtract.js — Passerelle VIP vers le service d'extraction proxiesembed.
+ * mediaExtract.js — Passerelle interne vers le service d'extraction proxiesembed.
  *
  * Avant : le frontend appelait directement `proxiesembed` (`/api/extract-*`,
  * `/drm/extract`, `/api/debrid/unlock`). Ces surfaces étaient donc joignables
  * par n'importe qui sur Internet, et `/proxy` acceptait n'importe quelle URL.
  *
  * Maintenant :
- *   frontend --(x-access-key)--> mainapi --(x-internal-key)--> proxiesembed
+ *   frontend --> mainapi --(x-internal-key)--> proxiesembed
  *
  * mainapi est le seul à connaître `INTERNAL_API_KEY` ; proxiesembed refuse tout
  * appel d'extraction qui ne la porte pas. Les URLs m3u8 renvoyées sont signées
@@ -26,7 +26,6 @@ const { ipKeyGenerator } = require('express-rate-limit');
 
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
 const { getTrustedClientIp } = require('../utils/clientIp');
-const { requireVip } = require('../checkVip');
 const {
     decodeSignedToken,
     internalHeaders,
@@ -154,7 +153,7 @@ function relayUpstream(res, error, context) {
 // NOTE — il n'existe plus d'endpoint « extrais-moi cette URL ».
 //
 // `/api/media/extract/:provider?url=` acceptait une URL choisie par le client.
-// Même bordé (VIP, adresse publique, allowlist de providers), il restait une
+// Même bordé (adresse publique, allowlist de providers), il restait une
 // cible contrôlable par l'utilisateur. Les m3u8 sont désormais résolues
 // exclusivement dans les routes catalogue, à partir des liens que le serveur a
 // lui-même scrapés (cf. `utils/embedExtraction.js`), et le navigateur les
@@ -185,7 +184,6 @@ router.get(
     '/drm/extract',
     setNoStore,
     requireInternalWiring,
-    requireVip,
     extractRateLimit,
     async (req, res) => {
         const rawUrl = resolveFtvToken(req.query.token);
@@ -198,7 +196,6 @@ router.get(
                 params: { url: rawUrl },
                 headers: internalHeaders({
                     Accept: 'application/json',
-                    'x-access-key': req.headers['x-access-key'] || '',
                 }),
                 timeout: DRM_TIMEOUT_MS,
                 validateStatus: (status) => status >= 200 && status < 300,
@@ -210,18 +207,16 @@ router.get(
     }
 );
 
-/** Configuration d'affichage réservée aux VIP, sans secrets de fournisseur. */
+/** Configuration d'affichage des fournisseurs actifs, sans secrets fournisseur. */
 router.get(
     '/debrid/providers',
     setNoStore,
     requireInternalWiring,
-    requireVip,
     async (req, res) => {
         try {
             const upstream = await axios.get(`${resolveProxiesEmbedBase()}/api/debrid/providers`, {
                 headers: internalHeaders({
                     Accept: 'application/json',
-                    'x-access-key': req.headers['x-access-key'] || '',
                 }),
                 timeout: 10000,
             });
@@ -240,7 +235,6 @@ router.post(
     '/debrid/unlock',
     setNoStore,
     requireInternalWiring,
-    requireVip,
     debridRateLimit,
     async (req, res) => {
         const body = req.body && typeof req.body === 'object' ? req.body : {};
@@ -261,7 +255,6 @@ router.post(
                     headers: internalHeaders({
                         'Content-Type': 'application/json',
                         Accept: 'application/json',
-                        'x-access-key': req.headers['x-access-key'] || '',
                     }),
                     timeout: DEBRID_TIMEOUT_MS,
                     validateStatus: (status) => status >= 200 && status < 300,
@@ -276,7 +269,7 @@ router.post(
 
 // NOTE — il n'existe volontairement AUCUN endpoint « signe-moi cette URL ».
 // Un tel endpoint serait un oracle de signature : n'importe quel porteur de clé
-// VIP pourrait faire signer la destination de son choix, ce qui rouvrirait la
+// Un client pourrait faire signer la destination de son choix, ce qui rouvrirait la
 // faille que ce module ferme. Les URLs proxifiées sont toujours produites par le
 // serveur au moment où il fabrique la réponse (cf. liveTvRoutes.js, purstream,
 // kisskh), jamais à la demande du client.

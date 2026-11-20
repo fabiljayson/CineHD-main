@@ -163,7 +163,7 @@ const CostsPage: React.FC = () => {
             {t('costs.supportText')}
           </p>
 
-          <Link className="mt-6 block w-fit" to="/vip/don">
+          <Link className="mt-6 block w-fit" to="/help/vip">
             <button className="flex items-center justify-center font-medium whitespace-nowrap relative overflow-hidden transition-all h-10 text-sm px-4 rounded-md bg-white text-black hover:bg-white/80 focus-visible:outline-white cursor-pointer">
               <HeartHandshake className="size-4 mr-2" />
               {t('costs.supportCta')}

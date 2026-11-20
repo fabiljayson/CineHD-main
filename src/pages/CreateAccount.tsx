@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Copy, Check, Eye, EyeOff, ArrowLeft, Camera, Shield, RefreshCw } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import AvatarSelector from '../components/AvatarSelector';
 import {
@@ -48,6 +48,8 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  // Consentement aux CGU : case obligatoire à la dernière étape de création.
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [username, setUsername] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('');
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -195,6 +197,11 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
       return;
     }
 
+    if (!acceptedTerms) {
+      toast.error(t('auth.acceptTermsRequired'));
+      return;
+    }
+
     if (isTurnstileEnabled && !turnstileToken) {
       toast.error(t('auth.captchaRequired', 'Veuillez compléter la vérification de sécurité'));
       return;
@@ -218,6 +225,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
           mnemonic,
           username,
           avatar: selectedAvatar,
+          acceptedTerms,
           turnstileToken
         }),
       });
@@ -498,6 +506,36 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
         </div>
       )}
 
+      {/* Consentement aux CGU : condition explicite à la création du compte */}
+      <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-control/50 bg-surface p-4">
+        <input
+          type="checkbox"
+          checked={acceptedTerms}
+          onChange={(e) => setAcceptedTerms(e.target.checked)}
+          className="mt-0.5 h-4 w-4 rounded border-control bg-ground accent-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        />
+        <span className="text-sm leading-relaxed text-ink-muted">
+          {t('auth.termsAgreement')}{' '}
+          <Link
+            to="/terms-of-service"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white underline underline-offset-2 hover:text-white/80"
+          >
+            {t('auth.termsOfService')}
+          </Link>{' '}
+          {t('auth.termsAnd')}{' '}
+          <Link
+            to="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white underline underline-offset-2 hover:text-white/80"
+          >
+            {t('auth.privacyPolicy')}
+          </Link>
+        </span>
+      </label>
+
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
           type="button"
@@ -509,7 +547,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ mode = 'create' }) => {
         <button
           type="button"
           onClick={createAccount}
-          disabled={!verificationMnemonic.trim() || isCreating || (isTurnstileEnabled && !turnstileToken)}
+          disabled={!verificationMnemonic.trim() || !acceptedTerms || isCreating || (isTurnstileEnabled && !turnstileToken)}
           className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
           {isCreating ? (

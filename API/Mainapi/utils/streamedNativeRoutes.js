@@ -20,7 +20,7 @@ const SAFE_FAILURE_CODES = new Set([
   'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET', 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER',
 ]);
 
-function registerStreamedNativeRoutes(router, { source, verifyAccessKey, pickProxy, proxyBase,
+function registerStreamedNativeRoutes(router, { source, pickProxy, proxyBase,
   native = createStreamedNativeService({ pickProxy }), signatures = signing, logger = console }) {
   const limit = rateLimit({
     windowMs: 60000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false,
@@ -65,8 +65,6 @@ function registerStreamedNativeRoutes(router, { source, verifyAccessKey, pickPro
   router.get('/streamed/native/:channelId/:streamKey', limit, async (req, res) => {
     res.set('Cache-Control', 'private, no-store');
     try {
-      const key = req.headers['x-access-key'];
-      if (typeof key !== 'string' || !(await verifyAccessKey(key)).vip) return res.status(403).json({ error: 'VIP requis pour le relais natif' });
       if (!signatures.signingConfigured() || !proxyBase) return res.status(503).json({ error: 'Relais Streamed indisponible' });
       const stream = await findStream(req);
       if (!stream) return res.status(404).json({ error: 'Lecteur Streamed introuvable' });
@@ -76,7 +74,7 @@ function registerStreamedNativeRoutes(router, { source, verifyAccessKey, pickPro
     } catch { return res.status(502).json({ error: 'Lecteur natif Streamed indisponible' }); }
   });
 
-  // Compatibilité avec les liens déjà délivrés : même autorisation et même
+  // Compatibilité avec les liens déjà délivrés : même signature et même
   // échéance, mais tout téléchargement média passe désormais par proxiesembed.
   router.get('/streamed/media.m3u8', async (req, res) => {
     res.set('Cache-Control', 'private, no-store');

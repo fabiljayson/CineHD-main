@@ -6,15 +6,18 @@
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const { createSecretKey } = require('node:crypto');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const { redis } = require('../config/redis');
 const { readAccountData } = require('../utils/accountDataCache');
 const { createSessionActivityUpdater } = require('../utils/sessionActivity');
+const {
+  extractSessionToken,
+  getTokenSource,
+  isMutationAllowedForCookieSession,
+} = require('./sessionCookie');
 const { getUserDataFilePath } = require('../utils/syncPolicy');
 const AUTH_METHODS = ['discord', 'google', 'bip39'];
-const USER_DATA_DIR = path.join(__dirname, '..', 'data');
-const GUESTS_DIR = path.join(USER_DATA_DIR, 'guests');
-const USERS_DIR = path.join(USER_DATA_DIR, 'users');
+const { GUESTS_DIR, USERS_DIR } = require('../utils/userDataPaths');
 
 // Lazy pool getter -- avoids requiring the pool at module load time
 let _pool = null;
@@ -156,19 +159,33 @@ const requestAuth = new WeakMap();
 function getAuthIfValid(req) {
   if (!req || typeof req !== 'object') return Promise.resolve(null);
   const header = req.headers?.authorization || req.headers?.Authorization;
+  // Le cookie fait partie de la clé : deux requêtes sur la même instance `req`
+  // peuvent désormais différer par leur session, pas seulement par l'en-tête.
+  const cookie = req.headers?.cookie;
+  const cacheKey = `${header || ''}|${cookie || ''}`;
   const cached = requestAuth.get(req);
-  if (cached && cached.header === header) return cached.promise;
+  if (cached && cached.header === cacheKey) return cached.promise;
   const promise = validateAuthRequest(req);
-  requestAuth.set(req, { header, promise });
+  requestAuth.set(req, { header: cacheKey, promise });
   return promise;
 }
 const JWT_SIGNING_KEY = createSecretKey(JWT_SECRET, 'utf8');
 
 async function validateAuthRequest(req) {
   try {
-    const authHeader = req.headers['authorization'] || req.headers['Authorization'];
-    if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) return null;
-    const token = authHeader.split(' ')[1];
+    const token = extractSessionToken(req);
+    if (!token) return null;
+
+    // Une requête mutante authentifiée par cookie doit venir d'une origine
+    // connue : c'est la contrepartie du cookie, que `SameSite` ne couvre pas
+    // entièrement (configuration `none`, navigateurs anciens). Les clients à
+    // en-tête `Authorization` ne sont pas concernés : un site tiers ne peut pas
+    // poser cet en-tête à leur place.
+    if (getTokenSource(req) === 'cookie' && !isMutationAllowedForCookieSession(req)) {
+      console.warn('[AUTH] Requête mutante par cookie depuis une origine non autorisée : refusée');
+      return null;
+    }
+
     const payload = jwt.verify(token, JWT_SIGNING_KEY, { algorithms: ['HS256'] });
     const { userType, sub: userId, sessionId } = payload;
     const authMethod = AUTH_METHODS.includes(payload?.authMethod)

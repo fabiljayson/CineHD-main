@@ -402,10 +402,10 @@ export const CarouselCard = React.memo<{
         <div className={`absolute bottom-0 left-0 right-0 p-3 ${hoverVisibility} ${preview?.focused ? '' : 'md:translate-y-2 md:group-hover:translate-y-0 md:group-has-[:focus-visible]:translate-y-0'} transition-[opacity,transform] duration-300 pointer-events-none`}>
           {/* Le titre reste lisible pendant le chargement ou si le logo échoue. */}
           <div className="relative mb-1.5 h-7">
-            <h3 className={`absolute bottom-0 left-0 w-full text-sm font-medium text-white line-clamp-1 transition-opacity duration-200 ease-[ease] ${isLogoReady ? 'opacity-0' : 'opacity-100'}`}>
+            <h3 className={`absolute bottom-0 left-0 w-full text-sm font-medium text-white line-clamp-1 transition-opacity duration-200 [transition-timing-function:ease] ${isLogoReady ? 'opacity-0' : 'opacity-100'}`}>
               {title}
             </h3>
-            <div aria-hidden="true" className={`absolute inset-0 flex items-end transition-opacity duration-200 ease-[ease] ${isLogoReady ? 'opacity-100' : 'opacity-0'}`}>
+            <div aria-hidden="true" className={`absolute inset-0 flex items-end transition-opacity duration-200 [transition-timing-function:ease] ${isLogoReady ? 'opacity-100' : 'opacity-0'}`}>
               {logoUrl && (
                 <img
                   src={logoUrl}

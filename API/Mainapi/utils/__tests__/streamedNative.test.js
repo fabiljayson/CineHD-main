@@ -3,6 +3,11 @@ const test = require('node:test');
 const { EventEmitter } = require('node:events');
 const { readFileSync } = require('node:fs');
 const { resolve } = require('node:path');
+
+// Ces tests exercent le décodage natif : ils ont besoin du resolver Streamed.
+// Sans ce prévol, l'absence du paquet remontait en MODULE_NOT_FOUND.
+require('../../../../tests/helpers/streamedResolver.cjs').requireStreamedResolver();
+
 const { parseStreamedEmbed, encodeStreamedRequest, mediaUrl, unwrapStreamedSegment, rewriteStreamedPlaylist,
   selectStreamedVariant, createStreamedNativeService, createStreamedWorkerDecoder } = require('../streamedNative');
 

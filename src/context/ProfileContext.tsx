@@ -391,7 +391,7 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children }) =>
           if (authObj.userProfile && authObj.userProfile.avatar) {
             defaultAvatar = authObj.userProfile.avatar;
           }
-        } catch (e) {
+        } catch {
           console.log('Could not parse auth data for default profile');
         }
       }

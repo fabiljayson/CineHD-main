@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import cinehdLockup from '../../brand/cinehd-lockup.svg';
 import {
   ArrowLeft,
@@ -168,6 +168,8 @@ const Login: React.FC = () => {
   const [payerMsisdn, setPayerMsisdn] = useState('');
   const [reference, setReference] = useState('');
   const [username, setUsername] = useState('');
+  // Consentement aux CGU : case obligatoire avant toute demande de compte.
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitToken, setSubmitToken] = useState('');
@@ -253,6 +255,7 @@ const Login: React.FC = () => {
     // CamPay génère la référence côté serveur : le champ n'est plus saisi.
     && (campayEnabled || reference.trim().length >= 4)
     && username.trim().length >= 3
+    && acceptedTerms
     && !isSubmitting
     && (!isTurnstileEnabled || submitToken)
   );
@@ -347,6 +350,7 @@ const Login: React.FC = () => {
           paymentMethod: selectedMethod.id as AccountPaymentMethod['id'],
           payerMsisdn: payerMsisdn.trim(),
           username: username.trim(),
+          acceptedTerms,
           turnstileToken: submitToken,
         });
         setCheckoutSession(session);
@@ -362,6 +366,7 @@ const Login: React.FC = () => {
         payerMsisdn: payerMsisdn.trim(),
         reference: reference.trim(),
         username: username.trim(),
+        acceptedTerms,
         turnstileToken: submitToken,
       });
       setCreatedRequest(created);
@@ -376,7 +381,7 @@ const Login: React.FC = () => {
       setIsSubmitting(false);
       setSubmitToken('');
     }
-  }, [campayEnabled, canSubmit, payerMsisdn, reference, selectedAmount, selectedMethod, selectedPlan, submitToken, t, username]);
+  }, [campayEnabled, canSubmit, acceptedTerms, payerMsisdn, reference, selectedAmount, selectedMethod, selectedPlan, submitToken, t, username]);
 
   const handleCheckStatus = useCallback(async () => {
     if (!createdRequest) return;
@@ -940,6 +945,35 @@ const Login: React.FC = () => {
                     <p className="mt-1 text-xs text-white/40">{t('login.usernameHint')}</p>
                   </div>
                 </div>
+
+                <label className="flex cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(event) => setAcceptedTerms(event.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-control bg-ground accent-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  />
+                  <span className="text-sm leading-relaxed text-white/70">
+                    {t('auth.termsAgreement')}{' '}
+                    <Link
+                      to="/terms-of-service"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white underline underline-offset-2 hover:text-white/80"
+                    >
+                      {t('auth.termsOfService')}
+                    </Link>{' '}
+                    {t('auth.termsAnd')}{' '}
+                    <Link
+                      to="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white underline underline-offset-2 hover:text-white/80"
+                    >
+                      {t('auth.privacyPolicy')}
+                    </Link>
+                  </span>
+                </label>
 
                 {submitError && (
                   <p role="alert" className="rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">

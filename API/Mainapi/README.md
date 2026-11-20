@@ -11,7 +11,7 @@ Le service tourne en mode cluster via `server.js` : un master lance plusieurs wo
 - sync frontend <-> backend pour une partie de l'état utilisateur
 - commentaires, likes, listes partagées, Wishboard et soumission de liens
 - Live TV, proxies, debrid et intégrations de scraping
-- VIP, invoices, wrapped et features communautaires
+- historique et administration des factures VIP, wrapped et features communautaires
 
 ## Démarrage
 
@@ -27,9 +27,10 @@ Ne lance pas le service avec un `.env` vide : MySQL, Redis, JWT, TMDB et plusieu
 Notes utiles :
 
 - le serveur HTTP écoute sur `http://localhost:25565`
-- `server.js` binde aujourd'hui le port `25565` en dur ; le `PORT` listé dans `.env.example` n'est pas lu par le code
+- `PORT` est lu par `server.js` et prime sur le défaut local `25565` ; une valeur absente ou invalide retombe sur `25565`
 - `NUM_WORKERS` permet de régler le nombre de workers du cluster
 - MySQL et Redis sont nécessaires pour une grosse partie des routes
+- `/health` (liveness) et `/ready` (dépendances) sont disponibles sans authentification et avant le bootstrap MySQL
 
 ## Architecture
 
@@ -98,6 +99,41 @@ La source téléchargements (`routes/darkiworld.js` et `utils/darkiworldSqlite.j
 
 Démarrer ou redémarrer Main API après l’installation des fichiers. Sans ces snapshots, les liens absents du cache local peuvent renvoyer `sqlite_miss`. Avec `HYDRACKER_BLACKOUT=true` (valeur par défaut), aucune résolution en direct auprès d’Hydracker ou de DarkiWorld ne prend le relais.
 
+## Conteneur
+
+L'image est construite depuis ce dossier avec son `package-lock.json` :
+
+```bash
+docker build --platform linux/amd64 -t cinehd-mainapi:check API/Mainapi
+docker run --rm -e PORT=25565 --env-file .env -p 25565:25565 cinehd-mainapi:check
+```
+
+`linux/amd64` est la seule plateforme attendue par Cloudflare Containers. `.dockerignore` exclut `.env`, `cache/`, `public/oauth-icons/` et les tests : les secrets et les données locales ne sont jamais dans l'image.
+
+**Dépendance `streamed-pk-hls-stream-resolver` (2026-11-15) :** l'URL d'origine (`codeload.github.com/sharoon7171/…`) renvoie `404` et le dépôt amont a disparu (`Repository not found`), ce qui bloquait toute installation propre, image et CI comprises.
+
+Le paquet est désormais **vendu** dans `API/Mainapi/vendor/streamed-pk-hls-stream-resolver.tgz` et déclaré par `"file:./vendor/streamed-pk-hls-stream-resolver.tgz"`. Plus aucune installation ne dépend d'un hébergeur externe. L'archive vient du paquet déjà installé, donc du code que le service exécutait ; `vendor/README.md` consigne la provenance, l'empreinte du contenu, la raison du tarball (npm 10 refuse un dossier lié) et la procédure de mise à jour.
+
+Conséquences pratiques : le dossier `vendor/` doit accompagner `package.json` et `package-lock.json` lors de l'installation (le `Dockerfile` le copie avant `npm ci`), et le lockfile porte l'`integrity` de l'archive — un tarball modifié sans mise à jour du lockfile casse `npm ci`. Le paquet amont ne déclare aucune licence : sa redistribution doit être validée par le propriétaire du projet.
+
+Sondes :
+
+| Route | Réponse | Rôle |
+| --- | --- | --- |
+| `GET /health` | `200 {"status":"ok"}` | Le processus sert du HTTP. Répond 200 pendant le bootstrap, pour qu'un démarrage long ne fasse pas tuer l'instance. |
+| `GET /ready` | `200 {"status":"ready"}` ou `503 {"status":"not-ready"}` | MySQL (`SELECT 1`) et Redis (`PING`) répondent. Le Worker de routage ne doit envoyer du trafic qu'après un 200. |
+
+Les deux corps sont statiques : aucune dépendance, aucun hôte, aucune erreur de pilote n'y apparaît. `READINESS_PROBE_TIMEOUT_MS` (2000 ms par défaut) borne chaque vérification.
+
+L'ordre de démarrage est : écoute HTTP, puis bootstrap MySQL, puis rafraîchissement des proxys. Une instance dont le bootstrap échoue après ses tentatives sort en code 1 pour être remplacée, au lieu de rester en 503.
+
+Budget de connexions : `NUM_WORKERS` (12 par défaut) × `DB_POOL_CONNECTION_LIMIT` (20 par défaut) donne jusqu'à 240 connexions MySQL **par instance**. Avec plusieurs Containers il faut réduire l'un des deux ; l'inventaire de déploiement retient ce plafond comme référence.
+
+```bash
+# Exemple : 4 workers × 10 connexions = 40 connexions par instance
+NUM_WORKERS=4 DB_POOL_CONNECTION_LIMIT=10
+```
+
 ## Points d'entrée utiles
 
 - auth et profils : `routes/authRoutes.js`, `routes/sessions.js`, `routes/profiles.js`
@@ -105,15 +141,87 @@ Démarrer ou redémarrer Main API après l’installation des fichiers. Sans ces
 - recherche et catalogues : `routes/search.js`, `routes/tmdb.js`
 - scraping / lecture : `routes/cpasmal.js`, `routes/fstream.js`, `routes/wiflix.js`, `liveTvRoutes.js`
 - communautaire : `commentsRoutes.js`, `likesRoutes.js`, `sharedListsRoutes.js`, `wishboardRoutes.js`, `linkSubmissionsRoutes.js`
-- VIP / paiements : `utils/vipDonations.js`, `routes/vipDonations.js`
-- VIP par mobile money confirmé à la main (sans API opérateur) : `routes/vipPaymentRequests.js`, `utils/manualVipPayments.js` — l'utilisateur connecté déclare sa transaction Orange Money / MTN MoMo sur `/vip`, l'admin valide depuis « Gérer les clés VIP » : une clé `access_keys` de la durée de l'offre est générée et écrite dans les profils du compte (`access_code`). Numéros : `PAYMENT_ORANGE_MONEY_NUMBER`, `PAYMENT_MTN_MOMO_NUMBER`
+- VIP / paiements historiques : `utils/vipDonations.js`, `routes/vipDonations.js`, `routes/vipPaymentRequests.js` — les nouvelles créations et réclamations publiques sont désactivées ; les factures engagées restent consultables/traitables et l'administration conserve l'historique.
+- Les anciens paiements mobile money restent administrables depuis « Gérer les clés VIP » ; la création utilisateur de demandes sur `/vip-payments` est désactivée.
 - sources annexes / providers : `routes/darkiworld.js`, `routes/swiftflow.js`, `routes/animeSama.js`, `routes/purstream.js`, `routes/kisskh.js`, `routes/voirdrama.js`, `routes/francetv.js`, `routes/j1f.js`, `routes/mediaExtract.js`
 - debrid et OAuth : `routes/debrid.js`, `routes/oauth.js`, `routes/adminOauthApps.js`
 - administration : `routes/admin.js`, `routes/accountRequests.js`, `routes/helpFeedback.js`, `routes/downloadLinksLeaderboard.js`
 
+## Bascule vers Neon (opérateur)
+
+Le schéma PostgreSQL est généré depuis `db/schema` : ne jamais modifier
+`db/migrations/*.sql` à la main.
+
+```bash
+npm run db:postgres:generate    # régénère 001_core … 006_wrapped
+npm run db:postgres:migrate     # applique les versions manquantes (DATABASE_MIGRATION_URL)
+```
+
+`DATABASE_MIGRATION_URL` vise l'endpoint **direct** Neon ; `DATABASE_URL` (pooler)
+est réservé au runtime. Les migrations sont sérialisées par un verrou consultatif
+et inscrites dans `schema_migrations` avec leur empreinte : une migration déjà
+appliquée puis modifiée est refusée.
+
+### Transfert et réconciliation
+
+```bash
+MYSQL_MIGRATION_URL='mysql://…' DATABASE_MIGRATION_URL='postgres://…' \
+  npm run db:postgres:transfer -- --tables=admins,films   # reprenable, idempotent
+MYSQL_MIGRATION_URL='mysql://…' DATABASE_MIGRATION_URL='postgres://…' \
+  npm run db:postgres:verify -- --cutover                 # gardes de bascule
+```
+
+Le transfert lit par lots ordonnés par clé primaire et enregistre sa progression
+dans `pg_migration_checkpoint` : un arrêt laisse la source intacte et la cible
+dans un état partiel connu, la reprise repart de la dernière clé. Les lignes
+gardent leurs horodatages d'origine (`app.skip_touch` désactive le trigger
+`updated_at` pendant l'import).
+
+Une valeur `BIGINT UNSIGNED` au-delà de `9223372036854775807` est **refusée** en
+nommant la colonne : PostgreSQL `BIGINT` est signé et tronquer un identifiant
+serait pire qu'un échec.
+
+### Séquences
+
+Le transfert recopie les identifiants existants ; les séquences PostgreSQL, elles,
+resteraient à `1`. Il repositionne donc chaque séquence copiée (`setval`), puis
+`assertSequencesAhead()` échoue explicitement si l'une est encore en retard. Sans
+ce garde-fou, la première ligne insérée par l'API entrerait en collision avec une
+clé déjà transférée. Le test ne dépend pas du nombre de lignes : une séquence en
+avance est acceptée, une séquence en retard arrête la commande.
+
+### Harnais différentiel
+
+```bash
+MYSQL_MIGRATION_URL='mysql://…' DATABASE_MIGRATION_URL='postgres://…' \
+  npm run db:differential
+```
+
+Le harnais démarre la même API deux fois, une fois par moteur, rejoue une liste
+fixe de requêtes (`tests/fixtures/differentialServer.js`) et compare statut et
+corps. C'est le filet des conversions : une requête qui répond `200` d'un côté et
+`500` de l'autre nomme la route à corriger. Il ne remplace pas les suites
+`postgres*.e2e.test.js`, qui vérifient les effets en base.
+
+### Fenêtre d'arrêt et point de non-retour
+
+Voir [la décision D2](../../docs/superpowers/specs/2026-11-15-cinehd-cutover-decisions.md) :
+
+1. **Avant** : `npm run db:postgres:verify -- --cutover` doit afficher « Bascule autorisée ».
+2. **Gel** : mode maintenance, écritures refusées, drain des écritures en cours.
+3. **Dernier transfert** : relancer le transfert jusqu'à complétion, revérifier.
+4. **Bascule** : pointer `DATABASE_URL` vers Neon, redémarrer, surveiller `/ready`.
+5. **Point de non-retour** : la première écriture acceptée sur Neon. Avant elle,
+   revenir à MySQL est sans perte ; après elle, la rollback simple est perdue.
+
+L'import en production et le basculement du trafic sont **deux actions
+distinctes**, chacune explicitement autorisée. Ce dépôt ne les autorise pas.
+
 ## À garder en tête
 
 - Le backend actif est ici, pas dans l'ancien contenu direct de `API/`.
-- Plusieurs tables MySQL sont initialisées automatiquement au démarrage.
+- Plusieurs tables sont initialisées automatiquement au démarrage, par du DDL
+  MySQL. Sur PostgreSQL ce DDL est **sauté** : le schéma vient des migrations, et
+  une nouvelle table doit donc arriver par un fichier de migration.
 - Une partie du comportement applicatif dépend de caches disque et de proxys externes ; un bug peut venir d'ailleurs que du code route lui-même.
 - Si une feature touche la lecture vidéo, regarde aussi `API/proxiesembed/` et parfois l'extension navigateur.

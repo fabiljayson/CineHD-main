@@ -397,7 +397,7 @@ const Home: React.FC = () => {
 
 
 
-  const fetchRecommendations = async (watchHistory: ContinueWatching[]) => {
+  const fetchRecommendations = async (_watchHistory: ContinueWatching[]) => {
     if (!isRecommendationsEnabled()) {
       setRecommendations([]);
       setPersonalizedReco(null);
@@ -750,7 +750,7 @@ const Home: React.FC = () => {
       } catch {
         // Quota plein : cache best-effort
       }
-    } catch (e) {
+    } catch {
       // Fail silently; the rest of the home page still works
     }
   }, [tmdbLanguage]);

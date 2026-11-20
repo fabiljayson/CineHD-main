@@ -25,6 +25,18 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Le HTML injecté doit rester statique : traductions figées ou CSS
+      // constant. Toute donnée utilisateur ou distante (titre, description,
+      // SVG distant, réponse d'API) doit passer par du texte JSX, jamais par
+      // innerHTML. Signalé plutôt que bloqué : les usages actuels sont sûrs.
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+          message:
+            'dangerouslySetInnerHTML : ne l utiliser que pour du contenu statique (traduction figée, CSS constant).',
+        },
+      ],
       '@typescript-eslint/no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [

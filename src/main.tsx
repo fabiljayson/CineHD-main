@@ -9,6 +9,7 @@ import { api } from './services/api'
 import { registerBlockDetection } from './services/blockDetection'
 import { initAnalytics } from './utils/analytics'
 import { installHttpCache } from './utils/httpCache'
+import { installSessionCredentials, installSessionFetchCredentials } from './utils/sessionCredentials'
 import { installSegmentedSeasons } from './utils/segmentedSeasons'
 import { installManualEpisodes } from './utils/manualEpisodes'
 import './index.css'
@@ -180,6 +181,13 @@ registerBlockDetection(api)
 installHttpCache(axios)
 installHttpCache(api)
 
+// Session en cookie HttpOnly : le cookie n'est joint que si la requête le
+// demande, et le frontend et l'API sont deux origines distinctes. Branché ici
+// pour couvrir d'un coup tous les appels de l'app (voir `utils/sessionCredentials.ts`).
+installSessionFetchCredentials()
+installSessionCredentials(axios)
+installSessionCredentials(api)
+
 // Séries que TMDB découpe en segments de 11 minutes (« Bienvenue chez les
 // Loud ») : les épisodes sont recollés à la volée pour coller aux fichiers.
 // Posé APRÈS le cache — celui-ci stocke la réponse TMDB brute, la fusion
@@ -247,8 +255,9 @@ if (typeof Node === 'function' && Node.prototype) {
 }
 
 // Analytics (Google Analytics ou Plausible, au choix via VITE_ANALYTICS_PROVIDER).
-// Ne charge rien si le fournisseur est "none", si sa config est incomplète, ou
-// si l'utilisateur a coupé la mesure (Do Not Track / opt-out local).
+// Ne charge rien si le fournisseur est "none", si sa config est incomplète, si
+// l'utilisateur n'a pas accepté les cookies (bannière de consentement), ou s'il
+// a coupé la mesure (Do Not Track / opt-out local).
 initAnalytics();
 
 const mountApp = () => {

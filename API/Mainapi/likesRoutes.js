@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { getPool } = require('./mysqlPool');
+const { getPool } = require('./db/dialect');
+const { insertReturningId } = require('./db/pgCompat');
 const fs = require('fs').promises;
 const path = require('path');
 const { verifyTurnstileFromRequest } = require('./utils/turnstile');
+const { extractSessionToken } = require('./middleware/sessionCookie');
 
 const TURNSTILE_INVISIBLE_SECRETKEY = process.env.TURNSTILE_INVISIBLE_SECRETKEY;
 
@@ -46,9 +48,15 @@ async function getProfileIds(userId, userType) {
 // Fonctions helper MySQL pour remplacer SQLite
 const dbRun = async (sql, params = []) => {
   const pool = getPool();
+  // Un INSERT n'a d'identifiant généré que sur MySQL (`insertId`) ; PostgreSQL
+  // l'obtient par `RETURNING`. Les autres ordres n'en rendent pas.
+  if (/^\s*insert\b/i.test(sql)) {
+    const id = await insertReturningId(pool, sql, params);
+    return { lastID: id || 0, changes: 1 };
+  }
   const [result] = await pool.execute(sql, params);
   return {
-    lastID: result.insertId || 0,
+    lastID: 0,
     changes: result.affectedRows || 0
   };
 };
@@ -67,7 +75,7 @@ const dbAll = async (sql, params = []) => {
 
 // Middleware pour vérifier l'authentification (optionnel pour GET) avec validation session MySQL
 const optionalAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = extractSessionToken(req);
   if (!token) {
     req.user = null;
     return next();
@@ -115,7 +123,7 @@ const optionalAuth = async (req, res, next) => {
 
 // Middleware pour vérifier l'authentification (requis pour POST) avec validation session MySQL
 const requireAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = extractSessionToken(req);
   if (!token) {
     return res.status(401).json({ error: 'Non authentifié' });
   }

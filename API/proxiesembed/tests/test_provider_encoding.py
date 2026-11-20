@@ -19,6 +19,7 @@ PROXY_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROXY_ROOT))
 from uqload_utils import (
     extract_uqload_media_url,
+    extract_uqload_subtitles,
     get_uqload_site_origin,
     normalize_uqload_embed_url,
     parse_allowed_uqload_url,
@@ -31,7 +32,7 @@ def load_proxy_headers():
     methods = {
         '_prepare_headers', 'fsvid_proxy_handler', 'vidzy_proxy_handler', 'uqload_proxy_handler',
         'fsvid_extract_handler', 'vidzy_extract_handler', '_is_fsvid_vidzy_embed_url',
-        '_extract_uqload_media_url', '_validate_uqload_url',
+        '_extract_uqload_media_url', '_extract_uqload_media', '_validate_uqload_url',
     }
     proxy_class.body = [
         node for node in proxy_class.body
@@ -56,6 +57,7 @@ def load_proxy_headers():
         'parse_allowed_uqload_url': parse_allowed_uqload_url,
         'normalize_uqload_embed_url': normalize_uqload_embed_url,
         'extract_uqload_media_url': extract_uqload_media_url,
+        'extract_uqload_subtitles': extract_uqload_subtitles,
         'asyncio': asyncio, 'aiohttp': aiohttp, 'ClientTimeout': ClientTimeout,
         'web': web, 'hashlib': hashlib,
         '_signed_service_url': lambda route, url: url,
@@ -68,6 +70,9 @@ def load_proxy_headers():
 class ProviderEncodingTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.proxy = load_proxy_headers()
+        self.proxy._vip_denied_response = lambda: web.json_response(
+            {'error': 'VIP access required'}, status=403,
+        )
 
     def assert_identity_with_browser_tokens(self, headers):
         # Vidzy refuse les requêtes sans « zstd ». q=0 interdit la compression
@@ -108,7 +113,7 @@ class ProviderEncodingTests(unittest.IsolatedAsyncioTestCase):
         )
         proxy.sessions = {'normal': session, 'no_ssl': session}
         proxy._require_internal = lambda request: None
-        proxy._check_vip = AsyncMock(return_value=True)
+        proxy._check_vip = AsyncMock(return_value=False)
         proxy._resolve_fsvid_vidzy_m3u8 = AsyncMock(return_value=media)
         for provider, host in [('fsvid', 'fsvid.lol'), ('vidzy', 'vidzy.org'), ('uqload', 'uqload.vc')]:
             with self.subTest(provider=provider):
@@ -122,6 +127,7 @@ class ProviderEncodingTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(response.status, 200)
                 headers = session.request.call_args.kwargs['headers']
                 self.assertNotIn('Accept-Encoding', headers)
+        proxy._check_vip.assert_not_awaited()
 
 
 if __name__ == '__main__':

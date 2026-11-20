@@ -1,9 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Loader2, Film, Tv2, Play, Crown, ArrowLeft, X } from 'lucide-react';
+import { Search, Loader2, Film, Tv2, Play, ArrowLeft, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { isUserVip } from '../../utils/authUtils';
 import { MAIN_API } from '../../config/runtime';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
@@ -84,7 +83,6 @@ const FranceTVBrowse: React.FC = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isVip = isUserVip();
 
   // Focus input on mount
   useEffect(() => {
@@ -172,12 +170,6 @@ const FranceTVBrowse: React.FC = () => {
             </div>
             <h2 className="text-2xl font-bold text-white">France.tv</h2>
           </div>
-          {!isVip && (
-            <div className="ml-auto inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full">
-              <Crown className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-amber-400 text-xs font-medium">{t('francetv.vipRequired')}</span>
-            </div>
-          )}
         </motion.div>
 
         {/* Search bar */}

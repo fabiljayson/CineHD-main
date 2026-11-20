@@ -138,7 +138,6 @@ const Header: React.FC = () => {
       items: [
         ...(isVip ? [{ name: t('nav.debrid'), path: '/debrid', icon: <Unlock size={20} />, color: 'yellow' as const, desc: t('nav.debridDesc') }] : []),
         { name: t('nav.helpHub'), path: '/help', icon: <HelpCircle size={20} />, color: 'indigo', desc: t('nav.helpHubDesc') },
-        { name: 'github.com/fredbit24', path: 'https://github.com/fredbit24', icon: <Github size={20} />, color: 'gray', desc: t('nav.githubFredDesc'), external: true },
         { name: t('nav.github'), path: 'https://github.com/fabiljayson/CineHD-main', icon: <Github size={20} />, color: 'gray', desc: t('nav.githubDesc'), external: true },
       ]
     },

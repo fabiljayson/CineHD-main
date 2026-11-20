@@ -1,6 +1,6 @@
 ---
 name: cinehd
-description: CineHD (ex-Movix) open-source streaming site work — React+TS+Vite frontend, Node APIs (main 25565, watchparty 25566), Python proxiesembed 25569, MySQL+Redis, 11 mirror zones. Use for ANY task under /home/fabiljayson/Projects/MovixOpenSource-main; also use when asked about CineHD docs/features.
+description: CineHD  open-source streaming site work — React+TS+Vite frontend, Node APIs (main 25565, watchparty 25566), Python proxiesembed 25569, MySQL+Redis, 11 mirror zones. Use for ANY task under /home/fabiljayson/Projects/MovixOpenSource-main; also use when asked about CineHD docs/features.
 ---
 
 # CineHD (ex-Movix) work playbook
@@ -16,11 +16,11 @@ Docs branding rule: everything user-facing says **CineHD (ex-Movix)**; runtime i
 | watchparty (Express + socket.io) | 25566 | from `API/watchpartyAPI/`; needs `npm install --no-save` of express/cors/socket.io@4/dotenv (deps deliberately out of package.json) |
 | proxiesembed (Python) | 25569 | its own uv venv, **Python 3.13 only** (lxml 5.3.0 wheels don't exist for 3.14), `secrets MEDIA_SIGNING_SECRET`/`INTERNAL_API_KEY` must equal mainapi's |
 
-Containers `cinehd-mysql` (8.4, 3306) + `cinehd-redis` (7, 6379) are already living on this machine. MySQL auth through the bundled `mariadb` client needs `--skip-ssl` (self-signed container cert). Complete DB (37 tables) is created via the `db/schema` module + `renderCreateTable` — app bootstrap alone does NOT create core/media/community tables.
+Containers `cinehd-mysql` (8.4, 3306) + `cinehd-redis` (7, 6379) are already living on this machine. MySQL auth through the bundled `mariadb` client needs `--skip-ssl` (self-signed container cert). Complete DB (40 tables across six groups) is created via the `db/schema` module + `renderCreateTable`, non-interactively with `npm run db:schema:apply` in `API/Mainapi/` — app bootstrap alone does NOT create core/media/community tables.
 
-## Known bugs (reported, NOT fixed — do not claim otherwise)
+## Known bugs
 
-watchparty won't start without the missing deps; `npm run build:report` is broken (script `scripts/bundle-report.mjs` absent); root `manifest.json` not copied into `dist` (PWA 404 in prod likely); `recommendationRoutes.js` and `adminStats.js` never mounted; cloudflare worker whitelist `.*`; TMDB key hardcoded in `PreMid/core/constants.ts`; `Dockerfile ARG` Telegram var obsolete. The frontend fetches TMDB **directly** — "error loading data" usually means TMDB blocked, not our API down.
+Tous les défauts listés ici ont été corrigés et commités le 2026-10-26 (routes reco/adminStats montées, `manifest.json` dans `public/`, `build:report` réparé via `ANALYZE=true vite build`, clé TMDB via env, whitelist du worker Cloudflare, `Dockerfile ARG`, `.wvd` untracké). Ne pas les présenter comme ouverts. Le frontend interroge TMDB **directement** — « error loading data » vient le plus souvent de TMDB, pas de nos API.
 
 ## Pitfalls
 

@@ -44,7 +44,7 @@ const {
 const router = express.Router();
 const authBodyParsers = createAuthBodyParsers();
 
-const USERS_DIR = path.join(__dirname, '..', 'data', 'users');
+const { USERS_DIR } = require('../utils/userDataPaths');
 const SKIP_FILES = new Set(['cinepulse_accounts.json']);
 const SCAN_CONCURRENCY = 20;
 const MAX_PAGE_SIZE = 100;

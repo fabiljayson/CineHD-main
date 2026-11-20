@@ -574,7 +574,7 @@ const TVShows: React.FC = () => {
             const path = first?.backdrop_path || first?.poster_path || '';
             const imageUrl = path ? `https://image.tmdb.org/t/p/w780${path}` : undefined;
             return { ...g, imageUrl };
-          } catch (_) {
+          } catch {
             return g;
           }
         }));
@@ -582,7 +582,7 @@ const TVShows: React.FC = () => {
         if (writeSessionStorage(cacheKey, JSON.stringify(updated))) {
           writeSessionStorage(cacheTsKey, Date.now().toString());
         }
-      } catch (_) {
+      } catch {
         // ignore
       }
     };

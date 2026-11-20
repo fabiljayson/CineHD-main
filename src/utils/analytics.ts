@@ -12,6 +12,8 @@
 // suivi des changements de route est fait à la main (SPA : aucun rechargement
 // de page, donc aucune vue supplémentaire n'est envoyée automatiquement).
 
+import { getCookieConsent } from './cookieConsent';
+
 type AnalyticsProvider = 'ga' | 'plausible' | 'none';
 
 type GtagWindow = Window & {
@@ -201,7 +203,12 @@ const startPlausible = (
 /**
  * Charge le fournisseur d'analytics configuré. Sans effet si
  * `VITE_ANALYTICS_PROVIDER` vaut "none" / est absent, si l'utilisateur a
- * désactivé la mesure, ou si la config du fournisseur est incomplète.
+ * désactivé la mesure, ou si le consentement aux cookies n'a pas été donné.
+ *
+ * Consentement RGPD : sans acceptation explicite dans la bannière
+ * (`components/CookieConsentBanner`), aucun script tiers n'est chargé — le
+ * refus et l'absence de réponse se valent. Si l'utilisateur accepte ensuite,
+ * la bannière rappelle cette fonction (idempotente).
  */
 export const initAnalytics = (): void => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -211,6 +218,7 @@ export const initAnalytics = (): void => {
 
   const provider = resolveProvider();
   if (provider === 'none') return;
+  if (getCookieConsent() !== 'accepted') return;
   if (isOptedOut()) return;
 
   if (provider === 'ga') {

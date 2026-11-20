@@ -270,7 +270,7 @@ function sanitizeSubtitles(raw) {
  * Résout un lien embed en URL m3u8 signée.
  * @returns {Promise<{ m3u8Url: string, hoster: string, subtitles?: Array } | null>}
  */
-async function extractEmbed(embedUrl, accessKey) {
+async function extractEmbed(embedUrl) {
     const hoster = detectHoster(embedUrl);
     if (!hoster) return null;
 
@@ -286,10 +286,6 @@ async function extractEmbed(embedUrl, accessKey) {
             params: { url: urlParam },
             headers: internalHeaders({
                 Accept: 'application/json',
-                // La clé VIP de l'utilisateur est retransmise : proxiesembed la
-                // revérifie, donc une fuite de la seule clé interne ne suffit
-                // pas à déclencher des extractions.
-                'x-access-key': accessKey || '',
             }),
             timeout: EXTRACT_TIMEOUT_MS,
             validateStatus: (status) => status >= 200 && status < 300,
@@ -364,7 +360,7 @@ async function mapWithConcurrency(items, limit, worker) {
  * @returns {Promise<{ languages: object, attempted: number, resolved: number }>}
  */
 async function extractLanguageMap(languageMap, options = {}) {
-    const { accessKey, concurrency = DEFAULT_CONCURRENCY } = options;
+    const { concurrency = DEFAULT_CONCURRENCY } = options;
 
     // On aplatit d'abord pour paralléliser sur tout le contenu, toutes langues
     // confondues, plutôt que langue par langue.
@@ -378,7 +374,7 @@ async function extractLanguageMap(languageMap, options = {}) {
     }
 
     const outcomes = await mapWithConcurrency(jobs, concurrency, (job) =>
-        extractEmbed(job.url, accessKey)
+        extractEmbed(job.url)
     );
 
     const resolvedByKey = new Map();
@@ -438,11 +434,11 @@ async function buildM3u8Map(urls, options = {}) {
 async function buildResolvedMaps(urls, options = {}) {
     if (!Array.isArray(urls) || !extractionAvailable()) return { m3u8ByPlayer: {}, subtitlesByPlayer: {} };
 
-    const { accessKey, concurrency = DEFAULT_CONCURRENCY } = options;
+    const { concurrency = DEFAULT_CONCURRENCY } = options;
     const cibles = [...new Set(urls.filter((url) => typeof url === 'string' && detectHoster(url)))];
 
     const resolus = await mapWithConcurrency(cibles, concurrency, (url) =>
-        extractEmbed(url, accessKey)
+        extractEmbed(url)
     );
 
     const m3u8ByPlayer = {};
@@ -476,7 +472,7 @@ function extractionAvailable() {
  * `languageKey` dit laquelle ; à `null`, l'épisode EST la map. Les champs qui
  * ne sont pas des tableaux (`number`, `title`…) traversent inchangés.
  *
- * @param {{ accessKey?: string, concurrency?: number, languageKey?: string|null }} options
+ * @param {{ concurrency?: number, languageKey?: string|null }} options
  */
 async function extractEpisodeSources(episode, options = {}) {
     if (!episode || typeof episode !== 'object' || Array.isArray(episode)) return episode;
@@ -549,10 +545,9 @@ async function extractMovieSources(payload, mapKey, options = {}) {
  * Répond à une requête catalogue en y résolvant les m3u8 du contenu demandé.
  *
  * C'est le point d'entrée que les modules de routes utilisent : il regroupe la
- * décision (faut-il extraire ?), le contrôle VIP et la tolérance aux pannes.
+ * décision (faut-il extraire ?) et la tolérance aux pannes.
  *
- * L'extraction ne se déclenche que si l'appelant présente une clé VIP valide,
- * et ne porte que sur ce qui est demandé : un seul épisode, ou le film. Le
+ * L'extraction ne porte que sur ce qui est demandé : un seul épisode, ou le film. Le
  * reste d'une saison reste sous forme de liens embed — inutile de solliciter
  * des dizaines d'hébergeurs pour une seule lecture.
  *
@@ -586,7 +581,7 @@ async function respondWithResolvedSources(req, res, payload, options = {}) {
     // catalogue par catalogue.
     if (String(req.query.resolve || '') !== '1') return send();
 
-    // Rien à résoudre : on évite le coût d'une vérification VIP inutile.
+    // Rien à résoudre : on évite un appel inutile aux extracteurs.
     const episodeKey = movieMapKey
         ? null
         : String(options.episode ?? req.query.episode ?? '');
@@ -602,21 +597,12 @@ async function respondWithResolvedSources(req, res, payload, options = {}) {
     }
 
     try {
-        // Chargé à la demande : les primitives d'extraction ci-dessus n'ont
-        // aucune raison de tirer le pool MySQL au simple chargement du module.
-        const { verifyAccessKey } = require('../checkVip');
-
-        const accessKey = req.headers['x-access-key'] || null;
-        const vipStatus = await verifyAccessKey(accessKey);
-        if (!vipStatus?.vip) return send();
-
         if (movieMapKey) {
-            const enriched = await extractMovieSources(payload, movieMapKey, { accessKey });
+            const enriched = await extractMovieSources(payload, movieMapKey);
             return res.status(status).json(enriched);
         }
 
         const enrichedEpisode = await extractEpisodeSources(payload.episodes[episodeKey], {
-            accessKey,
             languageKey,
         });
         return res.status(status).json({

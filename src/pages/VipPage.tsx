@@ -185,7 +185,7 @@ const VipPage: React.FC = () => {
 
               <div className="flex flex-col md:flex-row items-center justify-center gap-4">
                 <Link
-                  to="/vip/don"
+                  to="/help/vip"
                   className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-yellow-500 px-8 text-black transition-colors hover:bg-yellow-400 md:w-auto"
                 >
                   <Crown className="w-4 h-4 mr-2" />

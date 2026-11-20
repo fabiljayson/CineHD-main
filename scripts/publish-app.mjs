@@ -19,12 +19,12 @@ const PATHS = {
     REPO_ROOT,
     'app/android/app/build/outputs/apk/release/app-release.apk',
   ),
-  publishedApk: path.join(REPO_ROOT, 'app/movix-android.apk'),
+  publishedApk: path.join(REPO_ROOT, 'app/cinehd-android.apk'),
   manifest: path.join(REPO_ROOT, 'app/version.json'),
 };
 
 const APK_URL =
-  'https://github.com/fabiljayson/CineHD-main/raw/refs/heads/main/app/movix-android.apk';
+  'https://github.com/fabiljayson/CineHD-main/releases/download/app-android-latest/cinehd-android.apk';
 
 function die(msg) {
   console.error(`\n[publish-app] ${msg}\n`);
@@ -185,9 +185,12 @@ async function main() {
     console.log(
       '\n─────────────────────────────────────────────\n' +
         '✓ Publish ready. Next steps:\n\n' +
-        '  git add app/version.json app/movix-android.apk app/android/app/build.gradle\n' +
+        '  git add app/version.json app/android/app/build.gradle\n' +
         `  git commit -m "release(app): v${versionName} (build ${versionCode})"\n` +
         '  git push\n' +
+        '\n' +
+        '  # L APK n est plus dans le depot : il remplace l asset de la release mobile.\n' +
+        '  gh release upload app-android-latest app/cinehd-android.apk --clobber\n' +
         '─────────────────────────────────────────────\n',
     );
   } finally {

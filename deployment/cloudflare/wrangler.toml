@@ -1,0 +1,33 @@
+# Worker de routage CineHD.
+#
+# Le Worker possède tous les bindings Cloudflare : les services ne reçoivent que
+# ce que leur Container a besoin de savoir. Les hôtes ci-dessous sont des valeurs
+# de staging (Task 6) ; les domaines réels se posent par environnement, jamais
+# devinés dans le code.
+
+name = "cinehd-router"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Offre gratuite (Workers Free) : pas de Containers, les trois services tournent
+# sur Render (voir render.yaml à la racine) et le Worker les atteint en origine
+# externe (`origin:https://…`), le repli prévu par la décision D4.
+# Ajuster les URL si Render a suffixé un nom de service déjà pris.
+#
+# Hôte servant les préfixes de chemin ; les autres hôtes sont dédiés à un service.
+[vars]
+FALLBACK_HOST = "cinehd-router.jasonfranckkenmognw.workers.dev"
+MAIN_API_HOST = "api.cinehd.example.test"
+WATCHPARTY_HOST = "watch.cinehd.example.test"
+PROXY_HOST = "proxy.cinehd.example.test"
+PATH_ROUTES = "/api=mainapi,/watchparty=watchparty,/proxy=proxy"
+MAIN_API_TARGET = "origin:https://cinehd-mainapi.onrender.com"
+WATCHPARTY_TARGET = "origin:https://cinehd-watchparty.onrender.com"
+PROXY_TARGET = "origin:https://cinehd-proxy.onrender.com"
+
+# --- Containers, Durable Objects, R2, KV -------------------------------------
+# Retirés pour tenir sur l'offre gratuite : Cloudflare Containers exige Workers
+# Paid, et R2 doit être activé avec un moyen de paiement. Aucun code ne lit
+# encore OAUTH_ICONS ni SOURCE_CACHE. Pour revenir aux Containers, restaurer ce
+# bloc depuis l'historique git et repasser les cibles en `container:BINDING`.

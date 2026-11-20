@@ -1,4 +1,4 @@
-# CLAUDE.md — CineHD Project Guide (ex-Movix)
+# CLAUDE.md — CineHD Project Guide 
 
 ## Model selection — important for agents and subagents
 

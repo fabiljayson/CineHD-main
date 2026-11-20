@@ -5,7 +5,12 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import { getStreamedServerDetails, selectStreamedVariant, unwrapStreamedBytes } from '../src/utils/streamedPlayback.ts';
 import streamedNative from '../API/Mainapi/utils/streamedNative.js';
+import streamedResolver from './helpers/streamedResolver.cjs';
 import { sourceFunction } from './helpers/sourceFunction.mjs';
+
+// Échec immédiat et explicite si le resolver Streamed n'est pas installé, au
+// lieu d'un MODULE_NOT_FOUND levé pendant la résolution native.
+streamedResolver.requireStreamedResolver();
 
 test('le relais Streamed garde le loader natif et ne renvoie pas ses playlists enfants vers le master', () => {
   const file = 'src/components/LiveTVPlayer.tsx';

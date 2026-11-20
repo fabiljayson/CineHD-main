@@ -14,7 +14,9 @@ const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
 const { issueJwt, getAuthIfValid } = require('../middleware/auth');
-const { getPool } = require('../mysqlPool');
+const { setSessionCookie, clearSessionCookie } = require('../middleware/sessionCookie');
+const { getPool } = require('../db/dialect');
+const { findSessionByClientId } = require('../db/coreSql');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
 const { getTrustedClientIp } = require('../utils/clientIp');
 const { verifyTurnstileFromRequest } = require('../utils/turnstile');
@@ -29,6 +31,23 @@ const {
   setLink,
   removeLinksForTargetProvider,
 } = require('../utils/accountLinks');
+
+// Toute réponse d'authentification qui porte un jeton le dépose aussi dans le
+// cookie HttpOnly. Centralisé ici plutôt que répété à chaque `res.json` : une
+// future route de connexion ne peut pas oublier le cookie, et les cinq routes
+// actuelles n'ont pas à connaître son existence. Le jeton reste dans le corps
+// de la réponse pour les clients sans cookie jar (extension, userscript, app
+// mobile), qui ne sont pas exposés au vol par XSS.
+router.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    if (body && typeof body === 'object' && typeof body.token === 'string' && body.token) {
+      setSessionCookie(res, body.token);
+    }
+    return originalJson(body);
+  };
+  next();
+});
 
 // Rate limiter pour les endpoints d'authentification
 // 10 tentatives par IP toutes les 15 minutes
@@ -106,7 +125,7 @@ const createUserSession = async (userType, userId, req) => {
 
     if (clientId) {
       const [existingSessions] = await pool.execute(
-        "SELECT id FROM user_sessions WHERE user_id = ? AND user_type = ? AND CASE WHEN JSON_VALID(device) THEN JSON_UNQUOTE(JSON_EXTRACT(device, '$.clientId')) ELSE NULL END = ? ORDER BY accessed_at DESC LIMIT 1",
+        findSessionByClientId(),
         [userId, userType, clientId]
       );
 
@@ -287,7 +306,7 @@ async function ensureLinkManagementAccess(auth) {
   return { allowed: true, accountProvider };
 }
 
-async function getOrCreateBip39Account({ mnemonic, username = null, avatar = null, overwriteProfile = false }) {
+async function getOrCreateBip39Account({ mnemonic, username = null, avatar = null, overwriteProfile = false, termsAcceptedAt = null }) {
   const normalizedMnemonic = normalizeMnemonic(mnemonic);
   if (!validateBip39Mnemonic(normalizedMnemonic)) {
     return { success: false, error: 'Phrase secrète invalide' };
@@ -301,10 +320,18 @@ async function getOrCreateBip39Account({ mnemonic, username = null, avatar = nul
 
   const shouldWriteProfile = overwriteProfile || !existingProfile;
   const userProfile = buildBip39Profile(userId, username, avatar, existingProfile);
+  // Preuve RGPD du consentement aux CGU : enregistrée une seule fois, puis
+  // jamais réécrite (la valeur d'origine fait foi).
+  const shouldRecordTerms = Boolean(termsAcceptedAt) && userData.terms_accepted_at == null;
 
-  if (shouldWriteProfile) {
-    userData.auth = JSON.stringify({ userProfile, provider: 'bip39' });
-    userData.bip39_auth = 'true';
+  if (shouldWriteProfile || shouldRecordTerms) {
+    if (shouldWriteProfile) {
+      userData.auth = JSON.stringify({ userProfile, provider: 'bip39' });
+      userData.bip39_auth = 'true';
+    }
+    if (shouldRecordTerms) {
+      userData.terms_accepted_at = termsAcceptedAt;
+    }
     userData.lastUpdated = Date.now();
     await writeUserData('bip39', userId, userData);
   }
@@ -462,9 +489,19 @@ router.get('/bip39/generate', (req, res) => {
 // POST /bip39/create
 router.post('/bip39/create', authRateLimit, ...authBodyParsers, async (req, res) => {
   try {
-    const { mnemonic, username, avatar, turnstileToken } = req.body;
+    const { mnemonic, username, avatar, turnstileToken, acceptedTerms } = req.body;
     if (!mnemonic || !username) {
       return res.status(400).json({ success: false, error: 'Phrase secrète et nom d\'utilisateur requis' });
+    }
+
+    // Consentement RGPD : aucune création de compte sans acceptation explicite
+    // des CGU ; l'horodatage sert de preuve (voir getOrCreateBip39Account).
+    if (acceptedTerms !== true) {
+      return res.status(400).json({
+        success: false,
+        error: "Vous devez accepter les Conditions d'utilisation pour créer un compte.",
+        code: 'TERMS_REQUIRED',
+      });
     }
 
     const turnstileResult = await verifyTurnstileFromRequest(req, turnstileToken);
@@ -477,6 +514,7 @@ router.post('/bip39/create', authRateLimit, ...authBodyParsers, async (req, res)
       username,
       avatar,
       overwriteProfile: true,
+      termsAcceptedAt: Date.now(),
     });
 
     if (!account.success) {
@@ -962,6 +1000,38 @@ router.post('/username', authRateLimit, authorizeAuthWrite, ...authBodyParsers, 
     console.error('Error updating username:', error);
     return res.status(500).json({ success: false, error: 'Erreur lors de la mise à jour du pseudo' });
   }
+});
+
+// POST /logout -- la déconnexion vivait uniquement dans le stockage du
+// navigateur. Avec un cookie HttpOnly, seul le serveur peut l'effacer : sans
+// cette route, « se déconnecter » laisserait une session valide dans le
+// navigateur jusqu'à son expiration. La session est aussi supprimée en base,
+// comme pour toute révocation.
+router.post('/logout', async (req, res) => {
+  let auth = null;
+  try {
+    auth = await getAuthIfValid(req);
+  } catch {
+    auth = null;
+  }
+
+  clearSessionCookie(res);
+
+  if (auth?.sessionId) {
+    try {
+      const pool = getPool();
+      if (pool) {
+        await pool.execute(
+          'DELETE FROM user_sessions WHERE id = ? AND user_id = ? AND user_type = ?',
+          [auth.sessionId, auth.userId, auth.userType]
+        );
+      }
+    } catch (error) {
+      console.error('[AUTH] Deconnexion : purge de session impossible:', error.message);
+    }
+  }
+
+  return res.json({ success: true });
 });
 
 router.use(jsonParseErrorHandler);

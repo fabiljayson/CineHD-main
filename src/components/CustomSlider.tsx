@@ -91,7 +91,7 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
             handleInteraction(e.touches[0].clientX);
         };
 
-        const handleMouseUp = (e: MouseEvent) => {
+        const handleMouseUp = (_e: MouseEvent) => {
             setIsDragging(false);
             if (onCommit) {
                 onCommit(latestInternalValueRef.current);

@@ -254,7 +254,7 @@ const PersonDetails: React.FC = () => {
             
             {/* Years and credits */}
             <div className="space-y-32 pb-32">
-              {years.map((year, idx) => (
+              {years.map((year) => (
                 <div key={year} className="relative">
                   {/* Year node */}
                   <motion.div 

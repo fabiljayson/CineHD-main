@@ -6,7 +6,7 @@ interface VideoPlayerProps {
   nextMovie?: any;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ movieId, nextMovie }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ movieId }) => {
   useEffect(() => {
     const iframe = document.querySelector('iframe');
     if (iframe) {

@@ -35,7 +35,6 @@ const refreshState = createWiflixRefreshState({ successRefreshMs: PURSTREAM_CACH
 let TMDB_API_KEY;
 let TMDB_API_URL;
 let PROXY_SERVER_URL;
-let verifyAccessKey;
 let getFromCacheNoExpiration;
 let saveToCache;
 
@@ -47,7 +46,6 @@ function configure(deps) {
   if (deps.TMDB_API_KEY) TMDB_API_KEY = deps.TMDB_API_KEY;
   if (deps.TMDB_API_URL) TMDB_API_URL = deps.TMDB_API_URL;
   if (deps.PROXY_SERVER_URL) PROXY_SERVER_URL = deps.PROXY_SERVER_URL;
-  if (deps.verifyAccessKey) verifyAccessKey = deps.verifyAccessKey;
   if (deps.getFromCacheNoExpiration) getFromCacheNoExpiration = deps.getFromCacheNoExpiration;
   if (deps.saveToCache) saveToCache = deps.saveToCache;
 }
@@ -116,9 +114,9 @@ async function resolvePurstreamApiBase(force = false) {
   return purstreamApiBase;
 }
 
-/** Wrap une URL m3u8 dans le proxy cinep si VIP et PROXY_SERVER_URL configuré */
-function wrapSourceUrl(url, isVip) {
-  if (isVip && PROXY_SERVER_URL && url) {
+/** Wrap une URL m3u8 dans le proxy cinep si PROXY_SERVER_URL est configuré */
+function wrapSourceUrl(url) {
+  if (PROXY_SERVER_URL && url) {
     // PROXY_SERVER_URL pointe sur proxiesembed (.../proxy) → on veut la base sans /proxy
     const serverBase = PROXY_SERVER_URL.replace(/\/proxy\/?$/, '').replace(/\/+$/, '');
     // /cinep-proxy n'accepte plus qu'une URL signée : sans signature le player
@@ -395,11 +393,6 @@ router.get('/movie/:tmdbId/stream', async (req, res) => {
     const { tmdbId } = req.params;
     if (!tmdbId || isNaN(tmdbId)) return res.status(400).json({ error: 'TMDB ID invalide' });
 
-    // Vérifier VIP pour proxifier les URLs
-    const accessKey = req.headers['x-access-key'] || null;
-    const vipStatus = verifyAccessKey ? await verifyAccessKey(accessKey) : { vip: false };
-    const isVip = vipStatus.vip;
-
     const cacheKey = generateCacheKey(`purstream_stream_movie_${tmdbId}`);
     const cached = await getFromCacheNoExpiration(PURSTREAM_CACHE_DIR, cacheKey);
 
@@ -409,8 +402,8 @@ router.get('/movie/:tmdbId/stream', async (req, res) => {
       if (cached.__not_found) {
         return res.status(404).json({ error: 'Film non trouvé sur PurStream' });
       }
-      // Appliquer le proxy VIP au moment de la réponse (le cache stocke les URLs brutes)
-      const response = { ...cached, sources: cached.sources.map(s => ({ ...s, url: wrapSourceUrl(s.url, isVip) })) };
+      // Appliquer le proxy au moment de la réponse (le cache stocke les URLs brutes)
+      const response = { ...cached, sources: cached.sources.map(s => ({ ...s, url: wrapSourceUrl(s.url) })) };
       return res.json(response);
     }
 
@@ -445,8 +438,7 @@ router.get('/movie/:tmdbId/stream', async (req, res) => {
     }
 
     await saveToCache(PURSTREAM_CACHE_DIR, cacheKey, result);
-    // Retourner avec URLs proxifiées si VIP
-    const response = { ...result, sources: result.sources.map(s => ({ ...s, url: wrapSourceUrl(s.url, isVip) })) };
+    const response = { ...result, sources: result.sources.map(s => ({ ...s, url: wrapSourceUrl(s.url) })) };
     res.json(response);
   } catch (error) {
     console.error('[PURSTREAM] Erreur stream film:', error.message);
@@ -466,11 +458,6 @@ router.get('/tv/:tmdbId/stream', async (req, res) => {
     if (!season || isNaN(season)) return res.status(400).json({ error: 'Le paramètre season est requis' });
     if (!episode || isNaN(episode)) return res.status(400).json({ error: 'Le paramètre episode est requis' });
 
-    // Vérifier VIP pour proxifier les URLs
-    const accessKey = req.headers['x-access-key'] || null;
-    const vipStatus = verifyAccessKey ? await verifyAccessKey(accessKey) : { vip: false };
-    const isVip = vipStatus.vip;
-
     const cacheKey = generateCacheKey(`purstream_stream_tv_${tmdbId}_s${season}e${episode}`);
     const cached = await getFromCacheNoExpiration(PURSTREAM_CACHE_DIR, cacheKey);
 
@@ -480,7 +467,7 @@ router.get('/tv/:tmdbId/stream', async (req, res) => {
       if (cached.__not_found) {
         return res.status(404).json({ error: 'Épisode non trouvé sur PurStream' });
       }
-      const response = { ...cached, sources: cached.sources.map(s => ({ ...s, url: wrapSourceUrl(s.url, isVip) })) };
+      const response = { ...cached, sources: cached.sources.map(s => ({ ...s, url: wrapSourceUrl(s.url) })) };
       return res.json(response);
     }
 
@@ -517,7 +504,7 @@ router.get('/tv/:tmdbId/stream', async (req, res) => {
     }
 
     await saveToCache(PURSTREAM_CACHE_DIR, cacheKey, result);
-    const response = { ...result, sources: result.sources.map(s => ({ ...s, url: wrapSourceUrl(s.url, isVip) })) };
+    const response = { ...result, sources: result.sources.map(s => ({ ...s, url: wrapSourceUrl(s.url) })) };
     res.json(response);
   } catch (error) {
     console.error('[PURSTREAM] Erreur stream série:', error.message);

@@ -65,17 +65,49 @@ function toPgPlaceholders(sql) {
 const MYSQL_DUPLICATE_KEY = 'ER_DUP_ENTRY';
 const MYSQL_DUPLICATE_KEY_ERRNO = 1062;
 const POSTGRES_UNIQUE_VIOLATION = '23505';
+const PG_CLIENT = Symbol('pgClient');
+
+/**
+ * `timeout` de mysql2 : borne réelle côté serveur, pas un `Promise.race`.
+ *
+ * `pg` n'a pas d'option par requête pour `statement_timeout`. On emprunte donc
+ * le client qui va exécuter le SQL (ou un client dédié du pool), on y pose le
+ * délai, puis on restaure sa valeur avant de le rendre : la requête est bien
+ * annulée par PostgreSQL (SQLSTATE 57014), même si l'appelant arrête d'attendre.
+ */
+async function runWithStatementTimeout(queryable, sql, params, timeoutMs) {
+  // Un client déjà emprunté porte son `pg.Client` natif : ne jamais rappeler
+  // `connect()` dessus (pg refuserait de réutiliser un client connecté).
+  const client = queryable[PG_CLIENT] || queryable;
+  const ownsClient = typeof client.connect === 'function' && typeof client.release !== 'function';
+  const queryClient = ownsClient ? await client.connect() : client;
+  try {
+    const { rows: [current] } = await queryClient.query('SHOW statement_timeout');
+    await queryClient.query('SELECT set_config($1, $2, false)', ['statement_timeout', `${timeoutMs}ms`]);
+    try {
+      return await queryClient.query(sql, params);
+    } finally {
+      await queryClient.query('SELECT set_config($1, $2, false)', ['statement_timeout', current.statement_timeout]);
+    }
+  } finally {
+    if (ownsClient) queryClient.release();
+  }
+}
 
 function createRunner(queryable) {
   return async function run(sqlOrOptions, params = []) {
-    // mysql2 accepte `{ sql, timeout, ... }` : certains helpers (Wrapped)
-    // l'utilisent pour borner le temps d'exécution. Le timeout est propre à
-    // MySQL ; seul le SQL doit traverser l'adaptateur.
-    const sql = typeof sqlOrOptions === 'string' ? sqlOrOptions : sqlOrOptions?.sql;
+    // mysql2 accepte `{ sql, timeout, ... }` : les helpers Wrapped s'en
+    // servent pour borner leurs requêtes. Le contrat public reste identique,
+    // mais ici `timeout` devient un vrai `statement_timeout` PostgreSQL.
+    const options = typeof sqlOrOptions === 'string' ? null : sqlOrOptions;
+    const sql = typeof sqlOrOptions === 'string' ? sqlOrOptions : options?.sql;
     if (typeof sql !== 'string') {
       throw new TypeError('Requête PostgreSQL invalide : SQL manquant');
     }
-    const result = await queryable.query(toPgPlaceholders(sql), params);
+    const timeout = Number(options?.timeout);
+    const result = Number.isFinite(timeout) && timeout > 0
+      ? await runWithStatementTimeout(queryable, toPgPlaceholders(sql), params, Math.ceil(timeout))
+      : await queryable.query(toPgPlaceholders(sql), params);
     const command = result.command || '';
     // `INSERT … RETURNING` est un ordre d'écriture qui rend des lignes : sans
     // ce cas, l'identifiant généré serait perdu et la route relirait `null`.
@@ -146,6 +178,7 @@ function createPostgresCompat(pool) {
       const client = await pool.connect();
       const runOnClient = createRunner(client);
       return {
+        [PG_CLIENT]: client,
         dialect: POSTGRES_DIALECT,
         execute: runOnClient,
         query: runOnClient,

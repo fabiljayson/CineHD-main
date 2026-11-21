@@ -539,3 +539,54 @@ test('le chemin de génération Wrapped répond même avec peu de données', { s
   assert.equal(response.body.progress.isEligible, false);
   assert.equal(response.body.progress.current.sessions, 1);
 });
+
+test('le timeout { sql, timeout } annule réellement la requête côté PostgreSQL', { skip }, async () => {
+  const isStatementTimeout = (error) => {
+    assert.equal(error.code, '57014', `code PostgreSQL inattendu : ${error.code} (${error.message})`);
+    assert.match(String(error.message), /statement timeout/i);
+    return true;
+  };
+
+  const startedAt = Date.now();
+  await assert.rejects(pool.execute({ sql: 'SELECT pg_sleep(2)', timeout: 200 }), isStatementTimeout);
+  assert.ok(Date.now() - startedAt < 2000, 'pg_sleep(2) doit être annulé avant sa fin');
+
+  const [alive] = await pool.execute('SELECT 1 AS ok');
+  assert.equal(alive[0].ok, 1, 'le pool reste utilisable après une annulation');
+
+  // Une connexion déjà empruntée (chemin transactionnel) ne doit pas garder
+  // le réglage après l'annulation.
+  const connection = await pool.getConnection();
+  try {
+    await assert.rejects(connection.execute({ sql: 'SELECT pg_sleep(2)', timeout: 200 }), isStatementTimeout);
+    const [settings] = await connection.execute('SHOW statement_timeout');
+    assert.equal(settings[0].statement_timeout, '0', 'statement_timeout restauré sur la connexion');
+  } finally {
+    connection.release();
+  }
+});
+
+test('le generate Wrapped répond quand les stats communautaires bloquent', { skip, timeout: 20000 }, async () => {
+  const connection = await pool.getConnection();
+  const startedAt = Date.now();
+  let response;
+  try {
+    await connection.beginTransaction();
+    // Verrou réel sur la table lue par fetchWrappedCommunity : la requête
+    // primaire attend le verrou, puis doit être annulée par son timeout de 4 s.
+    await connection.execute('LOCK TABLE comments IN ACCESS EXCLUSIVE MODE');
+    // Un profil non vide est requis pour que fetchWrappedCommunity interroge
+    // réellement comments ; sinon il retourne null avant le moindre SQL.
+    response = await call('GET', `/api/wrapped/generate/${YEAR}?fresh=1`, null, {
+      authorization: `Bearer ${TOKEN}`,
+      'x-profile-id': PROFILE_ID,
+    });
+  } finally {
+    await connection.rollback().catch(() => {});
+    connection.release();
+  }
+
+  assert.equal(response.status, 200, JSON.stringify(response.body));
+  assert.equal(response.body.success, true);
+  assert.ok(Date.now() - startedAt < 10000, 'la génération ne doit pas attendre la fin du blocage');
+});

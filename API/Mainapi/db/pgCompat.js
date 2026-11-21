@@ -67,7 +67,14 @@ const MYSQL_DUPLICATE_KEY_ERRNO = 1062;
 const POSTGRES_UNIQUE_VIOLATION = '23505';
 
 function createRunner(queryable) {
-  return async function run(sql, params = []) {
+  return async function run(sqlOrOptions, params = []) {
+    // mysql2 accepte `{ sql, timeout, ... }` : certains helpers (Wrapped)
+    // l'utilisent pour borner le temps d'exécution. Le timeout est propre à
+    // MySQL ; seul le SQL doit traverser l'adaptateur.
+    const sql = typeof sqlOrOptions === 'string' ? sqlOrOptions : sqlOrOptions?.sql;
+    if (typeof sql !== 'string') {
+      throw new TypeError('Requête PostgreSQL invalide : SQL manquant');
+    }
     const result = await queryable.query(toPgPlaceholders(sql), params);
     const command = result.command || '';
     // `INSERT … RETURNING` est un ordre d'écriture qui rend des lignes : sans

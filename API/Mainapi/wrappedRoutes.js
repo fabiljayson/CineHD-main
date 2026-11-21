@@ -14,6 +14,7 @@ const jwt = require('jsonwebtoken');
 const { fetchTmdbDetails } = require('./utils/tmdbCache');
 const { extractSessionToken } = require('./middleware/sessionCookie');
 const { fetchWrappedCommunity } = require('./utils/wrappedCommunity');
+const { dialectOf } = require('./db/coreSql');
 const { buildRace, buildFormatWinners, buildEras } = require('./utils/wrappedStory');
 const { runBudgetedBatches } = require('./utils/wrappedEnrichment');
 
@@ -244,6 +245,11 @@ async function initTables() {
         return;
     }
 
+    // Le DDL ci-dessous est MySQL (AUTO_INCREMENT, ENUM, INDEX, ALTER). Sur
+    // PostgreSQL, les tables wrapped_viewing_data / wrapped_pages_data sont
+    // créées par la migration 006 : ne pas rejouer ce bootstrap ici.
+    if (dialectOf() === 'postgres') return;
+
     try {
         // Create wrapped_viewing_data table
         await pool.execute(`
@@ -473,6 +479,11 @@ router.post('/track', verifyToken, trackRateLimit, async (req, res) => {
             return res.status(400).json({ success: false, error: 'Invalid type. Must be "viewing" or "page"' });
         }
 
+        // Égalité nulle : `<=>` sur MySQL, `IS NOT DISTINCT FROM` sur PostgreSQL.
+        // Sans adaptation, un profil NULL ne retrouverait jamais sa ligne et
+        // chaque track créerait un doublon au lieu d'incrémenter la durée.
+        const nullSafe = dialectOf() === 'postgres' ? 'IS NOT DISTINCT FROM' : '<=>';
+
         if (type === 'viewing') {
             // Validate viewing-specific fields
             if (!contentType || !contentId) {
@@ -489,9 +500,9 @@ router.post('/track', verifyToken, trackRateLimit, async (req, res) => {
             // Splitting by hour ensures accurate listening clock data
             const [existingRows] = await pool.execute(
                 `SELECT id, watch_duration FROM wrapped_viewing_data 
-         WHERE user_id = ? AND profile_id <=> ? AND content_type = ? AND content_id = ? 
-         AND month = ? AND year = ? AND hour_of_day <=> ?
-         AND season_number <=> ? AND episode_number <=> ?
+         WHERE user_id = ? AND profile_id ${nullSafe} ? AND content_type = ? AND content_id = ? 
+         AND month = ? AND year = ? AND hour_of_day ${nullSafe} ?
+         AND season_number ${nullSafe} ? AND episode_number ${nullSafe} ?
          LIMIT 1`,
                 [userId, profileId || null, contentType, contentId, month, year,
                     resolvedHour, seasonNumber || null, episodeNumber || null]
@@ -527,7 +538,7 @@ router.post('/track', verifyToken, trackRateLimit, async (req, res) => {
             // Try to update existing record for the same page in the same month
             const [existingRows] = await pool.execute(
                 `SELECT id, duration FROM wrapped_pages_data 
-         WHERE user_id = ? AND profile_id <=> ? AND page_name = ? AND month = ? AND year = ?
+         WHERE user_id = ? AND profile_id ${nullSafe} ? AND page_name = ? AND month = ? AND year = ?
          LIMIT 1`,
                 [userId, profileId || null, pageName, month, year]
             );
@@ -603,6 +614,15 @@ router.get('/generate/:year', verifyToken, generateRateLimit, async (req, res) =
     }
 
     try {
+        // Expressions dépendantes du moteur, regroupées ici plutôt que
+        // dispersées dans les quinze requêtes ci-dessous. MySQL date/CAST/DOW
+        // n'ont pas d'équivalent direct sur PostgreSQL.
+        const isPostgres = dialectOf() === 'postgres';
+        const dateExpr = isPostgres ? 'CAST(created_at AS DATE)' : 'DATE(created_at)';
+        const contentTypeOrder = isPostgres ? 'content_type' : 'CAST(content_type AS CHAR)';
+        // DAYOFWEEK (MySQL) : 1=dimanche … 7=samedi ; DOW (PG) : 0…6.
+        const weekdayExpr = isPostgres ? '(EXTRACT(DOW FROM created_at) + 1)' : 'DAYOFWEEK(created_at)';
+
         // Base query conditions
         let whereClause = 'WHERE user_id = ? AND year = ?';
         let queryParams = [userId, year];
@@ -657,7 +677,7 @@ router.get('/generate/:year', verifyToken, generateRateLimit, async (req, res) =
                     }
                     const t0 = Date.now();
                     const [allUsersStats] = await pool.execute(`
-                        SELECT user_id, ROUND(SUM(watch_duration) / 60) as total
+                        SELECT user_id, ROUND(SUM(watch_duration) / 60.0) as total
                         FROM wrapped_viewing_data WHERE year = ?
                         GROUP BY user_id ORDER BY total DESC
                     `, [year]);
@@ -693,7 +713,7 @@ router.get('/generate/:year', verifyToken, generateRateLimit, async (req, res) =
             // 1. Viewing Stats
             timedQuery('viewingStats', () => pool.execute(`
                 SELECT 
-                    ROUND(SUM(watch_duration) / 60) as total_duration,
+                    ROUND(SUM(watch_duration) / 60.0) as total_duration,
                     COUNT(DISTINCT content_id) as unique_titles,
                     COUNT(*) as total_sessions
                 FROM wrapped_viewing_data ${whereClause}
@@ -701,7 +721,7 @@ router.get('/generate/:year', verifyToken, generateRateLimit, async (req, res) =
 
             // 2. Distribution by Type
             timedQuery('typeStats', () => pool.execute(`
-                SELECT content_type, ROUND(SUM(watch_duration) / 60) as duration, COUNT(DISTINCT content_id) as count
+                SELECT content_type, ROUND(SUM(watch_duration) / 60.0) as duration, COUNT(DISTINCT content_id) as count
                 FROM wrapped_viewing_data ${whereClause}
                 GROUP BY content_type ORDER BY duration DESC
             `, queryParams)),
@@ -712,12 +732,12 @@ router.get('/generate/:year', verifyToken, generateRateLimit, async (req, res) =
                     COALESCE(MAX(NULLIF(content_title, '')), MAX(content_title)) as content_title,
                     content_id,
                     content_type,
-                    ROUND(SUM(watch_duration) / 60) as duration,
+                    ROUND(SUM(watch_duration) / 60.0) as duration,
                     SUM(watch_duration) AS raw_seconds
                 FROM wrapped_viewing_data ${whereClause}
                 AND content_type != 'live-tv'
                 GROUP BY content_id, content_type
-                ORDER BY raw_seconds DESC, CAST(content_type AS CHAR), content_id LIMIT 10
+                ORDER BY raw_seconds DESC, ${contentTypeOrder}, content_id LIMIT 10
             `, queryParams)),
 
             // Narrative story: full yearly totals keep format winners independent from the top five.
@@ -726,7 +746,7 @@ router.get('/generate/:year', verifyToken, generateRateLimit, async (req, res) =
                        content_id, content_type, SUM(watch_duration) AS seconds
                 FROM wrapped_viewing_data ${whereClause} AND content_type IN ('movie', 'tv', 'anime')
                 GROUP BY content_id, content_type
-                ORDER BY seconds DESC, CAST(content_type AS CHAR), content_id
+                ORDER BY seconds DESC, ${contentTypeOrder}, content_id
             `, queryParams)),
 
             // Keep per-title monthly minutes separate: the race must not be cumulative.
@@ -735,26 +755,26 @@ router.get('/generate/:year', verifyToken, generateRateLimit, async (req, res) =
                        content_id, content_type, SUM(watch_duration) AS seconds
                 FROM wrapped_viewing_data ${whereClause} AND content_type IN ('movie', 'tv', 'anime')
                 GROUP BY month, content_id, content_type
-                ORDER BY month, seconds DESC, CAST(content_type AS CHAR), content_id
+                ORDER BY month, seconds DESC, ${contentTypeOrder}, content_id
             `, queryParams)),
 
             // 4. Monthly breakdown
             timedQuery('monthlyStats', () => pool.execute(`
-                SELECT month, ROUND(SUM(watch_duration) / 60) as duration
+                SELECT month, ROUND(SUM(watch_duration) / 60.0) as duration
                 FROM wrapped_viewing_data ${whereClause}
                 GROUP BY month ORDER BY duration DESC
             `, queryParams)),
 
             // 5. Top Pages
             timedQuery('topPages', () => pool.execute(`
-                SELECT page_name, ROUND(SUM(duration) / 60) as duration
+                SELECT page_name, ROUND(SUM(duration) / 60.0) as duration
                 FROM wrapped_pages_data ${whereClause}
                 GROUP BY page_name ORDER BY duration DESC LIMIT 5
             `, queryParams)),
 
             // 6. Time-of-day distribution
             timedQuery('hourlyStats', () => pool.execute(`
-                SELECT hour_of_day, ROUND(SUM(watch_duration) / 60) as duration, COUNT(*) as sessions
+                SELECT hour_of_day, ROUND(SUM(watch_duration) / 60.0) as duration, COUNT(*) as sessions
                 FROM wrapped_viewing_data ${whereClause}
                 AND hour_of_day IS NOT NULL
                 GROUP BY hour_of_day ORDER BY hour_of_day
@@ -762,7 +782,7 @@ router.get('/generate/:year', verifyToken, generateRateLimit, async (req, res) =
 
             // 7. Watching streaks (consecutive days)
             timedQuery('dailyActivity', () => pool.execute(`
-                SELECT DISTINCT DATE(created_at) as watch_date
+                SELECT DISTINCT ${dateExpr} as watch_date
                 FROM wrapped_viewing_data ${whereClause}
                 ORDER BY watch_date
             `, queryParams)),
@@ -785,16 +805,16 @@ router.get('/generate/:year', verifyToken, generateRateLimit, async (req, res) =
 
             // 9a. Jour record (journée avec le plus de visionnage)
             timedQuery('recordDay', () => pool.execute(`
-                SELECT DATE(created_at) as day, ROUND(SUM(watch_duration) / 60) as minutes
+                SELECT ${dateExpr} as day, ROUND(SUM(watch_duration) / 60.0) as minutes
                 FROM wrapped_viewing_data ${whereClause}
-                GROUP BY DATE(created_at) ORDER BY minutes DESC LIMIT 1
+                GROUP BY ${dateExpr} ORDER BY minutes DESC LIMIT 1
             `, queryParams)),
 
             // 9b. Répartition par jour de semaine (DAYOFWEEK MySQL : 1=dimanche … 7=samedi)
             timedQuery('weekdayStats', () => pool.execute(`
-                SELECT DAYOFWEEK(created_at) as dow, ROUND(SUM(watch_duration) / 60) as minutes
+                SELECT ${weekdayExpr} as dow, ROUND(SUM(watch_duration) / 60.0) as minutes
                 FROM wrapped_viewing_data ${whereClause}
-                GROUP BY dow
+                GROUP BY ${weekdayExpr}
             `, queryParams)),
 
             // 9c. Rewatch champion : film revu sur ≥3 jours distincts, ou même épisode revu sur ≥2 jours
@@ -802,18 +822,18 @@ router.get('/generate/:year', verifyToken, generateRateLimit, async (req, res) =
                 SELECT content_id, content_type, content_title, distinct_days FROM (
                     SELECT content_id, content_type,
                         COALESCE(MAX(NULLIF(content_title, '')), MAX(content_title)) as content_title,
-                        COUNT(DISTINCT DATE(created_at)) as distinct_days
+                        COUNT(DISTINCT ${dateExpr}) as distinct_days
                     FROM wrapped_viewing_data ${whereClause} AND content_type = 'movie'
                     GROUP BY content_id, content_type
-                    HAVING distinct_days >= 3
+                    HAVING COUNT(DISTINCT ${dateExpr}) >= 3
                     UNION ALL
                     SELECT content_id, content_type,
                         COALESCE(MAX(NULLIF(content_title, '')), MAX(content_title)) as content_title,
-                        COUNT(DISTINCT DATE(created_at)) as distinct_days
+                        COUNT(DISTINCT ${dateExpr}) as distinct_days
                     FROM wrapped_viewing_data ${whereClause}
                     AND content_type IN ('tv', 'anime') AND season_number IS NOT NULL AND episode_number IS NOT NULL
                     GROUP BY content_id, content_type, season_number, episode_number
-                    HAVING distinct_days >= 2
+                    HAVING COUNT(DISTINCT ${dateExpr}) >= 2
                 ) rw ORDER BY distinct_days DESC LIMIT 1
             `, [...queryParams, ...queryParams])),
 

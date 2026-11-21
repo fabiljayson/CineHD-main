@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { getPool } = require('../db/dialect');
+const { dialectOf } = require('../db/coreSql');
 const { upsertOauthClient } = require('../db/oauthSql');
 const { redis } = require('../config/redis');
 const { ensureTableGroup } = require('../db/runtimeEnsure');
@@ -260,6 +261,12 @@ async function getStats(clientId, sinceMs) {
   const pool = getPool();
   if (!pool) return null;
   const since = Number(sinceMs) || Date.now() - 30 * 24 * 60 * 60 * 1000;
+  // `created_at` est un epoch millisecondes ; MySQL le convertit avec
+  // FROM_UNIXTIME, PostgreSQL avec to_timestamp. Le format ISO rendu reste le
+  // même pour l'admin OAuth.
+  const dayExpression = dialectOf() === 'postgres'
+    ? "to_char(to_timestamp(FLOOR(created_at / 1000.0)), 'YYYY-MM-DD')"
+    : "FROM_UNIXTIME(FLOOR(created_at/1000), '%Y-%m-%d')";
   const [byType] = await pool.execute(
     `SELECT event_type, COUNT(*) AS n
        FROM oauth_app_stats
@@ -268,7 +275,7 @@ async function getStats(clientId, sinceMs) {
     [clientId, since],
   );
   const [byDay] = await pool.execute(
-    `SELECT FROM_UNIXTIME(FLOOR(created_at/1000), '%Y-%m-%d') AS day,
+    `SELECT ${dayExpression} AS day,
             COUNT(*) AS n
        FROM oauth_app_stats
       WHERE client_id = ? AND created_at >= ?
@@ -329,10 +336,14 @@ async function grantVip({ clientId, userType, userId, days }) {
     const keyValue = generateAccessKeyValue();
     const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
     const expiresAtSql = expiresAt.toISOString().slice(0, 19).replace('T', ' ');
+    // `access_keys.expires_at` est un BIGINT : PostgreSQL refuse la chaîne
+    // datetime que MySQL convertit implicitement. Le grant, lui, reste un
+    // TIMESTAMP.
+    const accessKeyExpiresAt = dialectOf() === 'postgres' ? expiresAt.getTime() : expiresAtSql;
     await conn.execute(
       `INSERT INTO access_keys (key_value, active, expires_at, duree_validite)
        VALUES (?, 1, ?, ?)`,
-      [keyValue, expiresAtSql, `${days}d`],
+      [keyValue, accessKeyExpiresAt, `${days}d`],
     );
     // Audit
     const userIdComposite = `${userType}:${userId}`;

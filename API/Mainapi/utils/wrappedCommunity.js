@@ -11,8 +11,8 @@ async function fetchWrappedCommunity(pool, { userId, userType, profileId, year }
     const [rows] = await pool.execute({
         timeout: 4000,
         sql: `SELECT content_type, content_id,
-                     SUM(kind = 'comment') AS comments_posted,
-                     SUM(kind = 'reply') AS replies_posted,
+                     SUM(CASE WHEN kind = 'comment' THEN 1 ELSE 0 END) AS comments_posted,
+                     SUM(CASE WHEN kind = 'reply' THEN 1 ELSE 0 END) AS replies_posted,
                      COUNT(*) AS contributions
               FROM (
                   SELECT c.content_type, c.content_id, 'comment' AS kind
@@ -49,7 +49,8 @@ async function fetchWrappedCommunity(pool, { userId, userType, profileId, year }
               WHERE c.user_id = ? AND c.user_type = ? AND c.profile_id = ?
                 AND c.created_at >= ? AND c.created_at < ? AND c.deleted = 0
               GROUP BY c.id, c.content, c.created_at, c.is_spoiler, c.content_type, c.content_id
-              HAVING reactions > 0 OR replies > 0
+              HAVING COUNT(DISTINCT CASE WHEN reaction.id IS NOT NULL THEN reaction.id END) > 0
+                  OR COUNT(DISTINCT CASE WHEN reply.id IS NOT NULL THEN reply.id END) > 0
               ORDER BY CASE WHEN COUNT(DISTINCT reaction.id) >= COUNT(DISTINCT reply.id)
                             THEN COUNT(DISTINCT reaction.id) ELSE COUNT(DISTINCT reply.id) END DESC,
                        c.created_at DESC, c.id DESC

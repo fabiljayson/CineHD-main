@@ -118,7 +118,7 @@ function renderPostgresCreateTable(table) {
 function renderPostgresIndexes(table) {
   return table.indexes.map((value) => {
     const unique = value.unique ? 'UNIQUE ' : '';
-    return `CREATE ${unique}INDEX IF NOT EXISTS ${q(value.name)} ON ${q(table.name)} (${value.columns.map(q).join(', ')});`;
+    return `CREATE ${unique}INDEX IF NOT EXISTS ${q(value.name)} ON ${q(table.name)} (${value.columns.map((part) => q(typeof part === 'string' ? part : part.column)).join(', ')});`;
   });
 }
 

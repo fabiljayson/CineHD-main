@@ -313,7 +313,7 @@ async function initTables() {
         try {
             await pool.execute(`
                 CREATE INDEX idx_viewing_lookup ON wrapped_viewing_data 
-                (user_id, profile_id, content_type, content_id, month, year, hour_of_day)
+                (user_id(64), profile_id(64), content_type, content_id(64), month, year, hour_of_day)
             `);
             console.log('[Wrapped] Migration: added idx_viewing_lookup index');
         } catch (indexErr) {
@@ -339,7 +339,7 @@ async function initTables() {
         try {
             await pool.execute(`
                 CREATE INDEX idx_generate_cover ON wrapped_viewing_data 
-                (user_id, year, profile_id, content_type, content_id, watch_duration)
+                (user_id(64), year, profile_id(64), content_type, content_id(64), watch_duration)
             `);
             console.log('[Wrapped] Migration: added idx_generate_cover index');
         } catch (indexErr) {

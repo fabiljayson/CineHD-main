@@ -14,6 +14,17 @@ const { extractSessionToken } = require('./middleware/sessionCookie');
 const { searchTmdb } = require('./utils/tmdbCache');
 const { verifyTurnstileFromRequest } = require('./utils/turnstile');
 const { resolveAdminIdentity } = require('./utils/adminIdentity');
+const { dialectOf } = require('./db/coreSql');
+const { insertReturningId } = require('./db/pgCompat');
+
+// Fenêtres temporelles : MySQL et PostgreSQL n'expriment pas le même intervalle.
+// Évaluées à la construction de la requête pour suivre DB_DRIVER courant.
+const recentRequestsWindowSql = () => dialectOf() === 'postgres'
+    ? "NOW() - INTERVAL '48 hours'"
+    : 'DATE_SUB(NOW(), INTERVAL 48 HOUR)';
+const addedThisMonthWindowSql = () => dialectOf() === 'postgres'
+    ? "NOW() - INTERVAL '30 days'"
+    : 'DATE_SUB(NOW(), INTERVAL 30 DAY)';
 
 const TURNSTILE_INVISIBLE_SECRETKEY = process.env.TURNSTILE_INVISIBLE_SECRETKEY;
 const TMDB_API_URL = 'https://api.themoviedb.org/3';
@@ -185,11 +196,12 @@ function createWishboardRouter(mysqlPool, redis) {
         const [recentRequests] = await mysqlPool.execute(
             `SELECT COUNT(*) as count FROM wishboard_requests 
              WHERE profile_id = ? 
-             AND created_at >= DATE_SUB(NOW(), INTERVAL 48 HOUR)`,
+             AND created_at >= ${recentRequestsWindowSql()}`,
             [profileId]
         );
 
-        const count = recentRequests[0].count;
+        // pg renvoie COUNT(*) en chaîne ; le contrat JSON reste numérique.
+        const count = Number(recentRequests[0].count) || 0;
         const limit = 3;
         const remaining = Math.max(0, limit - count);
 
@@ -225,11 +237,11 @@ function createWishboardRouter(mysqlPool, redis) {
     // Helper to record status change in history
     const recordStatusHistory = async (requestId, status, reason = null, adminId = null, adminAuthType = null) => {
         try {
-            const [result] = await mysqlPool.execute(
+            return await insertReturningId(
+                mysqlPool,
                 'INSERT INTO wishboard_status_history (request_id, status, reason, admin_id, admin_auth_type) VALUES (?, ?, ?, ?, ?)',
                 [requestId, status, reason, adminId, adminAuthType]
             );
-            return result.insertId;
         } catch (error) {
             console.error('Error recording status history:', error);
             return null;
@@ -346,7 +358,7 @@ function createWishboardRouter(mysqlPool, redis) {
         SELECT 
           COUNT(*) as total,
           SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
-          SUM(CASE WHEN status = 'added' AND updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as added_this_month,
+          SUM(CASE WHEN status = 'added' AND updated_at >= ${addedThisMonthWindowSql()} THEN 1 ELSE 0 END) as added_this_month,
           SUM(CASE WHEN media_type = 'movie' THEN 1 ELSE 0 END) as movies,
           SUM(CASE WHEN media_type = 'tv' THEN 1 ELSE 0 END) as tv
         FROM wishboard_requests
@@ -354,13 +366,13 @@ function createWishboardRouter(mysqlPool, redis) {
 
             res.json({
                 requests: requestsWithVotes,
-                has_more: countResult[0].total > offset + requests.length,
+                has_more: Number(countResult[0].total) > offset + requests.length,
                 stats: {
-                    total: statsResult[0].total || 0,
-                    pending: statsResult[0].pending || 0,
-                    added_this_month: statsResult[0].added_this_month || 0,
-                    movies: statsResult[0].movies || 0,
-                    tv: statsResult[0].tv || 0
+                    total: Number(statsResult[0].total) || 0,
+                    pending: Number(statsResult[0].pending) || 0,
+                    added_this_month: Number(statsResult[0].added_this_month) || 0,
+                    movies: Number(statsResult[0].movies) || 0,
+                    tv: Number(statsResult[0].tv) || 0
                 }
             });
         } catch (error) {
@@ -439,13 +451,12 @@ function createWishboardRouter(mysqlPool, redis) {
                 });
             }
 
-            // Insert new request
-            const [result] = await mysqlPool.execute(
+            // Insert new request (RETURNING sur PostgreSQL, insertId sur MySQL)
+            const insertId = await insertReturningId(
+                mysqlPool,
                 'INSERT INTO wishboard_requests (user_id, profile_id, tmdb_id, media_type, season_number, status, vote_count) VALUES (?, ?, ?, ?, ?, ?, ?)',
                 [userId, profileId, tmdb_id, media_type, seasonParam, 'pending', 0]
             );
-
-            const insertId = result.insertId;
 
             // Record initial status in history
             await recordStatusHistory(insertId, 'pending');
@@ -874,12 +885,12 @@ function createWishboardRouter(mysqlPool, redis) {
                 );
                 resultId = existing[0].id;
             } else {
-                // Insert new
-                const [result] = await mysqlPool.execute(
+                // Insert new (RETURNING sur PostgreSQL, insertId sur MySQL)
+                resultId = await insertReturningId(
+                    mysqlPool,
                     'INSERT INTO wishboard_notes (request_id, admin_id, note, is_public) VALUES (?, ?, ?, ?)',
                     [requestId, adminId, note.trim(), is_public ? 1 : 0]
                 );
-                resultId = result.insertId;
             }
 
             res.status(201).json({

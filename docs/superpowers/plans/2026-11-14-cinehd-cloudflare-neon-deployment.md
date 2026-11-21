@@ -11,7 +11,7 @@
 **Spec:** [2026-11-14-cloudflare-neon-deployment-design.md](../specs/2026-11-14-cloudflare-neon-deployment-design.md)
 **Inventory:** [2026-11-14-cinehd-deployment-inventory.md](../specs/2026-11-14-cinehd-deployment-inventory.md)
 
-### Implementation status (2026-11-16)
+### Implementation status (2026-11-21)
 
 | Task | State | Commit |
 | --- | --- | --- |
@@ -22,17 +22,18 @@
 | 5 — Worker routing | Code, tests and dry-run done; staging pending | `195f4e4` |
 | 6 — Staging proof | Harnesses written; execution blocked — no Cloudflare or Neon endpoint to probe | `d09f29e` |
 | 7 — PostgreSQL foundation | Done: migrations `001`–`006`, advisory lock, pool budget | `2776a77` |
-| 8 — Core and media SQL | Converted with E2E coverage; Steps 3–4 open (runtime bootstrap untouched, MySQL still the default engine) | `e73ba0d`, `2f8ca2f` |
+| 8 — Core and media SQL | Query sites converted with E2E coverage; Steps 3–4 open (runtime bootstrap now assigned to Task 17 Wave 1, MySQL still the default engine) | `e73ba0d`, `2f8ca2f`, `4561998`, `f4c8054` |
 | 9 — Community SQL | Done: votes, comments, shared lists, help feedback, media segments and the community store on the dialect pool; `migrations/008` adds the segment tables that only existed as runtime DDL | `eec68b1`, `3c7015d`, `6062536` |
-| 10 — OAuth, VIP, wrapped SQL | In progress: OAuth upserts, VIP invoice identity and Wrapped's pool done; residual MySQL idioms in `utils/vipDonations.js`, `wishboardRoutes.js`, `utils/cloneLinks.js` and the admin routes | `9b2080f` |
+| 10 — OAuth, VIP, wrapped SQL | **Done**: OAuth upserts, VIP invoice identity, payment callbacks and Wrapped on the dialect pool; real PostgreSQL `statement_timeout`; 14/14 E2E twice with MySQL unreachable; final whole-branch review clean | `9b2080f`, `4add582`, `85686a7` |
 | 11 — Backfill and cutover | Rehearsal transfer/verify, sequence gate and differential harness done; Step 4 window and Step 6 production approval pending | `8b3e365`, `9573c8d`, `74c2b45` |
 | 12 — Asset history to R2 | Not started (`server/asset-history-r2.mjs` absent) | — |
 | 13 — Redis → KV/DO | Not started (`storageGateway.ts` absent) | — |
 | 14 — D1 | **Deferred** (no distinct dataset) | — |
 | 15 — Gated CI deployment | Workflow written; Steps 3 and 5 need repository and secrets access | `78309f4` |
 | 16 — Stage, verify, rollout | Not started | — |
+| 17 — Finish Main API Neon portability | **In progress** (user-directed 2026-11-21, "port code, keep gates parked"): inventory complete (15 files on raw `mysqlPool`, 22 MySQL-only construct families / 17 unguarded, 7 clusters); 4 waves defined. Wave 1 implementer running — E2E authored, not yet reviewed or committed. Waves 2–4 queued. Deployment gates stay parked. | — (uncommitted) |
 
-Four additional commits (`8ee6e10`, `6e0c0b8`, `7ceb890`, `0dad2bd`) were not plan tasks: the Main API's build was blocked by an upstream dependency whose GitHub tarball and repository had disappeared, so it was repinned, then vendored as a tarball, then the VLC helper and Streamed tests were pointed at the installed copy with a fail-fast preflight.
+Four additional commits (`8ee6e10`, `6e0c0b8`, `7ceb890`, `0dad2bd`) were not plan tasks: the Main API's build was blocked by an upstream dependency whose GitHub tarball and repository had disappeared, so it was repinned, then vendored as a tarball, then the VLC helper and Streamed tests were pointed at the installed copy with a fail-fast preflight. Commit `d6e976f` is likewise not a plan task — the project owner's `package-lock.json`/`skills-lock.json` compatibility update; it is deliberately left untouched by the code-port work.
 
 ## Global Constraints
 
@@ -52,7 +53,7 @@ Four additional commits (`8ee6e10`, `6e0c0b8`, `7ceb890`, `0dad2bd`) were not pl
 
 ## Review Focus
 
-- **MySQL-to-PostgreSQL semantic differences** (unsigned values, JSON, timestamps, case sensitivity, constraints, transactions): add PostgreSQL-backed behavior coverage to Tasks 7–10.
+- **MySQL-to-PostgreSQL semantic differences** (unsigned values, JSON, timestamps, case sensitivity, constraints, transactions): add PostgreSQL-backed behavior coverage to Tasks 7–10 and Task 17.
 - **Interrupted migration or cutover with writes in flight** (partial imports, duplicate/replayed writes, invalid rollback assumptions): exercise resumability, reconciliation, and rollback boundaries in Task 11.
 - **WatchParty reconnects and room state across Container replacement** (Socket.IO upgrade, affinity, restart, and concurrent instances): prove the full socket lifecycle in Task 6; do not deploy it to Containers if the state/durability gate fails.
 - **Proxy streams under real HTTP behavior** (range responses, chunked bodies, client abort, timeout, and outbound restrictions): test these against a controlled staging origin in Task 6.
@@ -93,7 +94,7 @@ Four additional commits (`8ee6e10`, `6e0c0b8`, `7ceb890`, `0dad2bd`) were not pl
 - [x] **Step 1: Inventory relational data and migration preconditions.** Record the six table groups, row counts/estimated data size when an authorized staging or production read is available, foreign-key order, and any MySQL features that affect conversion. Do not copy production data into a local file.
 - [x] **Step 2: Inventory Redis and filesystem responsibilities.** Trace every Redis caller and every durable write path, record whether each value is authoritative/cache/coordination state, and identify the current retention and recovery behavior.
 - [x] **Step 3: Resolve or explicitly defer the open choices.** Record D1’s distinct dataset (or mark D1 deferred), R2 file retention, migration downtime/rollback window, expected concurrency and regions, and Redis consistency classes in the design document. If an answer is unavailable, keep the affected feature gated rather than guessing.
-- [x] **Step 4: Review the inventory with the project owner.** Acceptance: no production resource creation or data movement is authorized by this task alone; unresolved choices are explicit and assigned to later gates. — *Reviewed 2026-11-15: D1–D5 answered in [2026-11-15-cinehd-cutover-decisions.md](../specs/2026-11-15-cinehd-cutover-decisions.md), R1–R4 acknowledged in the [review](2026-11-15-cinehd-owner-review.md). Nothing about production resources or traffic changed.*
+- [x] **Step 4: Review the inventory with the project owner.** Acceptance: no production resource creation or data movement is authorized by this task alone; unresolved choices are explicit and assigned to later gates. — *Reviewed 2026-11-15: D1–D5 answered in [2026-11-15-cinehd-cutover-decisions.md](../specs/2026-11-15-cinehd-cutover-decisions.md), R1–R4 acknowledged in the [review](../specs/2026-11-15-cinehd-owner-review.md). Nothing about production resources or traffic changed.*
 
 ### Task 2: Containerize the Main API
 
@@ -289,7 +290,7 @@ Two points the conversion settled:
 - Consumes: `getPostgresPool()` and migrations `004_oauth.sql` through `006_wrapped.sql`.
 - Produces: OAuth, VIP/payment, and wrapped-data behavior backed by Neon without exposing tokens or weakening payment/auth checks.
 
-**Status (2026-11-16): in progress — OAuth upserts, VIP invoice identity and Wrapped's pool converted; residual MySQL idioms remain.** `db/oauthSql.js` turns both `ON DUPLICATE KEY` upserts into `ON CONFLICT … DO UPDATE … EXCLUDED` on the real keys (`client_id`, `request_hash`). `routes/oauth.js`, `routes/vipDonations.js`, `routes/vipPaymentRequests.js`, `utils/oauthClientsDb.js`, `utils/oauthStorage.js` and `utils/vipDonations.js` use the dialect pool, and `app.js` hands Wrapped that pool instead of the raw MySQL one (`9b2080f`).
+**Status (2026-11-16, historical): in progress — OAuth upserts, VIP invoice identity and Wrapped's pool converted; residual MySQL idioms remain.** `db/oauthSql.js` turns both `ON DUPLICATE KEY` upserts into `ON CONFLICT … DO UPDATE … EXCLUDED` on the real keys (`client_id`, `request_hash`). `routes/oauth.js`, `routes/vipDonations.js`, `routes/vipPaymentRequests.js`, `utils/oauthClientsDb.js`, `utils/oauthStorage.js` and `utils/vipDonations.js` use the dialect pool, and `app.js` hands Wrapped that pool instead of the raw MySQL one (`9b2080f`).
 
 The generated invoice id needed a new adapter entry: `insertOne()` returns `{ insertId }` derived from `RETURNING` on PostgreSQL, so the three `vip_invoices` INSERTs and the CryptoGate checkout inside a transaction keep their existing reads.
 
@@ -297,9 +298,11 @@ The generated invoice id needed a new adapter entry: `insertOne()` returns `{ in
 
 Still open: `routes/vipPayblis.js` and `routes/adminSubscriptions.js` still take their pool from `mysqlPool` (the latter uses only the portable helpers `insertReturningId`/`isDuplicateKeyError` for its statements), and `utils/vipDonations.js` keeps 13 reads of the invoice id — legitimate now that the INSERTs return one — alongside `wishboardRoutes.js`, `utils/cloneLinks.js`, `utils/accountSubscriptions.js`, `utils/accountApproval.js`, `routes/admin.js` and `routes/accountRequests.js`, which still carry MySQL-only SQL. Wrapped has not been exercised against PostgreSQL. This is the largest remaining SQL conversion block.
 
-- [x] **Step 1: Write PostgreSQL-backed behavior tests.** Cover OAuth client/consent persistence, VIP authorization and donation state transitions, and wrapped-record read/write behavior. — *Partiel (2/2) : upserts OAuth et identité de facture ; consentement, transitions VIP et Wrapped restent à couvrir.*
-- [ ] **Step 2: Convert each domain’s SQL and transaction semantics.** Preserve unique/idempotency rules and apply migrations only through the versioned runner. — *OAuth, factures VIP et injection du pool Wrapped faits ; voir la liste des sites restants ci-dessus.*
-- [ ] **Step 3: Run focused behavior checks.** Run `cd API/Mainapi && node --test tests/postgresOauthVipWrapped.e2e.test.js`; expected: all domain flows pass with no MySQL-specific SQL remaining in these call sites. — *La suite existe et passe, mais « tous les flux du domaine » n'est pas encore atteint.*
+**Status (2026-11-21): done — all three steps pass; final whole-branch review clean.** Commits `4add582` (consent, authorization code, token, VIP grant, Payblis IPN idempotency and the Wrapped paths converted) and `85686a7` (restored the dropped SQL timeout as a real PostgreSQL `statement_timeout` via `set_config` on the executing client, restored in `finally`). Focused E2E `tests/postgresOauthVipWrapped.e2e.test.js` passes **14/14 twice** with MySQL unreachable (`DB_PORT=6390`): OAuth consent/code/token/grant persistence, VIP state transitions, payment-callback idempotency across the changed duplicate SQLSTATE, and Wrapped writes. The timeout case is proven separately by SQLSTATE `57014`: a stalled Wrapped generate returns 200 in ~4 s instead of hanging. The final review of `f57dc15..85686a7` returned **Ready to merge: Yes** (Critical: none, Important: none). One deferred Minor remains: day/weekday buckets in `wrappedRoutes.js` use the DB session timezone; it is tracked for the Task 11 staging gate together with the equivalent `oauthClientsDb.js` item. The residual SQL sites listed above were moved to Task 17 rather than closed here.
+
+- [x] **Step 1: Write PostgreSQL-backed behavior tests.** Cover OAuth client/consent persistence, VIP authorization and donation state transitions, and wrapped-record read/write behavior. — *14/14 E2E with MySQL unreachable, including consent, code, token, VIP grant, payment callbacks and Wrapped.*
+- [x] **Step 2: Convert each domain’s SQL and transaction semantics.** Preserve unique/idempotency rules and apply migrations only through the versioned runner. — *`4add582` + `85686a7`; static timeout replaced by a real PostgreSQL `statement_timeout`.*
+- [x] **Step 3: Run focused behavior checks.** Run `cd API/Mainapi && node --test tests/postgresOauthVipWrapped.e2e.test.js`; expected: all domain flows pass with no MySQL-specific SQL remaining in these call sites. — *14/14 twice; final review clean. Remaining MySQL-only sites are Task 17's scope.*
 
 ### Task 11: Backfill, Reconcile, and Cut Over to Neon
 
@@ -424,6 +427,23 @@ Not done: Step 3's secret configuration lives in repository settings, and Step 5
 - [ ] **Step 4: Review production cutover and rollback with the owner.** Confirm database outage window, write freeze, DNS/Worker routing change, monitoring, support contact, and point of no simple return.
 - [ ] **Step 5: Perform production operations only after explicit approval.** Deploy in the approved order, verify the post-deploy smoke checks, and stop/roll back on any failed gate. Record actual outcomes rather than marking the plan complete in advance.
 
+### Task 17: Finish Main API Neon Portability (residual MySQL-only code)
+
+**Files:** `API/Mainapi/app.js`, `wishboardRoutes.js`, `linkSubmissionsRoutes.js`, `top10Routes.js`, `recommendationRoutes.js`, `utils/cloneLinks.js`, `commentsRoutes.js`, `routes/adminSubscriptions.js`, `utils/accountApproval.js`, `utils/accountSubscriptions.js`, `routes/admin.js`, `routes/adminStats.js`, `routes/adminOauthApps.js`, `routes/adminUsers.js`, `routes/downloadLinksLeaderboard.js`, `routes/darkiworld.js`, `utils/downloadLinksHistory.js`, `utils/readiness.js`, `server.js`, `db/schemaMetadata.js`, `scripts/seedAdminAccounts.js`.
+
+**Interfaces:**
+- Consumes: `db/dialect.js`, `db/pgCompat.js`, the `db/*Sql.js` statement modules, and migrations `001`–`008`.
+- Produces: every Main API runtime path working with MySQL unreachable, while MySQL remains the default engine and behavior is unchanged there.
+
+**Status (2026-11-21): in progress — authorized code-only extension of Tasks 8 and 10.** The user directed "port code, keep gates parked": remove residual MySQL-only SQL and raw `mysqlPool` consumers with E2E proof, while staging, production cutover, and R2/KV/DO work stay parked until credentials and approval exist. A very thorough inventory found **15 files on the raw MySQL pool, 22 MySQL-only construct families (17 unguarded), and 7 porting clusters**; full details are in `.superpowers/sdd/2026-11-14-cinehd-cloudflare-neon-deployment/task-17-brief.md`. Four sequential waves, each E2E-first then implement then task review:
+
+1. **Bootstrap and injected routers** (High) — `app.js` startup DDL/`initPool()`/injection points, `wishboardRoutes`, `linkSubmissionsRoutes`, `top10Routes`, `recommendationRoutes`, `utils/cloneLinks`, `commentsRoutes` bulk-ban `INSERT IGNORE`. **Wave 1 implementer running; E2E test authored, not yet reviewed or committed.**
+2. **Transaction cluster** (High) — `adminSubscriptions` ⇄ `accountApproval` ⇄ `accountSubscriptions`, plus the already-dialect `accountRequests` that shares the helpers. `insertId` must go through the adapter; the two sequential transaction boundaries stay intact.
+3. **Admin console family** (High/Medium) — `admin`, `adminStats`, `adminOauthApps`, `adminUsers`, `downloadLinksLeaderboard`, `darkiworld`, `downloadLinksHistory`: pool binding plus `DATE_FORMAT`/`FROM_UNIXTIME`/`ON DUPLICATE KEY` conversions.
+4. **Infra tail** (Low/Medium) — `readiness`, `server` shutdown, `schemaMetadata`, `seedAdminAccounts`.
+
+Rulings: MySQL stays the default engine on every new branch; runtime DDL is skipped on PostgreSQL, never translated, because the schema belongs to the migrations; `adminSubscriptions` may only be ported together with its whole transaction cluster. No Cloudflare/Neon credentials are available in this environment, so no deployment gate is affected by this task. Local proof uses a disposable PostgreSQL 16 with MySQL pointed at a dead port, with bounded-timeout E2E and a reproducible non-secret report.
+
 ## Checkpoints
 
 ### Checkpoint A: Compatibility
@@ -434,9 +454,10 @@ Not done: Step 3's secret configuration lives in repository settings, and Step 5
 
 ### Checkpoint B: Containers and Data Layer
 
-- [ ] Tasks 7–11 pass focused PostgreSQL and migration checks.
-- [ ] All API domains pass against PostgreSQL before MySQL consumers are removed.
+- [ ] Tasks 7–11 pass focused PostgreSQL and migration checks. — *Task 10 done (`4add582`, `85686a7`, final review clean); Task 8 Steps 3–4 and Task 11 Steps 4/6 still open.*
+- [ ] All API domains pass against PostgreSQL before MySQL consumers are removed. — *Task 17 is the remaining code-level gate: 15 raw-`mysqlPool` files and 17 unguarded MySQL-only constructs inventoried; Wave 1 in progress, Waves 2–4 queued.*
 - [ ] Total Neon connections remain within the owner-approved budget.
+- [ ] Task 17's four waves are E2E-proven with MySQL unreachable and reviewed before any cutover.
 
 ### Checkpoint C: Behavior and Persistence
 

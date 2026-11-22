@@ -23,6 +23,7 @@ const { verifyTurnstileFromRequest } = require('../utils/turnstile');
 const { getSessionDeviceInfo } = require('../utils/sessionDeviceInfo');
 const { normalizeAccountCode, hashAccountCode } = require('../utils/accountCredentials');
 const { verifyAccountPassword } = require('../utils/accountPasswords');
+const { verifyTotp } = require('../utils/mfa');
 const {
   SUPPORTED_PROVIDERS,
   isSupportedProvider,
@@ -709,6 +710,11 @@ router.post('/account/password-login', authRateLimit, ...authBodyParsers, async 
       return res.status(401).json({ success: false, error: 'Identifiants invalides' });
     }
 
+    // --- MFA (TOTP) — login bloqué jusqu'au code valide (débloque via verify-mfa) ---
+    if (credential && Number(credential.mfa_required) === 1) {
+      return res.status(401).json({ success: false, error: 'mfa_required', requiresMfa: true });
+    }
+
     const userId = String(credential.user_id);
     const { readUserData } = getSyncModule();
     const storedUserData = await readUserData('bip39', userId) || {};
@@ -757,6 +763,36 @@ router.post('/account/password-login', authRateLimit, ...authBodyParsers, async 
     res.status(500).json({ success: false, error: 'Erreur lors de la connexion' });
   }
 });
+
+  // MFA (TOTP) — débloque le login bloqué : vérifie le code TOTP stocké dans
+  // account_credentials.mfa_secret. Le frontend affiche la réponse pour
+  // proposer l'input du code ; après un code valide, le login peut réessayer
+  // (mfa_required mis à 0).
+  router.post('/account/verify-mfa', authRateLimit, ...authBodyParsers, async (req, res) => {
+    try {
+      const { username, code } = req.body || {};
+      if (!username || typeof username !== 'string' || !code || typeof code !== 'string') {
+        return res.status(400).json({ success: false, error: 'Pseudo et code requis' });
+      }
+      const [credentialRows] = await getPool().execute(
+        `SELECT id, username, active, mfa_required, mfa_secret
+           FROM account_credentials WHERE username = ? AND password_hash IS NOT NULL LIMIT 1`,
+        [String(username).replace(/\s+/g, ' ').trim()]
+      );
+      const credential = credentialRows[0];
+      const okTotp = Boolean(credential)
+        && Number(credential.mfa_required) === 1
+        && verifyTotp(credential.mfa_secret, code);
+      if (!okTotp) {
+        return res.status(401).json({ success: false, error: 'Code invalide' });
+      }
+      await getPool().execute('UPDATE account_credentials SET mfa_required = 0 WHERE id = ?', [credential.id]);
+      return res.status(200).json({ success: true, message: 'MFA déverrouillé — relancez le login' });
+    } catch (error) {
+      console.error('Error verifying MFA code:', error);
+      res.status(500).json({ success: false, error: 'Erreur lors de la vérification MFA' });
+    }
+  });
 
 // POST /discord/verify
 router.post('/discord/verify', authRateLimit, ...authBodyParsers, async (req, res) => {

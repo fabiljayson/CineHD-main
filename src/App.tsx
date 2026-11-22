@@ -6,6 +6,7 @@ import { TooltipProvider } from './components/ui/tooltip';
 import Header from './components/Header';
 import Home from './pages/Home';
 import LandingPage from './pages/LandingPage';
+import PreOrder from './pages/PreOrder';
 import DnsBlockBanner from './components/DnsBlockBanner';
 import CookieConsentBanner from './components/CookieConsentBanner';
 import RouteRobots from './components/RouteRobots';
@@ -1913,6 +1914,7 @@ const AppWithIntro: React.FC = () => {
             {/* Eager — premier écran : landing pour les visiteurs, catalogue
                 pour les utilisateurs déjà authentifiés (LandingRoot). */}
             <Route path="/" element={<LandingRoot />} />
+            <Route path="/pre-order" element={<PreOrder />} />
             <Route path="/home" element={<Home />} />
 
             {/* Routes spéciales avec props ou logique conditionnelle — lazy (perf) */}

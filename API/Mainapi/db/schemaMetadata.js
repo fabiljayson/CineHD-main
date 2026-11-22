@@ -1,6 +1,11 @@
 const LOWER_CASE_TABLE_NAMES_SQL = `
   SELECT @@lower_case_table_names AS LOWER_CASE_TABLE_NAMES
 `;
+const LOWER_CASE_TABLE_NAMES_PG_SQL = `
+  SELECT CAST(setting AS INTEGER) AS LOWER_CASE_TABLE_NAMES
+  FROM pg_settings
+  WHERE name = 'lower_case_table_names'
+`;
 const TABLES_SQL = `
   SELECT t.TABLE_NAME, t.ENGINE, c.CHARACTER_SET_NAME, t.TABLE_COLLATION
   FROM INFORMATION_SCHEMA.TABLES t
@@ -91,10 +96,12 @@ function normalizeIndexOrder(value) {
 }
 
 async function loadSchemaMetadata(queryable) {
-  const [settingRows] = await queryable.execute(LOWER_CASE_TABLE_NAMES_SQL);
+  const [settingRows] = await queryable.execute(
+    queryable.dialect === 'postgres' ? LOWER_CASE_TABLE_NAMES_PG_SQL : LOWER_CASE_TABLE_NAMES_SQL
+  );
   const lowerCaseTableNames = Number(settingRows?.[0]?.LOWER_CASE_TABLE_NAMES);
   if (![0, 1, 2].includes(lowerCaseTableNames)) {
-    throw new Error('Valeur MySQL lower_case_table_names non supportee');
+    throw new Error('Valeur lower_case_table_names non supportee');
   }
 
   const [tableRows] = await queryable.execute(TABLES_SQL);

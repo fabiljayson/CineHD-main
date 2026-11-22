@@ -2560,6 +2560,14 @@ const WatchMovie: React.FC = () => {
 
         const isVoVostfrOnly = !hasVfSources;
 
+        // Pas de version française pour ce film — on joue directement sur
+        // Vidsrc.wtf 1 : le lecteur se charge dessus, l'utilisateur ne
+        // choisit rien (défaut du lecteur).
+        if (isVoVostfrOnly) {
+          setEmbedUrl(id ? `https://vidsrc.wtf/api/1/movie/?id=${id}` : '');
+          setEmbedType('vostfr');
+        }
+
         // Déclencher le popup avec le type de lecteur approprié
         let playerType = selectedSource;
         let additionalInfo: any = { isVoVostfrOnly };

@@ -1266,13 +1266,15 @@ router.delete('/admin/vip-keys/:key', isAdmin, async (req, res) => {
  * Génère un code de connexion compte (format CINE-XXXXX-XXXXX-XXXXX) et stocke
  * son empreinte dans `account_credentials` — le code lui-même n'est jamais
  * stocké en clair (même convention que approveAccountRequest). Body :
- * { code?: string } — sans `code` un nouveau code est généré ; avec `code`
- * le code fourni est stocké. Utilisé par la page de gestion des clés VIP
- * pour produire des codes valides sur /api/auth/account/login.
+ * { code?: string, duree_validite?: string } — sans `code` un nouveau code est
+ * généré ; avec `code` le code fourni est stocké. `duree_validite` (au format
+ * des clés VIP, ex. "7 jours") stocke la validité sur
+ * `account_credentials.subscription_expires_at` — le code de connexion ne
+ * fonctionne plus après cette date (vérifié par /api/auth/account/login).
  */
 router.post('/admin/account-codes', isAdmin, async (req, res) => {
   try {
-    const { code } = req.body || {};
+    const { code, duree_validite } = req.body || {};
     const pool = getPool();
     if (!pool) {
       return res.status(503).json({ success: false, error: 'Service temporairement indisponible' });
@@ -1285,30 +1287,95 @@ router.post('/admin/account-codes', isAdmin, async (req, res) => {
     }
     const newCode = provided === '' ? generateAccountCode() : normalized;
     const codeHash = hashAccountCode(normalizeAccountCode(newCode));
+    // Validité sélectionnée sur la page de gestion — stockée comme l'abonnement du compte.
+    const subscriptionExpiresAt = duree_validite ? buildAccessKeyExpiryFromDuration(duree_validite) : null;
 
     const [existing] = await pool.execute(
-      'SELECT id FROM account_credentials WHERE code_hash = ? LIMIT 1',
+      'SELECT id, user_id FROM account_credentials WHERE code_hash = ? LIMIT 1',
       [codeHash]
     );
     if (existing.length > 0) {
-      return res.status(409).json({ success: false, error: 'Cette clé existe déjà' });
+      // Idempotent : le code est déjà stocké — on renvoie la fiche existante au lieu d'erreur.
+      return res.status(200).json({
+        success: true,
+        code: newCode,
+        userId: String(existing[0].user_id),
+        active: true,
+        alreadyExists: true
+      });
     }
 
     const userId = generateAccountUserId();
     await pool.execute(
-      'INSERT INTO account_credentials (user_id, code_hash, username, active) VALUES (?, ?, ?, 1)',
-      [userId, codeHash, 'account-code-' + userId.slice(0, 8)]
+      'INSERT INTO account_credentials (user_id, code_hash, username, active, subscription_expires_at) VALUES (?, ?, ?, 1, ?)',
+      [userId, codeHash, 'account-code-' + userId.slice(0, 8), subscriptionExpiresAt ? new Date(subscriptionExpiresAt) : null]
     );
 
     return res.status(201).json({
       success: true,
       code: newCode,
       userId,
-      active: true
+      active: true,
+      subscriptionExpiresAt: subscriptionExpiresAt ? new Date(subscriptionExpiresAt).toISOString() : null
     });
   } catch (error) {
     console.error('Error generating account code:', error);
     return res.status(500).json({ success: false, error: 'Erreur lors de la génération du code' });
+  }
+});
+
+/**
+ * GET /admin/account-codes
+ * Liste les codes de connexion compte (lignes `account_credentials` — seule
+ * l'empreinte est stockée). Paramètres : page, limit, active (true/false),
+ * search (recherche sur user_id ou username). Réponse :
+ * { success, keys, count, total, page, limit, hasMore }
+ */
+router.get('/admin/account-codes', isAdmin, async (req, res) => {
+  try {
+    const pool = getPool();
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 30));
+    const offset = (page - 1) * limit;
+
+    const conditions = [];
+    const params = [];
+    if (req.query.active === 'true' || req.query.active === 'false') {
+      conditions.push(`active = ${req.query.active === 'true' ? 1 : 0}`);
+    }
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+    if (search) {
+      const likeSearch = `%${search}%`;
+      conditions.push('(user_id LIKE ? OR username LIKE ?)');
+      params.push(likeSearch, likeSearch);
+    }
+
+    const whereClause = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
+
+    const [[countRow]] = await pool.execute(
+      `SELECT COUNT(*) AS total FROM account_credentials${whereClause}`,
+      params
+    );
+    const total = Number(countRow?.total || 0);
+
+    const [rows] = await pool.execute(
+      `SELECT id, user_id, username, active, subscription_expires_at, created_at FROM account_credentials${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    );
+
+    res.json({
+      success: true,
+      keys: rows,
+      count: rows.length,
+      total,
+      page,
+      limit,
+      hasMore: offset + rows.length < total
+    });
+
+  } catch (error) {
+    console.error('Error listing account codes:', error);
+    return res.status(500).json({ success: false, error: 'Erreur lors du chargement des codes' });
   }
 });
 

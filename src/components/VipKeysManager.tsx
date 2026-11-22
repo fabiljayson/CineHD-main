@@ -9,19 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import ReusableModal from './ui/reusable-modal';
-import { copyText } from '../utils/clipboard';
 
 interface VipKey {
-  key_value: string;
+  id: number;
+  user_id: string;
+  username: string;
   active: number;
-  used: boolean;
-  duree_validite: string | null;
-  expires_at: string | number | null;
+  subscription_expires_at: string | null;
   created_at: string;
 }
 
-type FilterType = 'all' | 'active' | 'inactive' | 'unused';
+type FilterType = 'all' | 'active' | 'inactive';
 const PAGE_SIZE = 30;
 
 const VipKeysManager: React.FC = () => {
@@ -38,13 +36,6 @@ const VipKeysManager: React.FC = () => {
   const [total, setTotal] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Edit Modal State
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingKey, setEditingKey] = useState<VipKey | null>(null);
-  const [editDuration, setEditDuration] = useState('');
-  const [editMode, setEditMode] = useState<'duration' | 'date'>('duration');
-  const [editExpiresAt, setEditExpiresAt] = useState('');
-
   const API_URL = import.meta.env.VITE_MAIN_API;
 
   const getAuthToken = () => localStorage.getItem('auth_token');
@@ -60,14 +51,25 @@ const VipKeysManager: React.FC = () => {
     return t('admin.unknownError');
   };
 
-  const generateKey = () => {
-    const length = 16;
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = 'VIP-';
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
+  const generateKey = async () => {
+    // Génère un code de connexion compte (CINE-XXXXX-XXXXX-XXXXX) — le serveur
+    // stocke son empreinte dans account_credentials — et renvoie le code à afficher.
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/admin/account-codes`,
+        { duree_validite: dureeValidite || null },
+        {
+          headers: {
+            'Authorization': `Bearer ${getAuthToken()}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      setNewKey(response.data.code);
+    } catch (error: unknown) {
+      console.error('Erreur lors de la génération du code :', error);
+      toast.error(`Erreur: ${getRequestErrorMessage(error)}`);
     }
-    setNewKey(result);
   };
 
   const addKey = async () => {
@@ -78,11 +80,8 @@ const VipKeysManager: React.FC = () => {
 
     try {
       await axios.post(
-        `${API_URL}/api/admin/vip-keys`,
-        {
-          key: newKey.trim(),
-          duree_validite: dureeValidite || null
-        },
+        `${API_URL}/api/admin/account-codes`,
+        { code: newKey.trim() },
         {
           headers: {
             'Authorization': `Bearer ${getAuthToken()}`,
@@ -95,7 +94,7 @@ const VipKeysManager: React.FC = () => {
       setNewKey('');
       loadKeys();
     } catch (error: unknown) {
-      console.error('Erreur lors de l\'ajout:', error);
+      console.error('Erreur lors de l\'ajout du code :', error);
       toast.error(`Erreur: ${getRequestErrorMessage(error)}`);
     }
   };
@@ -108,10 +107,9 @@ const VipKeysManager: React.FC = () => {
       const params = new URLSearchParams({ page: String(p), limit: String(PAGE_SIZE) });
       if (currentFilter === 'active') params.append('active', 'true');
       if (currentFilter === 'inactive') params.append('active', 'false');
-      if (currentFilter === 'unused') params.append('used', 'false');
       if (debouncedSearch.trim()) params.append('search', debouncedSearch.trim());
 
-      const response = await axios.get(`${API_URL}/api/admin/vip-keys?${params.toString()}`, {
+      const response = await axios.get(`${API_URL}/api/admin/account-codes?${params.toString()}`, {
         headers: { 'Authorization': `Bearer ${getAuthToken()}` }
       });
 
@@ -125,89 +123,6 @@ const VipKeysManager: React.FC = () => {
       toast.error(`Erreur: ${getRequestErrorMessage(error)}`);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const copyKey = async (key: string) => {
-    if (await copyText(key)) {
-      toast.success(t('admin.keyCopied'));
-    } else {
-      toast.error(t('admin.copyError'));
-    }
-  };
-
-  const openEditModal = (key: VipKey) => {
-    setEditingKey(key);
-    setEditDuration(key.duree_validite || '');
-    setEditMode('duration');
-    // Pré-remplir la date si la clé a déjà une expiration
-    if (key.expires_at) {
-      const d = new Date(key.expires_at);
-      // Format pour datetime-local: YYYY-MM-DDTHH:MM
-      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-      setEditExpiresAt(local);
-    } else {
-      setEditExpiresAt('');
-    }
-    setIsEditModalOpen(true);
-  };
-
-  const handleEditSubmit = async () => {
-    if (!editingKey) return;
-
-    try {
-      const body: Record<string, string | null> = {};
-
-      if (editMode === 'date') {
-        // Date précise : envoyer expires_at directement
-        if (!editExpiresAt) {
-          toast.error(t('admin.pleaseSelectDate', 'Veuillez sélectionner une date'));
-          return;
-        }
-        const d = new Date(editExpiresAt);
-        body.expires_at = d.toISOString().slice(0, 19).replace('T', ' ');
-        body.duree_validite = null;
-      } else {
-        // Durée relative
-        body.duree_validite = editDuration === 'none' ? null : editDuration || null;
-      }
-
-      await axios.put(
-        `${API_URL}/api/admin/vip-keys/${encodeURIComponent(editingKey.key_value)}`,
-        body,
-        {
-          headers: {
-            'Authorization': `Bearer ${getAuthToken()}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      toast.success(t('admin.keyModifiedSuccess'));
-      setIsEditModalOpen(false);
-      setEditingKey(null);
-      loadKeys();
-    } catch (error: unknown) {
-      console.error('Erreur lors de la modification:', error);
-      toast.error(`Erreur: ${getRequestErrorMessage(error)}`);
-    }
-  };
-
-  const deleteKey = async (key: string) => {
-    if (!confirm(t('admin.confirmDeleteKey'))) return;
-
-    try {
-      await axios.delete(`${API_URL}/api/admin/vip-keys/${encodeURIComponent(key)}`, {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`
-        }
-      });
-
-      toast.success(t('admin.keyDeletedSuccess'));
-      loadKeys();
-    } catch (error: unknown) {
-      console.error('Erreur lors de la suppression:', error);
-      toast.error(`Erreur: ${getRequestErrorMessage(error)}`);
     }
   };
 
@@ -235,16 +150,6 @@ const VipKeysManager: React.FC = () => {
   useEffect(() => {
     loadKeys();
   }, [page]);
-
-  const getKeyStatus = (key: VipKey) => {
-    const isActive = key.active === 1;
-    const expiresAt = key.expires_at ? new Date(key.expires_at) : null;
-    const isExpired = expiresAt && expiresAt < new Date();
-
-    if (isActive && !isExpired) return { text: t('admin.active'), class: 'bg-green-600' };
-    if (isExpired) return { text: t('admin.expired'), class: 'bg-red-600' };
-    return { text: t('admin.inactive'), class: 'bg-gray-600' };
-  };
 
   const durationOptions = [
     "5 minutes", "30 minutes", "1 heure", "6 heures", "12 heures",
@@ -327,8 +232,7 @@ const VipKeysManager: React.FC = () => {
           {[
             { id: 'all', label: t('admin.allFem') },
             { id: 'active', label: t('admin.activePlural') },
-            { id: 'inactive', label: t('admin.inactivePlural') },
-            { id: 'unused', label: t('admin.unused') }
+            { id: 'inactive', label: t('admin.inactivePlural') }
           ].map((filter) => (
             <button
               key={filter.id}
@@ -360,73 +264,40 @@ const VipKeysManager: React.FC = () => {
           </div>
         ) : (
           <>
-            {keys.map((key) => {
-              const status = getKeyStatus(key);
-              const expiresAt = key.expires_at ? new Date(key.expires_at) : null;
-
-              return (
-                <div
-                  key={key.key_value}
-                  className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="font-mono text-xl text-white mb-3 bg-gray-700 px-4 py-2 rounded-lg inline-block">
-                        {key.key_value}
+            {keys.map((key) => (
+              <div
+                key={key.id}
+                className="bg-gray-800 rounded-lg p-6 transition-colors"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="font-mono text-xl text-white mb-3 bg-gray-700 px-4 py-2 rounded-lg inline-block">
+                      {key.username || key.user_id}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-400 font-medium">{t('admin.status')}:</span>
+                        <span className={`ml-2 px-2 py-1 rounded text-xs font-bold text-white ${key.active ? 'bg-green-600' : 'bg-gray-600'}`}>
+                          {key.active ? t('admin.active') : t('admin.inactive')}
+                        </span>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-400 font-medium">{t('admin.status')}:</span>
-                          <span className={`ml-2 px-2 py-1 rounded text-xs font-bold text-white ${status.class}`}>
-                            {status.text}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400 font-medium">{t('admin.used')}:</span>
-                          <span className="ml-2 text-white">{key.used ? t('admin.yes') : t('admin.no')}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400 font-medium">{t('admin.validityDuration')}:</span>
-                          <span className="ml-2 text-white">{key.duree_validite || t('admin.unlimited')}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400 font-medium">{t('admin.expiresOn')}:</span>
-                          <span className="ml-2 text-white">
-                            {expiresAt ? expiresAt.toLocaleDateString(i18n.language) : t('admin.never')}
-                          </span>
-                        </div>
+                      <div>
+                        <span className="text-gray-400 font-medium">{t('admin.expiresOn')}:</span>
+                        <span className="ml-2 text-white">
+                          {key.subscription_expires_at ? new Date(key.subscription_expires_at).toLocaleDateString(i18n.language) : t('admin.never')}
+                        </span>
                       </div>
-                      <div className="mt-2 text-sm">
+                      <div>
                         <span className="text-gray-400 font-medium">{t('admin.createdOn')}:</span>
                         <span className="ml-2 text-white">
                           {new Date(key.created_at).toLocaleDateString(i18n.language)}
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col space-y-2 ml-4">
-                      <button
-                        onClick={() => copyKey(key.key_value)}
-                        className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-500"
-                      >
-                        {t('admin.copy')}
-                      </button>
-                      <button
-                        onClick={() => openEditModal(key)}
-                        className="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700"
-                      >
-                        {t('admin.edit')}
-                      </button>
-                      <button
-                        onClick={() => deleteKey(key.key_value)}
-                        className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
-                      >
-                        {t('admin.delete')}
-                      </button>
-                    </div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
             {/* Pagination */}
             {total > PAGE_SIZE && (
               <div className="flex items-center justify-between py-4 px-2">
@@ -469,85 +340,6 @@ const VipKeysManager: React.FC = () => {
         )}
       </div>
 
-      {/* Edit Modal */}
-      <ReusableModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title={t('admin.editVipKey')}
-        className="max-w-md"
-      >
-        <div className="space-y-6">
-          {/* Mode toggle */}
-          <div className="flex rounded-xl bg-white/5 border border-white/10 p-1">
-            <button
-              onClick={() => setEditMode('duration')}
-              className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${editMode === 'duration' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'}`}
-            >
-              {t('admin.relativeDuration', 'Durée relative')}
-            </button>
-            <button
-              onClick={() => setEditMode('date')}
-              className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${editMode === 'date' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'}`}
-            >
-              {t('admin.preciseDate', 'Date précise')}
-            </button>
-          </div>
-
-          {editMode === 'duration' ? (
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                {t('admin.newValidityDuration')}
-              </label>
-              <Select value={editDuration} onValueChange={setEditDuration}>
-                <SelectTrigger className="bg-gray-700 border-gray-600">
-                  <SelectValue placeholder={t('admin.noExpiration')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">{t('admin.noExpiration')}</SelectItem>
-                  {durationOptions.map((opt) => (
-                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500 mt-2">
-                {t('admin.durationHint', 'La durée sera calculée à partir de maintenant')}
-              </p>
-            </div>
-          ) : (
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                {t('admin.expirationDate', "Date d'expiration")}
-              </label>
-              <input
-                type="datetime-local"
-                value={editExpiresAt}
-                onChange={(e) => setEditExpiresAt(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-green-500/50 transition-colors [color-scheme:dark]"
-              />
-              {editExpiresAt && (
-                <p className="text-xs text-gray-500 mt-2">
-                  {t('admin.expiresOn', 'Expire le')} : {new Date(editExpiresAt).toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' })}
-                </p>
-              )}
-            </div>
-          )}
-
-          <div className="flex space-x-4">
-            <button
-              onClick={handleEditSubmit}
-              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
-            >
-              {t('admin.save')}
-            </button>
-            <button
-              onClick={() => setIsEditModalOpen(false)}
-              className="flex-1 px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-semibold"
-            >
-              {t('admin.cancel')}
-            </button>
-          </div>
-        </div>
-      </ReusableModal>
     </div>
   );
 };

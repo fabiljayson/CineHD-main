@@ -617,13 +617,19 @@ router.post('/account/login', authRateLimit, ...authBodyParsers, async (req, res
     }
 
     const [credentialRows] = await pool.execute(
-      'SELECT id, user_id, username, active FROM account_credentials WHERE code_hash = ? LIMIT 1',
+      'SELECT id, user_id, username, active, subscription_expires_at FROM account_credentials WHERE code_hash = ? LIMIT 1',
       [hashAccountCode(normalizedCode)]
     );
 
     const credential = credentialRows[0];
     if (!credential || Number(credential.active) !== 1) {
       return res.status(401).json({ success: false, error: 'Code invalide' });
+    }
+
+    // Validité associée au code (stockée à la génération sur la page de gestion).
+    const expiresAt = credential.subscription_expires_at ? new Date(credential.subscription_expires_at) : null;
+    if (expiresAt && expiresAt.getTime() <= Date.now()) {
+      return res.status(401).json({ success: false, error: 'Code expiré' });
     }
 
     const userId = String(credential.user_id);

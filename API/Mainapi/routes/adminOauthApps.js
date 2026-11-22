@@ -24,7 +24,7 @@ const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
 const { isAdmin } = require('../middleware/auth');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const oauthClientsDb = require('../utils/oauthClientsDb');
 const { KNOWN_OAUTH_SCOPES } = require('../utils/oauthClients');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');

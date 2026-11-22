@@ -12,11 +12,11 @@ const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
 const { isAdmin, isUploaderOrAdmin } = require('../middleware/auth');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 // Lecture publique des liens : seule requête media de ce fichier qui doit suivre
 // le moteur sélectionné. Les autres handlers admin restent sur MySQL tant que
 // leur conversion n'est pas faite.
-const { getPool: getDialectPool } = require('../db/dialect');
+const { getPool: getDialectPool, isPostgres } = require('../db/dialect');
 const { isDuplicateKeyError } = require('../db/pgCompat');
 const { verifyAccessKey, invalidateVipCache } = require('../checkVip');
 const { buildResolvedMaps } = require('../utils/embedExtraction');
@@ -26,6 +26,7 @@ const { getTrustedClientIp } = require('../utils/clientIp');
 const { logDownloadLinkAction } = require('../utils/downloadLinksHistory');
 const { resolveAdminIdentity } = require('../utils/adminIdentity');
 const { readUserData } = require('./sync');
+const { normalizeAccountCode, hashAccountCode, generateAccountCode, generateAccountUserId } = require('../utils/accountCredentials');
 
 function parseAccessKeyExpiresAt(value) {
   if (value === undefined || value === null || value === '') {
@@ -422,7 +423,7 @@ router.post('/admin/links', isUploaderOrAdmin, async (req, res) => {
 
       // Insérer ou mettre à jour le film
       await pool.execute(
-        'INSERT INTO films (id, links) VALUES (?, ?) ON DUPLICATE KEY UPDATE links = VALUES(links), updated_at = CURRENT_TIMESTAMP',
+        'INSERT INTO films (id, links) VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET links = EXCLUDED.links, updated_at = CURRENT_TIMESTAMP',
         [id, linksJson]
       );
 
@@ -993,14 +994,24 @@ router.get('/admin/vip-keys', isAdmin, async (req, res) => {
 
     if (search) {
       const likeSearch = `%${search}%`;
-      conditions.push(`(
-        key_value LIKE ?
-        OR COALESCE(duree_validite, '') LIKE ?
-        OR COALESCE(CAST(expires_at AS CHAR), '') LIKE ?
-        OR COALESCE(DATE_FORMAT(FROM_UNIXTIME(expires_at / 1000), '%Y-%m-%d %H:%i:%s'), '') LIKE ?
-        OR COALESCE(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') LIKE ?
-      )`);
-      params.push(likeSearch, likeSearch, likeSearch, likeSearch, likeSearch);
+      if (isPostgres()) {
+        conditions.push(`(
+          key_value LIKE ?
+          OR COALESCE(duree_validite, '') LIKE ?
+          OR COALESCE(to_char(to_timestamp(expires_at / 1000), 'YYYY-MM-DD HH24:MI:SS'), '') LIKE ?
+          OR COALESCE(to_char(created_at, 'YYYY-MM-DD HH24:MI:SS'), '') LIKE ?
+        )`);
+        params.push(likeSearch, likeSearch, likeSearch, likeSearch);
+      } else {
+        conditions.push(`(
+          key_value LIKE ?
+          OR COALESCE(duree_validite, '') LIKE ?
+          OR COALESCE(CAST(expires_at AS CHAR), '') LIKE ?
+          OR COALESCE(DATE_FORMAT(FROM_UNIXTIME(expires_at / 1000), '%Y-%m-%d %H:%i:%s'), '') LIKE ?
+          OR COALESCE(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') LIKE ?
+        )`);
+        params.push(likeSearch, likeSearch, likeSearch, likeSearch, likeSearch);
+      }
     }
 
     let whereClause = '';
@@ -1250,6 +1261,57 @@ router.delete('/admin/vip-keys/:key', isAdmin, async (req, res) => {
   }
 });
 
+/**
+ * POST /admin/account-codes
+ * Génère un code de connexion compte (format CINE-XXXXX-XXXXX-XXXXX) et stocke
+ * son empreinte dans `account_credentials` — le code lui-même n'est jamais
+ * stocké en clair (même convention que approveAccountRequest). Body :
+ * { code?: string } — sans `code` un nouveau code est généré ; avec `code`
+ * le code fourni est stocké. Utilisé par la page de gestion des clés VIP
+ * pour produire des codes valides sur /api/auth/account/login.
+ */
+router.post('/admin/account-codes', isAdmin, async (req, res) => {
+  try {
+    const { code } = req.body || {};
+    const pool = getPool();
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Service temporairement indisponible' });
+    }
+
+    const provided = typeof code === 'string' ? code.trim() : '';
+    const normalized = normalizeAccountCode(provided);
+    if (provided !== '' && normalized.length < 8) {
+      return res.status(400).json({ success: false, error: 'Code invalide' });
+    }
+    const newCode = provided === '' ? generateAccountCode() : normalized;
+    const codeHash = hashAccountCode(normalizeAccountCode(newCode));
+
+    const [existing] = await pool.execute(
+      'SELECT id FROM account_credentials WHERE code_hash = ? LIMIT 1',
+      [codeHash]
+    );
+    if (existing.length > 0) {
+      return res.status(409).json({ success: false, error: 'Cette clé existe déjà' });
+    }
+
+    const userId = generateAccountUserId();
+    await pool.execute(
+      'INSERT INTO account_credentials (user_id, code_hash, username, active) VALUES (?, ?, ?, 1)',
+      [userId, codeHash, 'account-code-' + userId.slice(0, 8)]
+    );
+
+    return res.status(201).json({
+      success: true,
+      code: newCode,
+      userId,
+      active: true
+    });
+  } catch (error) {
+    console.error('Error generating account code:', error);
+    return res.status(500).json({ success: false, error: 'Erreur lors de la génération du code' });
+  }
+});
+
 function mergeDownloadLinks(existing, incoming, { adminId, userType, fullSeason }) {
   const existingLinks = Array.isArray(existing) ? existing : [];
   const existingUrls = new Set(existingLinks.map(l => l.url));
@@ -1349,7 +1411,7 @@ router.post('/admin/download-links', isUploaderOrAdmin, async (req, res) => {
 
     if (type === 'movie') {
       await pool.execute(
-        'INSERT INTO films (id, download_links) VALUES (?, ?) ON DUPLICATE KEY UPDATE download_links = VALUES(download_links), updated_at = CURRENT_TIMESTAMP',
+        'INSERT INTO films (id, download_links) VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET download_links = EXCLUDED.download_links, updated_at = CURRENT_TIMESTAMP',
         [id, mergedJson]
       );
     } else {

@@ -28,7 +28,7 @@ const express = require('express');
 const fsp = require('fs').promises;
 const path = require('path');
 
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const { isAdmin } = require('../middleware/auth');
 const { createAuthBodyParsers } = require('../middleware/bodyParsing');
 const { jsonParseErrorHandler } = require('../middleware/security');

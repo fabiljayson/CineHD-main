@@ -40,10 +40,14 @@ const VALID_SLUGS = new Set([
   'apparence',
 ]);
 
+// Salt de l'IP pour le rate limiter — requis, sans repli hardcodé
+// (une clé connue de tout le monde annulerait la protection).
 const IP_SALT =
   process.env.TURNSTILE_IP_SALT ||
-  process.env.JWT_SECRET ||
-  'movix-help-feedback-default-salt';
+  process.env.JWT_SECRET;
+if (!IP_SALT) {
+  throw new Error('TURNSTILE_IP_SALT ou JWT_SECRET requis pour helpFeedback');
+}
 
 function hashIp(req) {
   const ip =

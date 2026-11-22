@@ -13,6 +13,8 @@
  *     node scripts/seedAdminAccounts.js
  *
  * Options (toutes facultatives) :
+ *   ADMIN_ACCOUNT           fred, fabil ou both (défaut : both)
+ *   DB_DRIVER               postgres pour utiliser DATABASE_URL
  *   ADMIN_FRED_USERNAME   défaut « admin1 »
  *   ADMIN_FABL_USERNAME   défaut « admin2 »
  *   ADMIN_SUBSCRIPTION_DAYS  durée posée sur les comptes admin (défaut 3650)
@@ -22,6 +24,7 @@
  */
 
 const { initPool } = require('../mysqlPool');
+const { getPool: getDialectPool, isPostgres } = require('../db/dialect');
 const {
   generateAccountCode,
   generateAccountUserId,
@@ -35,7 +38,12 @@ const DEFAULT_AVATAR = 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_58993278
 const ADMIN_AUTH_TYPE = 'bip-39';
 
 function readAdminDefinitions() {
-  return [
+  const account = (process.env.ADMIN_ACCOUNT || 'both').trim().toLowerCase();
+  if (!['fred', 'fabil', 'both'].includes(account)) {
+    throw new Error('ADMIN_ACCOUNT doit valoir fred, fabil ou both.');
+  }
+
+  const definitions = [
     {
       key: 'fred',
       username: (process.env.ADMIN_FRED_USERNAME || 'admin1').trim(),
@@ -47,6 +55,10 @@ function readAdminDefinitions() {
       password: process.env.ADMIN_FABL_PASSWORD,
     },
   ];
+
+  return account === 'both'
+    ? definitions
+    : definitions.filter((definition) => definition.key === account);
 }
 
 async function ensureSchema(pool) {
@@ -98,7 +110,7 @@ async function writeProfileFile(userId, username) {
   }
 }
 
-async function seedAdmin(pool, definition, subscriptionDays) {
+async function seedAdmin(pool, definition, subscriptionDays, usePostgres) {
   const { username, password } = definition;
   if (!username) throw new Error(`Pseudo manquant pour ${definition.key}.`);
   if (!password) {
@@ -133,10 +145,11 @@ async function seedAdmin(pool, definition, subscriptionDays) {
     // Il n'est jamais affiché : ces comptes se connectent par mot de passe.
     const codeHash = hashAccountCode(normalizeAccountCode(generateAccountCode()));
     const [result] = await pool.execute(
-      'INSERT INTO account_credentials (user_id, code_hash, username, active, password_hash) VALUES (?, ?, ?, 1, ?)',
+      `INSERT INTO account_credentials (user_id, code_hash, username, active, password_hash)
+       VALUES (?, ?, ?, 1, ?)${usePostgres ? ' RETURNING id' : ''}`,
       [userId, codeHash, username, passwordHash],
     );
-    credentialId = Number(result.insertId);
+    credentialId = Number(usePostgres ? result[0]?.id : result.insertId);
   }
 
   const expiresAt = toSqlDateTime(addDays(new Date(), subscriptionDays));
@@ -146,8 +159,11 @@ async function seedAdmin(pool, definition, subscriptionDays) {
   );
 
   await pool.execute(
-    `INSERT INTO admins (user_id, auth_type, role) VALUES (?, ?, 'admin')
-       ON DUPLICATE KEY UPDATE role = 'admin', auth_type = VALUES(auth_type)`,
+    usePostgres
+      ? `INSERT INTO admins (user_id, auth_type, role) VALUES (?, ?, 'admin')
+         ON CONFLICT (user_id) DO UPDATE SET role = 'admin', auth_type = EXCLUDED.auth_type`
+      : `INSERT INTO admins (user_id, auth_type, role) VALUES (?, ?, 'admin')
+         ON DUPLICATE KEY UPDATE role = 'admin', auth_type = VALUES(auth_type)`,
     [userId, ADMIN_AUTH_TYPE],
   );
 
@@ -159,14 +175,34 @@ async function seedAdmin(pool, definition, subscriptionDays) {
 async function main() {
   const definitions = readAdminDefinitions();
   const subscriptionDays = Number.parseInt(process.env.ADMIN_SUBSCRIPTION_DAYS || '', 10) || 3650;
+  const usePostgres = isPostgres();
 
-  const pool = await initPool();
-  await ensureSchema(pool);
+  for (const definition of definitions) {
+    if (!definition.username) throw new Error(`Pseudo manquant pour ${definition.key}.`);
+    if (!definition.password) {
+      throw new Error(
+        `Mot de passe manquant pour ${definition.key} : définissez ` +
+        `${definition.key === 'fred' ? 'ADMIN_FRED_PASSWORD' : 'ADMIN_FABL_PASSWORD'} dans l'environnement.`,
+      );
+    }
+  }
+
+  if (usePostgres && !process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL manquant avec DB_DRIVER=postgres.');
+  }
+
+  const pool = usePostgres ? getDialectPool() : await initPool();
+  if (usePostgres) {
+    const { assertPostgresSchemaReady } = require('../postgresPool');
+    await assertPostgresSchemaReady();
+  } else {
+    await ensureSchema(pool);
+  }
 
   console.log('Seed des comptes admin — mots de passe lus dans l\'environnement.\n');
 
   for (const definition of definitions) {
-    const result = await seedAdmin(pool, definition, subscriptionDays);
+    const result = await seedAdmin(pool, definition, subscriptionDays, usePostgres);
     console.log(
       `${result.created ? 'Créé' : 'Mis à jour'} : ${result.username}` +
       `\n  user_id=${result.userId} credential_id=${result.credentialId}` +

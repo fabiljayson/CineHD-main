@@ -46,7 +46,7 @@ import {
 import { isHevcPlayable } from '../../utils/videoCodecSupport';
 import type { KisskhSource, KisskhSubtitleTrack } from '../../types/kisskh';
 import { markEpisodeHandoff } from '../../utils/playerFullscreenPersistence';
-import { readLocalStorage, writeLocalStorage } from '../../utils/browserStorage';
+import { writeLocalStorage } from '../../utils/browserStorage';
 const MAIN_API = import.meta.env.VITE_MAIN_API;
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || '';
 
@@ -1763,7 +1763,7 @@ const WatchTv: React.FC = () => {
         const fsvidSources: { url: string; label: string; category: string }[] = [];
 
         // Check if user is VIP (déclaré au niveau de la fonction pour être accessible partout)
-        const isVip = readLocalStorage('is_vip') === 'true';
+        const isVip = isUserVip();
 
         if (fstreamResult && fstreamResult.success && fstreamResult.episodes) {
 
@@ -3542,8 +3542,7 @@ const WatchTv: React.FC = () => {
 
   useEffect(() => {
     // On ne fait rien si VIP activé
-    const hasStoredVip = readLocalStorage('is_vip') === 'true';
-    if (import.meta.env.is_vip === 'true' || import.meta.env.is_vip === true || hasStoredVip) {
+    if (isUserVip()) {
       console.log('?? VIP activé, popup désactivée');
       return;
     }

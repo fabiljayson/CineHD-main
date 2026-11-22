@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { readLocalStorage } from './browserStorage';
+import { isUserVip } from './vipUtils';
 
 /**
  * Vrai si le visiteur porte une session que l'application reconnaît.
@@ -17,7 +18,7 @@ import { readLocalStorage } from './browserStorage';
 export const isSessionAuthenticated = (): boolean => {
   if (readLocalStorage('discord_auth') === 'true') return true;
   if (readLocalStorage('bip39_auth') === 'true') return true;
-  if (readLocalStorage('is_vip') === 'true') return true;
+  if (isUserVip()) return true;
 
   const authStr = readLocalStorage('auth');
   if (authStr) {

@@ -42,6 +42,7 @@ import ScreenSaver from './components/ScreenSaver';
 import { useIdleTimer } from './hooks/useIdleTimer';
 import { startVipVerification } from './utils/vipUtils';
 import { readLocalStorage, readSessionStorage } from './utils/browserStorage';
+import { isUserVip } from './utils/authUtils';
 import { isSessionAuthenticated, useSessionAuthenticated } from './utils/session';
 import { broadcastAuthChange, clearStoredAuthSession, getResolvedAccountContext } from './utils/accountAuth';
 import { isSyncableStorageKey, SYNC_OUTBOX_STORAGE_KEY } from './utils/syncStorage';
@@ -1672,7 +1673,7 @@ const ProfileGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Check if user is authenticated
   const isDiscordAuth = readLocalStorage('discord_auth') === 'true';
   const isBip39Auth = readLocalStorage('bip39_auth') === 'true';
-  const isVipUser = readLocalStorage('is_vip') === 'true';
+  const isVipUser = isUserVip();
 
   // Vérifier l'ancienne méthode d'authentification VIP (pour compatibilité)
   let isVipAuth = false;

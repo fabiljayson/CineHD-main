@@ -43,7 +43,7 @@ import {
   resolveRenderedWatchSource,
   syncHlsActiveSource,
 } from '../../utils/hlsAutoFallbackGuard';
-import { readLocalStorage, writeLocalStorage } from '../../utils/browserStorage';
+import { writeLocalStorage } from '../../utils/browserStorage';
 const MAIN_API = import.meta.env.VITE_MAIN_API;
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || '';
 
@@ -2499,7 +2499,7 @@ const WatchMovie: React.FC = () => {
 
   useEffect(() => {
     // On ne fait rien si VIP activé
-    if (import.meta.env.is_vip === 'true' || import.meta.env.is_vip === true || readLocalStorage('is_vip') === 'true') {
+    if (isUserVip()) {
       console.log('🚫 VIP activé - popup ads désactivé');
       return;
     }

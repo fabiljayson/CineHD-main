@@ -37,6 +37,7 @@ import { useImageSlot } from '../hooks/useImageSlot';
 import { getCoverImageWidth, getTmdbImageProps, getTmdbImageUrl } from '../utils/tmdbImages';
 import { Ring } from '@/components/ui/loading/ring';
 import { readLocalStorage, writeLocalStorage } from '../utils/browserStorage';
+import { isUserVip } from '../utils/authUtils';
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || '';
 
@@ -1429,7 +1430,7 @@ const MovieDetails = (): JSX.Element => {
             )}
           </motion.button>
 
-          {(!ENABLE_VIP_DOWNLOAD_CHECK || readLocalStorage('is_vip') === 'true') && (
+          {(!ENABLE_VIP_DOWNLOAD_CHECK || isUserVip()) && (
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

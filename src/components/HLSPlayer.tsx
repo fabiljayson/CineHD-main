@@ -3299,6 +3299,13 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
       });
     }
 
+    // Par défaut — "Vidsrc.wtf 1" devient la source par défaut du lecteur
+    // quand aucune source n'est explicitement sélectionnée (aucun embedUrl).
+    if (!embedUrl && !embedType) {
+      const defaultSource = embedSources.find((s) => s.id === 'vidsrcwtf1');
+      if (defaultSource) defaultSource.isActive = true;
+    }
+
     // Organiser en groupes
     const groups: SourceGroup[] = [];
 
@@ -3709,7 +3716,15 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
 
     // Check if source is MP4
     // Les sources mp4 (y compris Bravo/Purstream et Sibnet) sont jouées directement dans la balise <video> sans passer par Hls.js
-    const normalizedSrc = normalizeUqloadEmbedUrl(src);
+    // Par défaut — sans `src` explicite, le joueur charge la source
+    // "Vidsrc.wtf 1" (l'URL de la source `vidsrcwtf1`, construite comme
+    // dans le menu VOSTFR) : c'est le défaut du lecteur.
+    const vidsrcWtf1Url = movieId
+      ? `https://vidsrc.wtf/api/1/movie/?id=${movieId}`
+      : tvShowId != null && seasonNumber != null && episodeNumber != null
+        ? `https://vidsrc.wtf/api/1/tv/?id=${tvShowId}&s=${seasonNumber}&e=${episodeNumber}`
+        : '';
+    const normalizedSrc = normalizeUqloadEmbedUrl(src || vidsrcWtf1Url);
     const isMP4 = kisskhSources.some(source => (
       source.type === 'mp4' && source.url === normalizedSrc
     )) || isMP4Source(normalizedSrc)

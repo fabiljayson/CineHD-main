@@ -65,6 +65,20 @@ function buildAccessKeyExpiryFromDuration(durationLabel) {
     return null;
   }
 
+  const seconds = durationToSecondsFromNow(durationLabel);
+  return seconds === null ? null : Date.now() + seconds * 1000;
+}
+
+/**
+ * Conversion d'une durée "7 jours" / "1 mois" / "30 minutes" en secondes —
+ * le même matcher que `buildAccessKeyExpiryFromDuration`. Retourne null pour
+ * une saisie absente ou invalide.
+ */
+function durationToSecondsFromNow(durationLabel) {
+  if (!durationLabel) {
+    return null;
+  }
+
   const now = new Date();
   const match = durationLabel.match(/(\d+)\s*(min|minute|minutes|h|hour|hours|heure|heures|d|day|days|jour|jours|m|month|months|mois|y|year|years|an|ans)/i);
 
@@ -74,20 +88,24 @@ function buildAccessKeyExpiryFromDuration(durationLabel) {
 
   const duration = parseInt(match[1], 10);
   const unit = match[2].toLowerCase();
+  const shifted = new Date(now.getTime());
 
   if (unit.startsWith('min')) {
-    now.setMinutes(now.getMinutes() + duration);
+    shifted.setMinutes(shifted.getMinutes() + duration);
   } else if (unit.startsWith('h')) {
-    now.setHours(now.getHours() + duration);
+    shifted.setHours(shifted.getHours() + duration);
   } else if (unit.startsWith('d') || unit.startsWith('j')) {
-    now.setDate(now.getDate() + duration);
+    shifted.setDate(shifted.getDate() + duration);
   } else if (unit.startsWith('m')) {
-    now.setMonth(now.getMonth() + duration);
+    shifted.setMonth(shifted.getMonth() + duration);
   } else if (unit.startsWith('y') || unit.startsWith('an')) {
-    now.setFullYear(now.getFullYear() + duration);
+    shifted.setFullYear(shifted.getFullYear() + duration);
+  } else {
+    return null;
   }
 
-  return now.getTime();
+  const seconds = Math.floor((shifted.getTime() - now.getTime()) / 1000);
+  return seconds > 0 ? seconds : null;
 }
 
 // Rate limiter pour la vérification de codes VIP
@@ -1268,9 +1286,10 @@ router.delete('/admin/vip-keys/:key', isAdmin, async (req, res) => {
  * stocké en clair (même convention que approveAccountRequest). Body :
  * { code?: string, duree_validite?: string } — sans `code` un nouveau code est
  * généré ; avec `code` le code fourni est stocké. `duree_validite` (au format
- * des clés VIP, ex. "7 jours") stocke la validité sur
- * `account_credentials.subscription_expires_at` — le code de connexion ne
- * fonctionne plus après cette date (vérifié par /api/auth/account/login).
+ * des clés VIP, ex. "7 jours") définit la durée de validité du compte :
+ * elle est stockée dans `account_credentials.validity_seconds` et
+ * `subscription_expires_at` n'est pas fixé ici — le minuteur se crée à
+ * l'usage valide (1er login, vérifié par /api/auth/account/login).
  */
 router.post('/admin/account-codes', isAdmin, async (req, res) => {
   try {
@@ -1287,8 +1306,9 @@ router.post('/admin/account-codes', isAdmin, async (req, res) => {
     }
     const newCode = provided === '' ? generateAccountCode() : normalized;
     const codeHash = hashAccountCode(normalizeAccountCode(newCode));
-    // Validité sélectionnée sur la page de gestion — stockée comme l'abonnement du compte.
-    const subscriptionExpiresAt = duree_validite ? buildAccessKeyExpiryFromDuration(duree_validite) : null;
+    // Durée sélectionnée sur la page de gestion — ne crée pas encore de minuteur :
+    // subscription_expires_at se règle à l'usage valide (1er login).
+    const validitySeconds = durationToSecondsFromNow(duree_validite);
 
     const [existing] = await pool.execute(
       'SELECT id, user_id FROM account_credentials WHERE code_hash = ? LIMIT 1',
@@ -1307,8 +1327,8 @@ router.post('/admin/account-codes', isAdmin, async (req, res) => {
 
     const userId = generateAccountUserId();
     await pool.execute(
-      'INSERT INTO account_credentials (user_id, code_hash, username, active, subscription_expires_at) VALUES (?, ?, ?, 1, ?)',
-      [userId, codeHash, 'account-code-' + userId.slice(0, 8), subscriptionExpiresAt ? new Date(subscriptionExpiresAt) : null]
+      'INSERT INTO account_credentials (user_id, code_hash, username, active, validity_seconds) VALUES (?, ?, ?, 1, ?)',
+      [userId, codeHash, 'account-code-' + userId.slice(0, 8), validitySeconds]
     );
 
     return res.status(201).json({
@@ -1316,7 +1336,7 @@ router.post('/admin/account-codes', isAdmin, async (req, res) => {
       code: newCode,
       userId,
       active: true,
-      subscriptionExpiresAt: subscriptionExpiresAt ? new Date(subscriptionExpiresAt).toISOString() : null
+      subscriptionExpiresAt: null
     });
   } catch (error) {
     console.error('Error generating account code:', error);

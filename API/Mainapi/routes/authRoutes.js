@@ -24,6 +24,7 @@ const { getSessionDeviceInfo } = require('../utils/sessionDeviceInfo');
 const { normalizeAccountCode, hashAccountCode } = require('../utils/accountCredentials');
 const { verifyAccountPassword } = require('../utils/accountPasswords');
 const { verifyTotp } = require('../utils/mfa');
+const { toSqlDateTime } = require('../utils/accountSubscriptions');
 const {
   SUPPORTED_PROVIDERS,
   isSupportedProvider,
@@ -594,6 +595,11 @@ router.post('/bip39/login', authRateLimit, ...authBodyParsers, async (req, res) 
 // seule son empreinte est stockée (account_credentials.code_hash), et la
 // session émise est identique à n'importe quelle autre session bip39 —
 // indépendante de l'appareil, réutilisable sur tous les navigateurs.
+// Validité : subscription_expires_at peut être fixé à la génération
+// (code PDF commis avant le paiement). Pour les codes générés ici, la durée
+// stockée à la génération (validity_seconds) ne crée le minuteur qu'à
+// l'usage valide — 1er login — afin qu'un code non utilisé n'entame pas sa
+// validité ; les logins suivants ne le repoussent pas (pas de reset).
 router.post('/account/login', authRateLimit, ...authBodyParsers, async (req, res) => {
   try {
     const { code, turnstileToken } = req.body || {};
@@ -617,7 +623,7 @@ router.post('/account/login', authRateLimit, ...authBodyParsers, async (req, res
     }
 
     const [credentialRows] = await pool.execute(
-      'SELECT id, user_id, username, active, subscription_expires_at FROM account_credentials WHERE code_hash = ? LIMIT 1',
+      'SELECT id, user_id, username, active, subscription_expires_at, last_login_at, validity_seconds FROM account_credentials WHERE code_hash = ? LIMIT 1',
       [hashAccountCode(normalizedCode)]
     );
 
@@ -626,7 +632,8 @@ router.post('/account/login', authRateLimit, ...authBodyParsers, async (req, res
       return res.status(401).json({ success: false, error: 'Code invalide' });
     }
 
-    // Validité associée au code (stockée à la génération sur la page de gestion).
+    // Validité associée au code — stockée à la génération sur la page de
+    // gestion. Vérifiée avant l'armement de l'abonnement nouveau.
     const expiresAt = credential.subscription_expires_at ? new Date(credential.subscription_expires_at) : null;
     if (expiresAt && expiresAt.getTime() <= Date.now()) {
       return res.status(401).json({ success: false, error: 'Code expiré' });
@@ -656,12 +663,33 @@ router.post('/account/login', authRateLimit, ...authBodyParsers, async (req, res
       },
     });
 
-    await pool.execute('UPDATE account_credentials SET last_login_at = NOW() WHERE id = ?', [credential.id]);
+    // 1er login du code : la durée stockée à la génération (validity_seconds)
+    // devient la validité de l'abonnement. Les logins suivants ne doivent pas
+    // la repousser — un code réutilisé ne prolonge pas sa validité.
+    const validitySeconds = Number(credential.validity_seconds);
+    if (!credential.last_login_at && Number.isFinite(validitySeconds) && validitySeconds > 0) {
+      const armedExpiry = new Date(Date.now() + validitySeconds * 1000);
+      await pool.execute(
+        'UPDATE account_credentials SET last_login_at = NOW(), subscription_expires_at = ? WHERE id = ?',
+        [toSqlDateTime(armedExpiry), credential.id]
+      );
+    } else {
+      await pool.execute('UPDATE account_credentials SET last_login_at = NOW() WHERE id = ?', [credential.id]);
+    }
+
+    const [updatedRows] = await pool.execute(
+      'SELECT subscription_expires_at FROM account_credentials WHERE id = ? LIMIT 1',
+      [credential.id]
+    );
+    const subscriptionExpiresAt = updatedRows[0]?.subscription_expires_at
+      ? new Date(updatedRows[0].subscription_expires_at).toISOString()
+      : null;
 
     return res.status(200).json({
       ...payload,
       userId: payload.account.userId,
       userProfile: payload.authData.userProfile,
+      subscriptionExpiresAt,
       message: 'Connexion réussie',
     });
   } catch (error) {

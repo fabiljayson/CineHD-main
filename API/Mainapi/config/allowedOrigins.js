@@ -38,6 +38,16 @@ const ALLOWED_DOMAINS = [
   'movix.men',
 ];
 
+/**
+ * Domaines supplémentaires fournis par l'environnement (ex. le site statique
+ * Render `cinehd.onrender.com`), séparés par des virgules. Permet d'autoriser
+ * un nouveau frontend sans modifier le code.
+ */
+const EXTRA_ALLOWED_DOMAINS = String(process.env.ALLOWED_EXTRA_DOMAINS || '')
+  .split(',')
+  .map((d) => d.trim().toLowerCase())
+  .filter(Boolean);
+
 /** Port du serveur de développement Vite ; voir AGENTS.md. */
 const LOCAL_DEV_HOSTNAME = 'localhost';
 const LOCAL_DEV_PORT = '3000';
@@ -45,7 +55,7 @@ const LOCAL_DEV_PORT = '3000';
 function isAllowedHostname(hostname) {
   if (!hostname) return false;
   const host = String(hostname).toLowerCase();
-  return ALLOWED_DOMAINS.some((domain) => host === domain || host.endsWith(`.${domain}`));
+  return [...ALLOWED_DOMAINS, ...EXTRA_ALLOWED_DOMAINS].some((domain) => host === domain || host.endsWith(`.${domain}`));
 }
 
 function parseUrl(value) {
@@ -76,6 +86,7 @@ function isAllowedBrowserUrl(value) {
 
 module.exports = {
   ALLOWED_DOMAINS,
+  EXTRA_ALLOWED_DOMAINS,
   LOCAL_DEV_HOSTNAME,
   LOCAL_DEV_PORT,
   isAllowedHostname,

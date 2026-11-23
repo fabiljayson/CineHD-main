@@ -22,6 +22,7 @@
 const { Pool } = require('pg');
 
 let pool = null;
+let originalQuery = null;
 
 function isConnectionError(error) {
   if (!error) return false;
@@ -33,7 +34,7 @@ function isConnectionError(error) {
 
 async function queryWithRetryOnce(text, values) {
   try {
-    return await pool.query(text, values);
+    return await originalQuery(text, values);
   } catch (error) {
     if (!isConnectionError(error)) throw error;
     try {
@@ -42,7 +43,7 @@ async function queryWithRetryOnce(text, values) {
       /* le nouveau client se connecte à la première requête */
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
-    return pool.query(text, values); // retry once — aucune erreur applicative retentée
+    return originalQuery(text, values); // retry once — aucune erreur applicative retentée
   }
 }
 
@@ -58,6 +59,7 @@ function getPostgresPool() {
     max: Number(process.env.DB_POOL_CONNECTION_LIMIT || 20),
     idleTimeoutMillis: 30000,
   });
+  originalQuery = pool.query.bind(pool);
   pool.query = queryWithRetryOnce;
 
   return pool;

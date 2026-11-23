@@ -8,7 +8,7 @@
  * Le serveur vérifie que la clé existe, est active et non expirée.
  */
 
-const { getPool } = require('./mysqlPool');
+const { getPool } = require('./db/dialect');
 const { LruMap } = require('./utils/lruMap');
 
 // Cache en mémoire pour éviter de spammer MySQL à chaque requête

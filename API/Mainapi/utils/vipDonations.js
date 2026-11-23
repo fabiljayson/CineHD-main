@@ -5,6 +5,7 @@ const ecc = require('tiny-secp256k1');
 const { BIP32Factory } = require('bip32');
 
 const { invalidateVipCache } = require('../checkVip');
+const { dialectOf } = require('../db/coreSql');
 const { isDuplicateKeyError, insertOne } = require('../db/pgCompat');
 const { fetchAddressTxs, fetchTipHeight } = require('./chainExplorer');
 const vipPaygate = require('./vipPaygate');
@@ -54,6 +55,13 @@ const STATUS_REASONS = {
   expired: 'Invoice expirée.',
   cancelled: 'Invoice annulée.'
 };
+
+/** `NOW()` décalé de N secondes, dans le dialecte du pool courant. */
+function nowPlusSecondsSql(seconds) {
+  return dialectOf() === 'postgres'
+    ? `NOW() + (${seconds} * INTERVAL '1 second')`
+    : `DATE_ADD(NOW(), INTERVAL ${seconds} SECOND)`;
+}
 
 const BTC_NETWORK = {
   messagePrefix: '\x18Bitcoin Signed Message:\n',
@@ -535,7 +543,7 @@ async function expireAwaitingInvoiceIfOverdue(db, invoice) {
   const [updateResult] = await db.execute(
     `UPDATE vip_invoices
       SET status = 'expired',
-          next_check_at = DATE_ADD(NOW(), INTERVAL 25 SECOND),
+          next_check_at = ${nowPlusSecondsSql(25)},
           updated_at = NOW()
       WHERE id = ?
         AND status = 'awaiting_payment'
@@ -1149,7 +1157,7 @@ async function refreshInvoiceStatus(pool, invoiceInput, options = {}) {
       await pool.execute(
         `UPDATE vip_invoices
           SET status = 'expired',
-              next_check_at = DATE_ADD(NOW(), INTERVAL 25 SECOND),
+              next_check_at = ${nowPlusSecondsSql(25)},
               updated_at = NOW()
           WHERE id = ?`,
         [invoice.id]
@@ -1169,7 +1177,7 @@ async function refreshInvoiceStatus(pool, invoiceInput, options = {}) {
       );
     } else {
       await pool.execute(
-        'UPDATE vip_invoices SET next_check_at = DATE_ADD(NOW(), INTERVAL 25 SECOND), updated_at = NOW() WHERE id = ?',
+        `UPDATE vip_invoices SET next_check_at = ${nowPlusSecondsSql(25)}, updated_at = NOW() WHERE id = ?`,
         [invoice.id]
       );
     }
@@ -1198,7 +1206,7 @@ async function refreshInvoiceStatus(pool, invoiceInput, options = {}) {
             confirmations = ?,
             tx_hash = ?,
             paid_at = CASE WHEN ? THEN COALESCE(paid_at, NOW()) ELSE paid_at END,
-            next_check_at = DATE_ADD(NOW(), INTERVAL 25 SECOND),
+            next_check_at = ${nowPlusSecondsSql(25)},
             updated_at = NOW()
         WHERE id = ?`,
       [
@@ -1206,7 +1214,7 @@ async function refreshInvoiceStatus(pool, invoiceInput, options = {}) {
         amountReceived,
         addressActivity.confirmations,
         txHash,
-        shouldMarkPaidAt ? 1 : 0,
+        shouldMarkPaidAt,
         invoice.id
       ]
     );
@@ -1228,7 +1236,7 @@ async function refreshInvoiceStatus(pool, invoiceInput, options = {}) {
     );
   } else {
     await pool.execute(
-      'UPDATE vip_invoices SET next_check_at = DATE_ADD(NOW(), INTERVAL 25 SECOND), updated_at = NOW() WHERE id = ?',
+      `UPDATE vip_invoices SET next_check_at = ${nowPlusSecondsSql(25)}, updated_at = NOW() WHERE id = ?`,
       [invoice.id]
     );
   }
@@ -1951,7 +1959,7 @@ async function applyPaygatePaymentObservation(pool, invoiceId, payment, options 
               paygate_paid_txid = COALESCE(paygate_paid_txid, ?),
               next_check_at = CASE
                 WHEN ? = 'paid' THEN NULL
-                ELSE DATE_ADD(NOW(), INTERVAL 60 SECOND)
+                ELSE ${nowPlusSecondsSql(60)}
               END,
               updated_at = NOW()
           WHERE id = ?
@@ -1959,7 +1967,7 @@ async function applyPaygatePaymentObservation(pool, invoiceId, payment, options 
         [
           nextStatus,
           payment.txidOut,
-          shouldMarkPaidAt ? 1 : 0,
+          shouldMarkPaidAt,
           payment.coin,
           nextPaidValue,
           observedValueCoin,
@@ -2241,12 +2249,12 @@ async function handlePayblisIpn(pool, { publicId, body, sourceIp, headerSignatur
             payblis_paid_currency = COALESCE(NULLIF(?, ''), payblis_paid_currency),
             payblis_ipn_received_at = COALESCE(payblis_ipn_received_at, NOW()),
             payblis_ipn_raw_payload = ?,
-            next_check_at = DATE_ADD(NOW(), INTERVAL 25 SECOND),
+            next_check_at = ${nowPlusSecondsSql(25)},
             updated_at = NOW()
         WHERE id = ?`,
       [
         nextStatus,
-        shouldMarkPaidAt ? 1 : 0,
+        shouldMarkPaidAt,
         normalized.method || null,
         receivedTransactionId,
         reportedAmount || null,
@@ -2363,7 +2371,7 @@ async function markPayblisInvoicePaidFromRest(pool, invoiceInput, restPayload) {
             payblis_paid_currency = COALESCE(NULLIF(payblis_paid_currency, ''), 'EUR'),
             payblis_ipn_received_at = COALESCE(payblis_ipn_received_at, NOW()),
             payblis_ipn_raw_payload = COALESCE(payblis_ipn_raw_payload, ?),
-            next_check_at = DATE_ADD(NOW(), INTERVAL 25 SECOND),
+            next_check_at = ${nowPlusSecondsSql(25)},
             updated_at = NOW()
         WHERE id = ?`,
       [nextStatus, reportedAmount || null, rawJson, invoice.id]
@@ -3113,6 +3121,11 @@ async function normalizeVipInvoicePaymentMethods(pool) {
 }
 
 async function ensureVipDonationsTables(pool) {
+  // Tout ce bloc est du DDL/ALTER MySQL (ENUM, AUTO_INCREMENT, INDEX). Sur
+  // PostgreSQL le schéma VIP vient des migrations versionnées : ne rien jouer
+  // ici plutôt que de traduire des ALTER qui doivent rester traçables.
+  if (dialectOf() === 'postgres') return;
+
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS vip_derivation_counters (
       coin ENUM('btc', 'ltc') PRIMARY KEY,

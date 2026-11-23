@@ -10,7 +10,8 @@
  * Retourne le code en clair — uniquement affiché à l'admin, une seule fois.
  */
 
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
+const { insertReturningId } = require('../db/pgCompat');
 const {
   generateAccountCode,
   generateAccountUserId,
@@ -50,7 +51,8 @@ async function approveAccountRequest(pool, requestId, admin) {
     const codeHash = hashAccountCode(normalizeAccountCode(code));
     userId = generateAccountUserId();
 
-    const [credentialResult] = await conn.execute(
+    const credentialId = await insertReturningId(
+      conn,
       'INSERT INTO account_credentials (user_id, code_hash, username, request_id, active) VALUES (?, ?, ?, ?, 1)',
       [userId, codeHash, request.username, request.id]
     );
@@ -59,7 +61,7 @@ async function approveAccountRequest(pool, requestId, admin) {
       `UPDATE account_requests
          SET status = 'approved', credential_id = ?, reviewed_at = NOW(), reviewed_by = ?
        WHERE id = ? AND status = 'pending'`,
-      [credentialResult.insertId, String(admin?.adminId || admin?.userId || ''), request.id]
+      [credentialId, String(admin?.adminId || admin?.userId || ''), request.id]
     );
 
     await conn.commit();

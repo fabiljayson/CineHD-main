@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { isUserVip } from '../utils/authUtils';
 import { Download, Calendar, Star, Loader, AlertCircle, Copy, ExternalLink, X, Crown, Unlock } from 'lucide-react';
 import { toast } from 'sonner';
 import { getTmdbLanguage } from '../i18n';
@@ -542,7 +543,7 @@ const LinkSelector: React.FC<{
   const { t, i18n } = useTranslation();
   const [isClosing, setIsClosing] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
-  const isVipUser = localStorage.getItem('is_vip') === 'true';
+  const isVipUser = isUserVip();
   const navigate = useNavigate();
 
   const is1FichierLink = (link: DecodedLink | null): boolean => {

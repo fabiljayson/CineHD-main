@@ -13,6 +13,14 @@ function securityHeaders(req, res, next) {
   res.setHeader('X-XSS-Protection', '0'); // Disabled per OWASP recommendation (use CSP instead)
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // CSP (item #2 du plan de sécurité) : par défaut aucune source ; les API
+  // backend (connect-src) et le frontend (autres directives) restent répandues.
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; " +
+    "object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+  );
   // HSTS : inoffensif sur une réponse HTTP (le navigateur l'ignore), appliqué
   // dès qu'une réponse passe en HTTPS via le proxy/Cloudflare.
   if (req.secure || req.get('x-forwarded-proto') === 'https') {

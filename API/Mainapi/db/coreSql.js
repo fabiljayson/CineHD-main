@@ -11,8 +11,15 @@
 
 const POSTGRES = 'postgres';
 
+/**
+ * Dialecte effectif : PostgreSQL uniquement si `DB_DRIVER=postgres` **et**
+ * `DATABASE_URL` renseigné ; sinon repli MySQL (localdev). Sans ce repli,
+ * `findSessionByClientId` et `touchSessionIfStale` généreraient du SQL
+ * PostgreSQL sur un pool MySQL.
+ */
 function dialectOf(env = process.env) {
-  return String(env.DB_DRIVER || 'mysql').toLowerCase();
+  if (String(env.DB_DRIVER || 'mysql').toLowerCase() !== POSTGRES) return 'mysql';
+  return env.DATABASE_URL ? POSTGRES : 'mysql';
 }
 
 /**

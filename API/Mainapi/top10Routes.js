@@ -8,6 +8,16 @@
 const express = require("express");
 const router = express.Router();
 const { fetchTmdbDetails } = require("./utils/tmdbCache");
+const { dialectOf } = require("./db/coreSql");
+
+// DATE_SUB et CONCAT(IFNULL(...)) sont MySQL ; l'adaptateur PostgreSQL comprend
+// les intervalles ISO et la concaténation avec `||`. Évalué à l'appel.
+const periodWindowSql = () => dialectOf() === "postgres"
+  ? "created_at >= NOW() - (CAST(? AS integer) * INTERVAL '1 day')"
+  : "created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)";
+const distinctEpisodesSql = () => dialectOf() === "postgres"
+  ? "COUNT(DISTINCT COALESCE(CAST(season_number AS TEXT), '') || '-' || COALESCE(CAST(episode_number AS TEXT), '')) AS episodes_watched"
+  : "COUNT(DISTINCT CONCAT(IFNULL(season_number, ''), '-', IFNULL(episode_number, ''))) AS episodes_watched";
 
 const TMDB_API_URL = "https://api.themoviedb.org/3";
 
@@ -301,7 +311,7 @@ async function buildStatsResult(requestedType, typeConfig, period = DEFAULT_PERI
 
   const periodDays = PERIODS[period];
   if (periodDays) {
-    conditions.push("created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)");
+    conditions.push(periodWindowSql());
     statsParams.push(periodDays);
   }
 
@@ -509,13 +519,13 @@ async function loadContentDetailsMap(config, contentIds, periodDays) {
   }
 
   const periodClause = periodDays
-    ? " AND created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)"
+    ? ` AND ${periodWindowSql()}`
     : "";
   const params = [config.contentType, config.minDuration];
   if (periodDays) params.push(periodDays);
 
   const episodesSelect = config.withEpisodes
-    ? "COUNT(DISTINCT CONCAT(IFNULL(season_number, ''), '-', IFNULL(episode_number, ''))) AS episodes_watched"
+    ? distinctEpisodesSql()
     : "0 AS episodes_watched";
 
   const placeholders = contentIds.map(() => "?").join(", ");
@@ -558,7 +568,7 @@ async function buildTop10ByCategory(
   const orderBy = ALGORITHMS[algo] || ALGORITHMS[DEFAULT_ALGO];
   const periodDays = PERIODS[period] || null;
   const periodClause = periodDays
-    ? " AND created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)"
+    ? ` AND ${periodWindowSql()}`
     : "";
   const params = [config.contentType, config.minDuration];
   if (periodDays) params.push(periodDays);

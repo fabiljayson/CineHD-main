@@ -12,11 +12,11 @@ const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
 const { isAdmin, isUploaderOrAdmin } = require('../middleware/auth');
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 // Lecture publique des liens : seule requête media de ce fichier qui doit suivre
 // le moteur sélectionné. Les autres handlers admin restent sur MySQL tant que
 // leur conversion n'est pas faite.
-const { getPool: getDialectPool } = require('../db/dialect');
+const { getPool: getDialectPool, isPostgres } = require('../db/dialect');
 const { isDuplicateKeyError } = require('../db/pgCompat');
 const { verifyAccessKey, invalidateVipCache } = require('../checkVip');
 const { buildResolvedMaps } = require('../utils/embedExtraction');
@@ -26,6 +26,7 @@ const { getTrustedClientIp } = require('../utils/clientIp');
 const { logDownloadLinkAction } = require('../utils/downloadLinksHistory');
 const { resolveAdminIdentity } = require('../utils/adminIdentity');
 const { readUserData } = require('./sync');
+const { normalizeAccountCode, hashAccountCode, generateAccountCode, generateAccountUserId } = require('../utils/accountCredentials');
 
 function parseAccessKeyExpiresAt(value) {
   if (value === undefined || value === null || value === '') {
@@ -64,6 +65,20 @@ function buildAccessKeyExpiryFromDuration(durationLabel) {
     return null;
   }
 
+  const seconds = durationToSecondsFromNow(durationLabel);
+  return seconds === null ? null : Date.now() + seconds * 1000;
+}
+
+/**
+ * Conversion d'une durée "7 jours" / "1 mois" / "30 minutes" en secondes —
+ * le même matcher que `buildAccessKeyExpiryFromDuration`. Retourne null pour
+ * une saisie absente ou invalide.
+ */
+function durationToSecondsFromNow(durationLabel) {
+  if (!durationLabel) {
+    return null;
+  }
+
   const now = new Date();
   const match = durationLabel.match(/(\d+)\s*(min|minute|minutes|h|hour|hours|heure|heures|d|day|days|jour|jours|m|month|months|mois|y|year|years|an|ans)/i);
 
@@ -73,20 +88,24 @@ function buildAccessKeyExpiryFromDuration(durationLabel) {
 
   const duration = parseInt(match[1], 10);
   const unit = match[2].toLowerCase();
+  const shifted = new Date(now.getTime());
 
   if (unit.startsWith('min')) {
-    now.setMinutes(now.getMinutes() + duration);
+    shifted.setMinutes(shifted.getMinutes() + duration);
   } else if (unit.startsWith('h')) {
-    now.setHours(now.getHours() + duration);
+    shifted.setHours(shifted.getHours() + duration);
   } else if (unit.startsWith('d') || unit.startsWith('j')) {
-    now.setDate(now.getDate() + duration);
+    shifted.setDate(shifted.getDate() + duration);
   } else if (unit.startsWith('m')) {
-    now.setMonth(now.getMonth() + duration);
+    shifted.setMonth(shifted.getMonth() + duration);
   } else if (unit.startsWith('y') || unit.startsWith('an')) {
-    now.setFullYear(now.getFullYear() + duration);
+    shifted.setFullYear(shifted.getFullYear() + duration);
+  } else {
+    return null;
   }
 
-  return now.getTime();
+  const seconds = Math.floor((shifted.getTime() - now.getTime()) / 1000);
+  return seconds > 0 ? seconds : null;
 }
 
 // Rate limiter pour la vérification de codes VIP
@@ -422,7 +441,7 @@ router.post('/admin/links', isUploaderOrAdmin, async (req, res) => {
 
       // Insérer ou mettre à jour le film
       await pool.execute(
-        'INSERT INTO films (id, links) VALUES (?, ?) ON DUPLICATE KEY UPDATE links = VALUES(links), updated_at = CURRENT_TIMESTAMP',
+        'INSERT INTO films (id, links) VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET links = EXCLUDED.links, updated_at = CURRENT_TIMESTAMP',
         [id, linksJson]
       );
 
@@ -993,14 +1012,24 @@ router.get('/admin/vip-keys', isAdmin, async (req, res) => {
 
     if (search) {
       const likeSearch = `%${search}%`;
-      conditions.push(`(
-        key_value LIKE ?
-        OR COALESCE(duree_validite, '') LIKE ?
-        OR COALESCE(CAST(expires_at AS CHAR), '') LIKE ?
-        OR COALESCE(DATE_FORMAT(FROM_UNIXTIME(expires_at / 1000), '%Y-%m-%d %H:%i:%s'), '') LIKE ?
-        OR COALESCE(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') LIKE ?
-      )`);
-      params.push(likeSearch, likeSearch, likeSearch, likeSearch, likeSearch);
+      if (isPostgres()) {
+        conditions.push(`(
+          key_value LIKE ?
+          OR COALESCE(duree_validite, '') LIKE ?
+          OR COALESCE(to_char(to_timestamp(expires_at / 1000), 'YYYY-MM-DD HH24:MI:SS'), '') LIKE ?
+          OR COALESCE(to_char(created_at, 'YYYY-MM-DD HH24:MI:SS'), '') LIKE ?
+        )`);
+        params.push(likeSearch, likeSearch, likeSearch, likeSearch);
+      } else {
+        conditions.push(`(
+          key_value LIKE ?
+          OR COALESCE(duree_validite, '') LIKE ?
+          OR COALESCE(CAST(expires_at AS CHAR), '') LIKE ?
+          OR COALESCE(DATE_FORMAT(FROM_UNIXTIME(expires_at / 1000), '%Y-%m-%d %H:%i:%s'), '') LIKE ?
+          OR COALESCE(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') LIKE ?
+        )`);
+        params.push(likeSearch, likeSearch, likeSearch, likeSearch, likeSearch);
+      }
     }
 
     let whereClause = '';
@@ -1250,6 +1279,126 @@ router.delete('/admin/vip-keys/:key', isAdmin, async (req, res) => {
   }
 });
 
+/**
+ * POST /admin/account-codes
+ * Génère un code de connexion compte (format CINE-XXXXX-XXXXX-XXXXX) et stocke
+ * son empreinte dans `account_credentials` — le code lui-même n'est jamais
+ * stocké en clair (même convention que approveAccountRequest). Body :
+ * { code?: string, duree_validite?: string } — sans `code` un nouveau code est
+ * généré ; avec `code` le code fourni est stocké. `duree_validite` (au format
+ * des clés VIP, ex. "7 jours") définit la durée de validité du compte :
+ * elle est stockée dans `account_credentials.validity_seconds` et
+ * `subscription_expires_at` n'est pas fixé ici — le minuteur se crée à
+ * l'usage valide (1er login, vérifié par /api/auth/account/login).
+ */
+router.post('/admin/account-codes', isAdmin, async (req, res) => {
+  try {
+    const { code, duree_validite } = req.body || {};
+    const pool = getPool();
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Service temporairement indisponible' });
+    }
+
+    const provided = typeof code === 'string' ? code.trim() : '';
+    const normalized = normalizeAccountCode(provided);
+    if (provided !== '' && normalized.length < 8) {
+      return res.status(400).json({ success: false, error: 'Code invalide' });
+    }
+    const newCode = provided === '' ? generateAccountCode() : normalized;
+    const codeHash = hashAccountCode(normalizeAccountCode(newCode));
+    // Durée sélectionnée sur la page de gestion — ne crée pas encore de minuteur :
+    // subscription_expires_at se règle à l'usage valide (1er login).
+    const validitySeconds = durationToSecondsFromNow(duree_validite);
+
+    const [existing] = await pool.execute(
+      'SELECT id, user_id FROM account_credentials WHERE code_hash = ? LIMIT 1',
+      [codeHash]
+    );
+    if (existing.length > 0) {
+      // Idempotent : le code est déjà stocké — on renvoie la fiche existante au lieu d'erreur.
+      return res.status(200).json({
+        success: true,
+        code: newCode,
+        userId: String(existing[0].user_id),
+        active: true,
+        alreadyExists: true
+      });
+    }
+
+    const userId = generateAccountUserId();
+    await pool.execute(
+      'INSERT INTO account_credentials (user_id, code_hash, username, active, validity_seconds) VALUES (?, ?, ?, 1, ?)',
+      [userId, codeHash, 'account-code-' + userId.slice(0, 8), validitySeconds]
+    );
+
+    return res.status(201).json({
+      success: true,
+      code: newCode,
+      userId,
+      active: true,
+      subscriptionExpiresAt: null
+    });
+  } catch (error) {
+    console.error('Error generating account code:', error);
+    return res.status(500).json({ success: false, error: 'Erreur lors de la génération du code' });
+  }
+});
+
+/**
+ * GET /admin/account-codes
+ * Liste les codes de connexion compte (lignes `account_credentials` — seule
+ * l'empreinte est stockée). Paramètres : page, limit, active (true/false),
+ * search (recherche sur user_id ou username). Réponse :
+ * { success, keys, count, total, page, limit, hasMore }
+ */
+router.get('/admin/account-codes', isAdmin, async (req, res) => {
+  try {
+    const pool = getPool();
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 30));
+    const offset = (page - 1) * limit;
+
+    const conditions = [];
+    const params = [];
+    if (req.query.active === 'true' || req.query.active === 'false') {
+      conditions.push(`active = ${req.query.active === 'true' ? 1 : 0}`);
+    }
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+    if (search) {
+      const likeSearch = `%${search}%`;
+      conditions.push('(user_id LIKE ? OR username LIKE ?)');
+      params.push(likeSearch, likeSearch);
+    }
+
+    const whereClause = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
+
+    const [[countRow]] = await pool.execute(
+      `SELECT COUNT(*) AS total FROM account_credentials${whereClause}`,
+      params
+    );
+    const total = Number(countRow?.total || 0);
+
+    const [rows] = await pool.execute(
+      `SELECT id, user_id, username, active, subscription_expires_at, created_at FROM account_credentials${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    );
+
+    res.json({
+      success: true,
+      keys: rows,
+      count: rows.length,
+      total,
+      page,
+      limit,
+      hasMore: offset + rows.length < total
+    });
+
+  } catch (error) {
+    console.error('Error listing account codes:', error);
+    return res.status(500).json({ success: false, error: 'Erreur lors du chargement des codes' });
+  }
+});
+
 function mergeDownloadLinks(existing, incoming, { adminId, userType, fullSeason }) {
   const existingLinks = Array.isArray(existing) ? existing : [];
   const existingUrls = new Set(existingLinks.map(l => l.url));
@@ -1349,7 +1498,7 @@ router.post('/admin/download-links', isUploaderOrAdmin, async (req, res) => {
 
     if (type === 'movie') {
       await pool.execute(
-        'INSERT INTO films (id, download_links) VALUES (?, ?) ON DUPLICATE KEY UPDATE download_links = VALUES(download_links), updated_at = CURRENT_TIMESTAMP',
+        'INSERT INTO films (id, download_links) VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET download_links = EXCLUDED.download_links, updated_at = CURRENT_TIMESTAMP',
         [id, mergedJson]
       );
     } else {

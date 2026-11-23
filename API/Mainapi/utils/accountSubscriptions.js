@@ -13,6 +13,7 @@
 
 const crypto = require('crypto');
 const { getPlanById } = require('./accountPlans');
+const { insertReturningId } = require('../db/pgCompat');
 
 function generateReceiptPublicId() {
   return `RCP-${crypto.randomBytes(5).toString('hex').toUpperCase()}`;
@@ -98,7 +99,8 @@ async function createSubscriptionReceipt(conn, params) {
   const validUntil = addDays(validFrom, plan.days);
 
   const publicId = generateReceiptPublicId();
-  const [result] = await conn.execute(
+  const receiptId = await insertReturningId(
+    conn,
     `INSERT INTO subscription_receipts
        (public_id, request_id, user_id, username, plan_id, plan_days, amount_fcfa,
         payment_method, payer_msisdn, payment_reference, valid_from, valid_until, issued_by)
@@ -126,7 +128,7 @@ async function createSubscriptionReceipt(conn, params) {
   );
 
   return {
-    id: Number(result.insertId),
+    id: Number(receiptId),
     publicId,
     requestId: requestId === null ? null : Number(requestId),
     userId: String(credential.user_id),

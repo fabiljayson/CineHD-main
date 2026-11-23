@@ -185,7 +185,8 @@ const path = require('path');
 const { app, appReady } = require('./app');
 const { redis } = require('./config/redis');
 const { shutdownCycleTLS, refreshProxyScrapeProxies } = require('./utils/proxyManager');
-const { getPool } = require('./mysqlPool');
+const { getPool } = require('./db/dialect');
+const { closePostgresPool } = require('./postgresPool');
 
 // Port d'écoute. `PORT` est lu pour les Containers (`docker run -e PORT=…`,
 // Cloudflare, orchestrateur) ; le défaut local reste 25565. Une valeur absente,
@@ -405,7 +406,11 @@ const shutdownWorker = async () => {
     Promise.allSettled([probeStopped,
       Promise.resolve().then(() => redis.quit()),
       Promise.resolve().then(() => shutdownCycleTLS()),
-      Promise.resolve().then(() => getPool()?.end()),
+      Promise.resolve().then(async () => {
+        const pool = getPool();
+        if (pool?.end) await pool.end();
+        await closePostgresPool();
+      }),
     ]),
     new Promise((resolve) => { cleanupTimer = setTimeout(resolve, 3000); }),
   ]);

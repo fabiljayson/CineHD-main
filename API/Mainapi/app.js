@@ -573,24 +573,38 @@ app.use('/api/download-links', downloadLinksLeaderboardRouter);
 
 const {
   initPool,
-  getPool,
   SCHEMA_BOOTSTRAP_LOCK_NAME,
   withMysqlAdvisoryLock
 } = require('./mysqlPool');
+const {
+  getPool: getDialectPool,
+  isPostgres,
+  withAdvisoryLock: withDialectAdvisoryLock,
+} = require('./db/dialect');
 const { ensureAccountLinksStorage } = require('./utils/accountLinks');
 const { ensureCloneLinksStorage } = require('./utils/cloneLinks');
 const { ensureOAuthStorage } = require('./utils/oauthStorage');
 
 const appReady = (async () => {
   try {
-    const pool = await initPool();
-    console.log("MySQL unified pool initialized successfully");
-    await withMysqlAdvisoryLock(pool, SCHEMA_BOOTSTRAP_LOCK_NAME, async () => {
+    // PostgreSQL : le schéma appartient aux migrations versionnées. On ne
+    // touche jamais à initPool() (MySQL) et aucun DDL MySQL n'est rejoué ici.
+    // Sans DB_DRIVER=postgres, `pool` reste exactement le pool MySQL précédent.
+    const usePostgres = isPostgres();
+    const pool = usePostgres ? getDialectPool() : await initPool();
+    console.log(usePostgres
+      ? "PostgreSQL dialect pool initialized successfully"
+      : "MySQL unified pool initialized successfully");
+    const runWithBootstrapLock = usePostgres
+      ? (task) => withDialectAdvisoryLock(SCHEMA_BOOTSTRAP_LOCK_NAME, task)
+      : (task) => withMysqlAdvisoryLock(pool, SCHEMA_BOOTSTRAP_LOCK_NAME, task);
+    await runWithBootstrapLock(async () => {
       console.log(
-        `[Bootstrap] Worker ${process.pid} acquired MySQL schema lock`,
+        `[Bootstrap] Worker ${process.pid} acquired ${usePostgres ? 'PostgreSQL' : 'MySQL'} schema lock`,
       );
 
-      // Créer la table user_sessions si elle n'existe pas
+      // Créer la table user_sessions si elle n'existe pas (MySQL uniquement).
+      if (!usePostgres) {
       await pool.execute(`
       CREATE TABLE IF NOT EXISTS user_sessions (
         id VARCHAR(255) PRIMARY KEY,
@@ -604,6 +618,7 @@ const appReady = (async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
       console.log("Table user_sessions initialized successfully");
+      }
 
       await ensureAccountLinksStorage();
       console.log("Table account_links initialized successfully");
@@ -634,6 +649,7 @@ const appReady = (async () => {
 
       // Initialize Wishboard routes
       const { createWishboardRouter } = require("./wishboardRoutes");
+      // Routeur injecté avec le pool du dialecte actif (jamais mysqlPool brut).
       const wishboardRouter = createWishboardRouter(pool, redis);
       app.use("/api/wishboard", wishboardRouter);
       app.use("/api/admin/wishboard", wishboardRouter);
@@ -643,9 +659,13 @@ const appReady = (async () => {
       const {
         createLinkSubmissionsRouter,
       } = require("./linkSubmissionsRoutes");
+      // `pool` est le pool du dialecte actif : MySQL par défaut, PostgreSQL
+      // quand DB_DRIVER=postgres. Aucun routeur ne reçoit le pool MySQL brut.
       const linkSubmissionsRouter = createLinkSubmissionsRouter(pool, redis);
       app.use("/api/link-submissions", linkSubmissionsRouter);
-      // Create link_submissions table if not exists
+      // Create link_submissions table if not exists (MySQL uniquement ; sur
+      // PostgreSQL la table vient de la migration 003_community.sql).
+      if (!usePostgres) {
       await pool.execute(`
       CREATE TABLE IF NOT EXISTS link_submissions (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -669,9 +689,12 @@ const appReady = (async () => {
         INDEX idx_ls_created (created_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+      }
       console.log("Link Submissions routes initialized successfully");
 
       // Download links schema (admin-managed downloads + history/leaderboard)
+      // et colonnes d'ajout : DDL MySQL, porté par les migrations sur PostgreSQL.
+      if (!usePostgres) {
       await pool.execute(`
         CREATE TABLE IF NOT EXISTS download_links_history (
           id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -735,9 +758,11 @@ const appReady = (async () => {
         }
       }
       console.log("Download links schema initialized successfully");
+      }
 
       // Initialize Top 10 routes (public ranking)
       const { router: top10Router, initTop10Routes } = require("./top10Routes");
+      // `pool` est déjà le pool du dialecte actif (voir début de appReady).
       initTop10Routes(pool, redis);
       app.use("/api/top10", top10Router);
       console.log("Top 10 routes initialized successfully");
@@ -757,6 +782,7 @@ const appReady = (async () => {
 
       // Initialize Personalized Recommendations (frontend: /api/recommendations/personalized)
       const recommendationRoutes = require("./recommendationRoutes");
+      // `pool` est déjà le pool du dialecte actif (voir début de appReady).
       recommendationRoutes.initRecommendationRoutes(pool, redis);
       app.use("/api/recommendations", recommendationRoutes.router);
       console.log("Recommendation routes initialized successfully");
@@ -778,7 +804,9 @@ const appReady = (async () => {
 
 // === Pool getter for other modules ===
 function getAppPool() {
-  return getPool();
+  // Même pool que celui injecté dans les routeurs : MySQL par défaut,
+  // PostgreSQL dès que DB_DRIVER=postgres.
+  return getDialectPool();
 }
 
 // Hydracker freeze (2026-05-15): the queue, worker lock, and rate-limit key

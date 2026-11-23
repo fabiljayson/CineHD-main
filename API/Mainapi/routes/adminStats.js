@@ -1,7 +1,7 @@
 'use strict';
 const express = require('express');
 const { isAdmin } = require('../middleware/auth');
-const { getPool } = require('../mysqlPool');
+const { getPool, isPostgres } = require('../db/dialect');
 const { redis } = require('../config/redis');
 const { scanUserStore } = require('../utils/userStatsScan');
 const { zeroFillSeries } = require('../utils/statsAggregate');
@@ -90,21 +90,32 @@ async function getSqlAggregate(range, sinceMs) {
   const pool = getPool();
   const sinceDate = new Date(sinceMs); // for TIMESTAMP columns
 
+  // Bucket « date » des stats — dialecte : `to_char` sur PostgreSQL,
+  // `DATE_FORMAT` sur MySQL. `ms` = colonne BIGINT ms (comments/shared_lists)
+  // vs TIMESTAMP — on fait transiter le `WHERE created_at >= ?` identique.
+  const dayBucket = (column, { ms = true } = {}) => (isPostgres()
+    ? (ms
+      ? `to_char(to_timestamp(${column} / 1000), 'YYYY-MM-DD')`
+      : `to_char(${column}, 'YYYY-MM-DD')`)
+    : (ms
+      ? `DATE_FORMAT(FROM_UNIXTIME(${column}/1000),'%Y-%m-%d')`
+      : `DATE_FORMAT(${column},'%Y-%m-%d')`));
+
   // user_sessions: TIMESTAMP. comments/shared_lists: BIGINT ms. vip_invoices: TIMESTAMP.
   const [sessions] = await pool.execute(
-    "SELECT DATE_FORMAT(created_at,'%Y-%m-%d') AS date, COUNT(*) AS count " +
+    `SELECT ${dayBucket('user_sessions.created_at', { ms: false })} AS date, COUNT(*) AS count ` +
     "FROM user_sessions WHERE created_at >= ? GROUP BY date ORDER BY date",
     [sinceDate]);
   const [dau] = await pool.execute(
-    "SELECT DATE_FORMAT(created_at,'%Y-%m-%d') AS date, COUNT(DISTINCT user_id) AS count " +
+    `SELECT ${dayBucket('user_sessions.created_at', { ms: false })} AS date, COUNT(DISTINCT user_id) AS count ` +
     "FROM user_sessions WHERE created_at >= ? GROUP BY date ORDER BY date",
     [sinceDate]);
   const [comments] = await pool.execute(
-    "SELECT DATE_FORMAT(FROM_UNIXTIME(created_at/1000),'%Y-%m-%d') AS date, COUNT(*) AS count " +
+    `SELECT ${dayBucket('comments.created_at')} AS date, COUNT(*) AS count ` +
     "FROM comments WHERE created_at >= ? GROUP BY date ORDER BY date",
     [sinceMs]);
   const [sharedLists] = await pool.execute(
-    "SELECT DATE_FORMAT(FROM_UNIXTIME(created_at/1000),'%Y-%m-%d') AS date, COUNT(*) AS count " +
+    `SELECT ${dayBucket('shared_lists.created_at')} AS date, COUNT(*) AS count ` +
     "FROM shared_lists WHERE created_at >= ? GROUP BY date ORDER BY date",
     [sinceMs]);
 
@@ -113,7 +124,7 @@ async function getSqlAggregate(range, sinceMs) {
   let vip = [];
   try {
     [vip] = await pool.execute(
-      "SELECT DATE_FORMAT(created_at,'%Y-%m-%d') AS date, COUNT(*) AS count " +
+      `SELECT ${dayBucket('vip_invoices.created_at', { ms: false })} AS date, COUNT(*) AS count ` +
       "FROM vip_invoices WHERE status='delivered' AND created_at >= ? GROUP BY date ORDER BY date",
       [sinceDate]);
   } catch (e) {

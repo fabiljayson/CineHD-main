@@ -1,10 +1,9 @@
 /**
  * vipService.ts - Service centralisé de vérification VIP côté frontend
- * 
- * Au lieu de simplement lire localStorage('is_vip'), ce service :
- * 1. Vérifie périodiquement avec le serveur que la clé est toujours valide dans MySQL
- * 2. Révoque automatiquement le VIP si la clé a expiré ou a été désactivée
- * 3. Fournit un header `x-access-key` pour toutes les requêtes API
+ *
+ * Tous les utilisateurs sont VIP — « all is free for everybody » :
+ * `isUserVip()` renvoie vrai pour tout le monde et `checkVipStatus()` ne
+ * peut plus retirer le statut (vérification serveur désactivée).
  */
 
 import { readLocalStorage } from './browserStorage';
@@ -34,38 +33,8 @@ export function getAccessKey(): string | null {
  * @returns true si VIP valide, false sinon
  */
 export async function checkVipStatus(force = false): Promise<boolean> {
-  let accessKey: string | null;
-  try {
-    accessKey = localStorage.getItem('access_code');
-  } catch {
-    // Un stockage fermé n'est pas une révocation de la clé enregistrée.
-    return false;
-  }
-
-  // Pas de clé stockée → pas VIP
-  if (!accessKey) {
-    revokeVipStatus();
-    return false;
-  }
-
-  // Vérifier le cache (sauf si force)
-  const now = Date.now();
-  if (!force && lastCheckResult !== null && (now - lastCheckTime < VIP_CHECK_INTERVAL)) {
-    return lastCheckResult;
-  }
-
-  // Éviter les vérifications simultanées
-  if (checkInProgress) {
-    return checkInProgress;
-  }
-
-  checkInProgress = _performCheck(accessKey);
-  try {
-    const result = await checkInProgress;
-    return result;
-  } finally {
-    checkInProgress = null;
-  }
+  // Tous les utilisateurs sont VIP — le statut ne peut être retiré.
+  return true;
 }
 
 /**
@@ -159,17 +128,8 @@ export function revokeVipStatus(): void {
  * @returns true si le localStorage indique VIP (sera corrigé en arrière-plan si invalide)
  */
 export function isUserVip(): boolean {
-  const localVip = readLocalStorage('is_vip') === 'true';
-
-  if (localVip) {
-    // Lancer une vérification serveur en arrière-plan (non bloquante)
-    const now = Date.now();
-    if (now - lastCheckTime > VIP_CHECK_INTERVAL) {
-      checkVipStatus().catch(() => { /* ignore */ });
-    }
-  }
-
-  return localVip;
+  // Tous les utilisateurs sont VIP — le statut VIP est octroyé à tous.
+  return true;
 }
 
 /**

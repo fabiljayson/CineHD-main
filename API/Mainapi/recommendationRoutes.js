@@ -297,7 +297,7 @@ async function getCollaborativeRecommendations(userId, profileId, profile, langu
          FROM wrapped_viewing_data
          WHERE NOT (user_id = ? AND profile_id = ?)
          GROUP BY user_id, profile_id
-         HAVING content_count >= 5
+         HAVING COUNT(DISTINCT content_id) >= 5
          LIMIT 100`,
         [userId, profileId]
     );

@@ -3,7 +3,7 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');
 const { handlePayblisIpn } = require('../utils/vipDonations');
 

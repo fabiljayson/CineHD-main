@@ -49,6 +49,10 @@ export interface ResolvedAuthResponse {
   user?: StoredUserProfile | null;
   account?: ResolvedAccountPayload | null;
   authData?: AuthDataPayload | null;
+  // Minuteur d'abonnement renvoyé par les logins par code (authRoutes.js
+  // /account/login). Stocké dans localStorage et relu par le minuteur du
+  // Header (hooks/useSubscriptionCountdown).
+  subscriptionExpiresAt?: string | null;
   // Vrai si le pseudo provider stocké viole la policy (trop long, contient
   // caractères de contrôle/zero-width). Le frontend affiche une modale
   // bloquante qui force l'user à choisir un nouveau pseudo via POST /api/auth/username.
@@ -97,6 +101,9 @@ const AUTH_KEYS = [
   'resolved_user_id',
   'user_id',
   'requires_username_change',
+  // Minuteur d'abonnement d'un code de connexion — armé à l'usage valide (1er
+  // login). Effacé sur toute nouvelle connexion par clearStoredAuthSessionLocally.
+  'subscription_expires_at',
 ] as const;
 
 function isAuthMethod(value: string | null): value is AuthMethod {
@@ -467,6 +474,12 @@ export function persistResolvedSession(
   // La clé reste, avec un marqueur non secret : toute l'app s'en sert comme
   // test « une session est ouverte ».
   if (payload.token) localStorage.setItem('auth_token', SESSION_MARKER);
+
+  // Minuteur d'abonnement (login par code) : la réponse l'a peuplé ; sans
+  // valeur, clearStoredAuthSessionLocally a déjà nettoyé la clé.
+  if (payload.subscriptionExpiresAt) {
+    localStorage.setItem('subscription_expires_at', payload.subscriptionExpiresAt);
+  }
 
   if (method === 'discord') {
     const providerId = String(rawUser?.id || resolvedUserId);

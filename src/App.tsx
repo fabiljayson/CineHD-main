@@ -6,6 +6,7 @@ import { TooltipProvider } from './components/ui/tooltip';
 import Header from './components/Header';
 import Home from './pages/Home';
 import LandingPage from './pages/LandingPage';
+import PreOrder from './pages/PreOrder';
 import DnsBlockBanner from './components/DnsBlockBanner';
 import CookieConsentBanner from './components/CookieConsentBanner';
 import RouteRobots from './components/RouteRobots';
@@ -42,6 +43,7 @@ import ScreenSaver from './components/ScreenSaver';
 import { useIdleTimer } from './hooks/useIdleTimer';
 import { startVipVerification } from './utils/vipUtils';
 import { readLocalStorage, readSessionStorage } from './utils/browserStorage';
+import { isUserVip } from './utils/authUtils';
 import { isSessionAuthenticated, useSessionAuthenticated } from './utils/session';
 import { broadcastAuthChange, clearStoredAuthSession, getResolvedAccountContext } from './utils/accountAuth';
 import { isSyncableStorageKey, SYNC_OUTBOX_STORAGE_KEY } from './utils/syncStorage';
@@ -1672,7 +1674,7 @@ const ProfileGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Check if user is authenticated
   const isDiscordAuth = readLocalStorage('discord_auth') === 'true';
   const isBip39Auth = readLocalStorage('bip39_auth') === 'true';
-  const isVipUser = readLocalStorage('is_vip') === 'true';
+  const isVipUser = isUserVip();
 
   // Vérifier l'ancienne méthode d'authentification VIP (pour compatibilité)
   let isVipAuth = false;
@@ -1912,6 +1914,7 @@ const AppWithIntro: React.FC = () => {
             {/* Eager — premier écran : landing pour les visiteurs, catalogue
                 pour les utilisateurs déjà authentifiés (LandingRoot). */}
             <Route path="/" element={<LandingRoot />} />
+            <Route path="/pre-order" element={<PreOrder />} />
             <Route path="/home" element={<Home />} />
 
             {/* Routes spéciales avec props ou logique conditionnelle — lazy (perf) */}

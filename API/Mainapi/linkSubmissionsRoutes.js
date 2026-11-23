@@ -16,6 +16,13 @@ const fs = require('fs').promises;
 const path = require('path');
 const { verifyAccessKey } = require('./checkVip');
 const { extractSessionToken } = require('./middleware/sessionCookie');
+const { dialectOf } = require('./db/coreSql');
+
+// Fenêtre de limitation à 24 h : DATE_SUB est MySQL, l'adaptateur PostgreSQL
+// attend un intervalle ISO. Évalué à l'appel pour respecter DB_DRIVER courant.
+const last24hWindowSql = () => dialectOf() === 'postgres'
+    ? "NOW() - INTERVAL '24 hours'"
+    : 'DATE_SUB(NOW(), INTERVAL 24 HOUR)';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -168,18 +175,19 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
         const [movieResult] = await mysqlPool.execute(
             `SELECT COUNT(*) as count FROM link_submissions 
              WHERE profile_id = ? AND media_type = 'movie'
-             AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)`,
+             AND created_at >= ${last24hWindowSql()}`,
             [profileId]
         );
         // Count unique series (by tmdb_id) submitted in last 24h
         const [seriesResult] = await mysqlPool.execute(
             `SELECT COUNT(DISTINCT tmdb_id) as count FROM link_submissions 
              WHERE profile_id = ? AND media_type = 'tv'
-             AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)`,
+             AND created_at >= ${last24hWindowSql()}`,
             [profileId]
         );
-        const movieCount = movieResult[0].count;
-        const seriesCount = seriesResult[0].count;
+        // pg renvoie COUNT(*) en chaîne ; le contrat JSON reste numérique.
+        const movieCount = Number(movieResult[0].count) || 0;
+        const seriesCount = Number(seriesResult[0].count) || 0;
         const movieLimit = 15;
         const seriesLimit = 10;
         return {
@@ -193,7 +201,7 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
         const [result] = await mysqlPool.execute(
             `SELECT COUNT(*) as count FROM link_submissions 
              WHERE profile_id = ? AND media_type = 'tv' AND tmdb_id = ?
-             AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)`,
+             AND created_at >= ${last24hWindowSql()}`,
             [profileId, tmdbId]
         );
         return result[0].count > 0;
@@ -436,7 +444,10 @@ function createLinkSubmissionsRouter(mysqlPool, redis) {
                 [submissionId, profileId]
             );
 
-            if (result.affectedRows === 0) {
+            // L'adaptateur PostgreSQL expose affectedRows comme mysql2 ; rowCount
+            // reste accepté pour un pool injecté directement.
+            const affectedRows = result.affectedRows ?? result.rowCount ?? 0;
+            if (affectedRows === 0) {
                 return res.status(404).json({ error: 'Soumission non trouvée ou déjà traitée' });
             }
 

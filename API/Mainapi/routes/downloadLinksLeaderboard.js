@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const { isUploaderOrAdmin } = require('../middleware/auth');
 const { resolveAdminIdentity } = require('../utils/adminIdentity');
 

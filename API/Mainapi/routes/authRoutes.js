@@ -23,6 +23,8 @@ const { verifyTurnstileFromRequest } = require('../utils/turnstile');
 const { getSessionDeviceInfo } = require('../utils/sessionDeviceInfo');
 const { normalizeAccountCode, hashAccountCode } = require('../utils/accountCredentials');
 const { verifyAccountPassword } = require('../utils/accountPasswords');
+const { verifyTotp } = require('../utils/mfa');
+const { toSqlDateTime } = require('../utils/accountSubscriptions');
 const {
   SUPPORTED_PROVIDERS,
   isSupportedProvider,
@@ -593,6 +595,11 @@ router.post('/bip39/login', authRateLimit, ...authBodyParsers, async (req, res) 
 // seule son empreinte est stockée (account_credentials.code_hash), et la
 // session émise est identique à n'importe quelle autre session bip39 —
 // indépendante de l'appareil, réutilisable sur tous les navigateurs.
+// Validité : subscription_expires_at peut être fixé à la génération
+// (code PDF commis avant le paiement). Pour les codes générés ici, la durée
+// stockée à la génération (validity_seconds) ne crée le minuteur qu'à
+// l'usage valide — 1er login — afin qu'un code non utilisé n'entame pas sa
+// validité ; les logins suivants ne le repoussent pas (pas de reset).
 router.post('/account/login', authRateLimit, ...authBodyParsers, async (req, res) => {
   try {
     const { code, turnstileToken } = req.body || {};
@@ -616,13 +623,20 @@ router.post('/account/login', authRateLimit, ...authBodyParsers, async (req, res
     }
 
     const [credentialRows] = await pool.execute(
-      'SELECT id, user_id, username, active FROM account_credentials WHERE code_hash = ? LIMIT 1',
+      'SELECT id, user_id, username, active, subscription_expires_at, last_login_at, validity_seconds FROM account_credentials WHERE code_hash = ? LIMIT 1',
       [hashAccountCode(normalizedCode)]
     );
 
     const credential = credentialRows[0];
     if (!credential || Number(credential.active) !== 1) {
       return res.status(401).json({ success: false, error: 'Code invalide' });
+    }
+
+    // Validité associée au code — stockée à la génération sur la page de
+    // gestion. Vérifiée avant l'armement de l'abonnement nouveau.
+    const expiresAt = credential.subscription_expires_at ? new Date(credential.subscription_expires_at) : null;
+    if (expiresAt && expiresAt.getTime() <= Date.now()) {
+      return res.status(401).json({ success: false, error: 'Code expiré' });
     }
 
     const userId = String(credential.user_id);
@@ -649,12 +663,33 @@ router.post('/account/login', authRateLimit, ...authBodyParsers, async (req, res
       },
     });
 
-    await pool.execute('UPDATE account_credentials SET last_login_at = NOW() WHERE id = ?', [credential.id]);
+    // 1er login du code : la durée stockée à la génération (validity_seconds)
+    // devient la validité de l'abonnement. Les logins suivants ne doivent pas
+    // la repousser — un code réutilisé ne prolonge pas sa validité.
+    const validitySeconds = Number(credential.validity_seconds);
+    if (!credential.last_login_at && Number.isFinite(validitySeconds) && validitySeconds > 0) {
+      const armedExpiry = new Date(Date.now() + validitySeconds * 1000);
+      await pool.execute(
+        'UPDATE account_credentials SET last_login_at = NOW(), subscription_expires_at = ? WHERE id = ?',
+        [toSqlDateTime(armedExpiry), credential.id]
+      );
+    } else {
+      await pool.execute('UPDATE account_credentials SET last_login_at = NOW() WHERE id = ?', [credential.id]);
+    }
+
+    const [updatedRows] = await pool.execute(
+      'SELECT subscription_expires_at FROM account_credentials WHERE id = ? LIMIT 1',
+      [credential.id]
+    );
+    const subscriptionExpiresAt = updatedRows[0]?.subscription_expires_at
+      ? new Date(updatedRows[0].subscription_expires_at).toISOString()
+      : null;
 
     return res.status(200).json({
       ...payload,
       userId: payload.account.userId,
       userProfile: payload.authData.userProfile,
+      subscriptionExpiresAt,
       message: 'Connexion réussie',
     });
   } catch (error) {
@@ -709,6 +744,11 @@ router.post('/account/password-login', authRateLimit, ...authBodyParsers, async 
       return res.status(401).json({ success: false, error: 'Identifiants invalides' });
     }
 
+    // --- MFA (TOTP) — login bloqué jusqu'au code valide (débloque via verify-mfa) ---
+    if (credential && Number(credential.mfa_required) === 1) {
+      return res.status(401).json({ success: false, error: 'mfa_required', requiresMfa: true });
+    }
+
     const userId = String(credential.user_id);
     const { readUserData } = getSyncModule();
     const storedUserData = await readUserData('bip39', userId) || {};
@@ -757,6 +797,36 @@ router.post('/account/password-login', authRateLimit, ...authBodyParsers, async 
     res.status(500).json({ success: false, error: 'Erreur lors de la connexion' });
   }
 });
+
+  // MFA (TOTP) — débloque le login bloqué : vérifie le code TOTP stocké dans
+  // account_credentials.mfa_secret. Le frontend affiche la réponse pour
+  // proposer l'input du code ; après un code valide, le login peut réessayer
+  // (mfa_required mis à 0).
+  router.post('/account/verify-mfa', authRateLimit, ...authBodyParsers, async (req, res) => {
+    try {
+      const { username, code } = req.body || {};
+      if (!username || typeof username !== 'string' || !code || typeof code !== 'string') {
+        return res.status(400).json({ success: false, error: 'Pseudo et code requis' });
+      }
+      const [credentialRows] = await getPool().execute(
+        `SELECT id, username, active, mfa_required, mfa_secret
+           FROM account_credentials WHERE username = ? AND password_hash IS NOT NULL LIMIT 1`,
+        [String(username).replace(/\s+/g, ' ').trim()]
+      );
+      const credential = credentialRows[0];
+      const okTotp = Boolean(credential)
+        && Number(credential.mfa_required) === 1
+        && verifyTotp(credential.mfa_secret, code);
+      if (!okTotp) {
+        return res.status(401).json({ success: false, error: 'Code invalide' });
+      }
+      await getPool().execute('UPDATE account_credentials SET mfa_required = 0 WHERE id = ?', [credential.id]);
+      return res.status(200).json({ success: true, message: 'MFA déverrouillé — relancez le login' });
+    } catch (error) {
+      console.error('Error verifying MFA code:', error);
+      res.status(500).json({ success: false, error: 'Erreur lors de la vérification MFA' });
+    }
+  });
 
 // POST /discord/verify
 router.post('/discord/verify', authRateLimit, ...authBodyParsers, async (req, res) => {

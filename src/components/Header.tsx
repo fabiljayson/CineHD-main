@@ -4,7 +4,7 @@ import Snowfall from 'react-snowfall';
 import { useLightMode } from '@/context/LightModeContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
-import { Film, Search, Menu, X, Star, Tv2, Users, Clapperboard, Bell, Lightbulb, Network, List, Radio, Unlock, ChevronDown, LayoutGrid, Settings, Dices, Sparkles, HelpCircle, Github } from 'lucide-react';
+import { Film, Search, Menu, X, Star, Tv2, Users, Clapperboard, Bell, Lightbulb, Network, List, Radio, Unlock, ChevronDown, LayoutGrid, Settings, Dices, Sparkles, HelpCircle, Github, Hourglass } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProfileMenu from './ProfileMenu';
 import NotificationsPopup from './NotificationsPopup';
@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { APRIL_FOOLS_ADMIN_PATH, isAprilFoolsAdminEnabled } from '../utils/aprilFools';
 import { getOverlayPortalRoot } from '../utils/overlayPortal';
 import { useAgeRestrictedContent } from '../hooks/useAgeRestrictedContent';
+import { useSubscriptionCountdown, formatSubscriptionCountdown } from '../hooks/useSubscriptionCountdown';
 import { readLocalStorage, readSessionStorage } from '../utils/browserStorage';
 
 // Mega-menu cards are flat tone steps — the rainbow tint map is gone (design
@@ -73,6 +74,9 @@ const Header: React.FC = () => {
   const [notificationsDisabled, setNotificationsDisabled] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isVip, setIsVip] = useState(false);
+  // Minuteur d'abonnement (login par code) — affiché uniquement si une
+  // expiry est stockée (session via code, y compris après rechargement).
+  const subscription = useSubscriptionCountdown();
 
   const [headerQuery, setHeaderQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -573,6 +577,21 @@ const Header: React.FC = () => {
                 >
                   <Search size={20} />
                 </motion.button>
+
+                {/* Minuteur d'abonnement — affiché pendant la validité d'un
+                    abonnement armé par login par code. */}
+                {subscription.hasExpiry && (
+                  <span
+                    data-subscription-countdown
+                    title={t('admin.subscriptionCountdown')}
+                    className="hidden md:inline-flex items-center gap-1.5 rounded-xl border border-rule bg-surface px-2.5 py-1.5 text-xs font-semibold text-white/80"
+                  >
+                    <Hourglass size={13} className="text-ink-faint" aria-hidden="true" />
+                    <span>
+                      {formatSubscriptionCountdown(subscription.remainingMs, subscription.expired, t)}
+                    </span>
+                  </span>
+                )}
 
                 {/* Notifications */}
                 {isAuthenticated && !notificationsDisabled && (

@@ -21,7 +21,7 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 const { insertReturningId, isDuplicateKeyError } = require('../db/pgCompat');
 const { isAdmin } = require('../middleware/auth');
 const { createRedisRateLimitStore } = require('../utils/redisRateLimitStore');

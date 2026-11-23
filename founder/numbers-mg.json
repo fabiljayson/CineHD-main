@@ -1,0 +1,80 @@
+{
+  "business": "CineHD Cameroon — scenario C: licensed catalog on a flat 1 500 000 XAF/month minimum guarantee",
+  "unit": "subscriber-month",
+  "price": 2000,
+  "variable": [
+    {
+      "label": "CinetPay collect (2.8% + 100 XAF on 2 000)",
+      "cost": 156
+    },
+    {
+      "label": "CinetPay withdrawal to mobile money (2%)",
+      "cost": 40
+    },
+    {
+      "label": "CDN delivery, ~10 GB/sub/month at ~$0.015/GB (estimate)",
+      "cost": 100
+    }
+  ],
+  "fixed_monthly": [
+    {
+      "label": "Infra: app, DB, Redis, DRM, analytics, backups",
+      "cost": 120000
+    },
+    {
+      "label": "Dev + ops, part-time",
+      "cost": 200000
+    },
+    {
+      "label": "Customer support (WhatsApp / phone)",
+      "cost": 60000
+    },
+    {
+      "label": "Legal, accounting, compliance",
+      "cost": 60000
+    },
+    {
+      "label": "Marketing baseline",
+      "cost": 120000
+    },
+    {
+      "label": "Catalog minimum guarantee (estimate — replace with a signed quote)",
+      "cost": 1500000
+    }
+  ],
+  "startup": [
+    {
+      "label": "Company setup (SARL), CGV/CGU, privacy, mentions",
+      "cost": 500000
+    },
+    {
+      "label": "Catalog minimum guarantee, first 3 months",
+      "cost": 2000000
+    },
+    {
+      "label": "Launch marketing",
+      "cost": 1000000
+    },
+    {
+      "label": "Store fees, tooling, misc",
+      "cost": 200000
+    }
+  ],
+  "days_per_month": 1,
+  "capacity_per_day": 30000,
+  "plan_per_day": 545,
+  "ramp_per_day": [
+    10,
+    35,
+    70,
+    110,
+    160,
+    215,
+    270,
+    325,
+    380,
+    435,
+    490,
+    545
+  ]
+}

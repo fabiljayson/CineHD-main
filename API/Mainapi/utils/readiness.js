@@ -28,7 +28,7 @@ function withTimeout(promise, ms, label) {
 // Le pool est résolu à l'appel : `mysqlPool` est initialisé par le bootstrap,
 // et le charger ici en haut ferait un cycle avec app.js.
 async function checkMysqlReadiness() {
-  const { getPool } = require('../mysqlPool');
+  const { getPool } = require('../db/dialect');
   const pool = getPool();
   if (!pool) throw new Error('mysql pool unavailable');
   // Une requête triviale, pas `pool.getConnection()` : ce dernier garderait une

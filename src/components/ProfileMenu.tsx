@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, User, List, Star, Check, ChevronDown, Crown, Shield, UserPlus, KeyRound } from 'lucide-react';
 import { PrefetchLink as Link } from '@/routing/PrefetchLink';
-import { useVipModal } from '../context/VipModalContext';
 import ProfileSwitcher from './ProfileSwitcher';
 import { isUserVip } from '../utils/authUtils';
 import { checkVipStatus } from '../utils/vipUtils';
@@ -28,16 +27,6 @@ const ProfileMenu: React.FC = () => {
 
   const profileImage = currentProfile?.avatar || 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.webp';
   const username = currentProfile?.name || '';
-
-  // Safe hook usage with error handling
-  let openVipModal: (() => void) | null = null;
-  try {
-    const vipModal = useVipModal();
-    openVipModal = vipModal.openVipModal;
-  } catch {
-    // Silently handle the error - VipModalProvider might not be available yet
-    openVipModal = null;
-  }
 
   useEffect(() => {
     let mounted = true;
@@ -146,17 +135,6 @@ const ProfileMenu: React.FC = () => {
     setIsOpen(false);
     // Redirection simple (pas besoin de reload explicite)
     window.location.href = '/';
-  };
-
-  // Fonction pour ouvrir la modal VIP
-  const handleOpenVipModal = () => {
-    setIsOpen(false); // Fermer le menu de profil
-    if (openVipModal) {
-      openVipModal(); // Utiliser la fonction du contexte pour ouvrir la modal
-    } else {
-      // Fallback: rediriger vers la page de connexion
-      window.location.href = '/login';
-    }
   };
 
   return (
@@ -298,23 +276,6 @@ const ProfileMenu: React.FC = () => {
                         <span className="font-medium max-md:text-base">{t('admin.adminPanel')}</span>
                       </Link>
                     )}
-
-                    {/* Bouton VIP */}
-                    <motion.div
-                      whileHover={isVip ? undefined : { scale: 1.02 }}
-                      whileTap={isVip ? undefined : { scale: 0.98 }}
-                      className={`flex items-center justify-center gap-2 w-full px-3 py-3 max-md:py-3
-                        ${isVip
-                          ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-black cursor-default opacity-80'
-                          : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white cursor-pointer hover:shadow-md'
-                        } rounded-lg transition-colors`}
-                      onClick={isVip ? undefined : handleOpenVipModal}
-                    >
-                      <Crown className="w-4 h-4 md:w-4 md:h-4 max-md:w-5 max-md:h-5" />
-                      <span className="font-medium max-md:text-base">
-                        {isVip ? t('vip.youAreVip') : t('vip.becomeVip')}
-                      </span>
-                    </motion.div>
 
                     <motion.div 
                       whileHover={{ scale: 1.02 }}

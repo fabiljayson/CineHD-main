@@ -8,7 +8,10 @@
  * `affectedRows`), et les rares requêtes non portables viennent de `coreSql.js`.
  *
  * Rien ici ne devine une configuration : sans `DB_DRIVER=postgres`, le
- * comportement est exactement celui d'avant.
+ * comportement est exactement celui d'avant. Avec `DB_DRIVER=postgres` mais
+ * sans `DATABASE_URL` (coupure de la prod), le runtime replie sur MySQL :
+ * « utiliser les deux » — prod quand elle est traversée, localdev quand elle
+ * est coupée. Voir `isPostgres` et `db/coreSql#dialectOf`.
  */
 
 const { isPostgresDialect, toPgPlaceholders, createPostgresCompat } = require('./pgCompat');
@@ -16,8 +19,17 @@ const { isPostgresDialect, toPgPlaceholders, createPostgresCompat } = require('.
 let cachedAdapter = null;
 let cachedAdapterPool = null;
 
+/**
+ * Dialecte effectif du runtime : `DB_DRIVER=postgres` **et** `DATABASE_URL`
+ * renseigné → PostgreSQL (Neon, base de prod). Sans `DATABASE_URL` (coupure
+ * de la prod), le runtime replie sur MySQL : `mysqlPool.js` — la base MySQL
+ * localdev via les `DB_*` de `.env`. « Utiliser les deux » : la prod quand
+ * elle est traversée, le localdev quand elle est coupée.
+ *
+ * Le SQL effectif suit la même règle : `db/coreSql.js#dialectOf`.
+ */
 function isPostgres(env = process.env) {
-  return isPostgresDialect(env);
+  return isPostgresDialect(env) && Boolean(env.DATABASE_URL);
 }
 
 /** Pool du moteur sélectionné, avec l'API de `mysql2`. */

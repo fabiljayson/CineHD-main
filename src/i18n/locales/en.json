@@ -5135,6 +5135,8 @@
     "active": "Active",
     "expired": "Expired",
     "inactive": "Inactive",
+    "subscriptionCountdown": "Remaining subscription time",
+    "subscriptionExpired": "Subscription expired",
     "newVipKey": "New VIP key",
     "key": "Key",
     "enterOrGenerateKey": "Enter or generate a key",

@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { getPool } = require('../mysqlPool');
+const { getPool, isPostgres } = require('../db/dialect');
 
 const UQLOAD_BASE_URL = 'https://uqload.is';
 const DEFAULT_PENDING_RECHECK_MS = 60 * 1000;
@@ -158,6 +158,10 @@ function getPreferredCloneUrl(playerLink) {
 }
 
 async function ensureCloneLinksStorage() {
+  // Sur PostgreSQL le schéma (table + index uniq_clone_scope) vient de la
+  // migration 002_media.sql : aucun DDL ni lecture SHOW TABLES à l'exécution.
+  if (isPostgres()) return;
+
   if (ensureCloneLinksStoragePromise) {
     return ensureCloneLinksStoragePromise;
   }
@@ -285,40 +289,71 @@ async function persistCloneRow(scope, payload) {
   const pool = getPool();
   const lastCheckedAt = payload.lastCheckedAt || new Date();
 
-  await pool.execute(
-    `INSERT INTO ${CLONE_LINKS_TABLE} (
-      provider,
-      media_type,
-      tmdb_id,
-      season_number,
-      episode_number,
-      source_file_code,
-      clone_file_code,
-      clone_embed_url,
-      status,
-      last_error,
-      last_checked_at
-    ) VALUES ('uqload', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON DUPLICATE KEY UPDATE
-      clone_file_code = IFNULL(VALUES(clone_file_code), clone_file_code),
-      clone_embed_url = IFNULL(VALUES(clone_embed_url), clone_embed_url),
-      status = VALUES(status),
-      last_error = VALUES(last_error),
-      last_checked_at = VALUES(last_checked_at),
-      updated_at = CURRENT_TIMESTAMP`,
-    [
-      scope.mediaType,
-      scope.tmdbId,
-      scope.seasonNumber,
-      scope.episodeNumber,
-      payload.sourceFileCode,
-      payload.cloneFileCode || null,
-      payload.cloneEmbedUrl || null,
-      payload.status || 'pending',
-      payload.lastError || null,
-      lastCheckedAt
-    ]
-  );
+  const params = [
+    scope.mediaType,
+    scope.tmdbId,
+    scope.seasonNumber,
+    scope.episodeNumber,
+    payload.sourceFileCode,
+    payload.cloneFileCode || null,
+    payload.cloneEmbedUrl || null,
+    payload.status || 'pending',
+    payload.lastError || null,
+    lastCheckedAt
+  ];
+
+  if (isPostgres()) {
+    // `VALUES(col)` et `IFNULL` sont MySQL ; la contrainte unique de la
+    // migration porte les six mêmes colonnes que le ON DUPLICATE KEY MySQL.
+    await pool.execute(
+      `INSERT INTO ${CLONE_LINKS_TABLE} (
+        provider,
+        media_type,
+        tmdb_id,
+        season_number,
+        episode_number,
+        source_file_code,
+        clone_file_code,
+        clone_embed_url,
+        status,
+        last_error,
+        last_checked_at
+      ) VALUES ('uqload', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT (provider, media_type, tmdb_id, season_number, episode_number, source_file_code)
+      DO UPDATE SET
+        clone_file_code = COALESCE(EXCLUDED.clone_file_code, ${CLONE_LINKS_TABLE}.clone_file_code),
+        clone_embed_url = COALESCE(EXCLUDED.clone_embed_url, ${CLONE_LINKS_TABLE}.clone_embed_url),
+        status = EXCLUDED.status,
+        last_error = EXCLUDED.last_error,
+        last_checked_at = EXCLUDED.last_checked_at,
+        updated_at = CURRENT_TIMESTAMP`,
+      params
+    );
+  } else {
+    await pool.execute(
+      `INSERT INTO ${CLONE_LINKS_TABLE} (
+        provider,
+        media_type,
+        tmdb_id,
+        season_number,
+        episode_number,
+        source_file_code,
+        clone_file_code,
+        clone_embed_url,
+        status,
+        last_error,
+        last_checked_at
+      ) VALUES ('uqload', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        clone_file_code = IFNULL(VALUES(clone_file_code), clone_file_code),
+        clone_embed_url = IFNULL(VALUES(clone_embed_url), clone_embed_url),
+        status = VALUES(status),
+        last_error = VALUES(last_error),
+        last_checked_at = VALUES(last_checked_at),
+        updated_at = CURRENT_TIMESTAMP`,
+      params
+    );
+  }
 
   return getCloneRow(scope, payload.sourceFileCode);
 }

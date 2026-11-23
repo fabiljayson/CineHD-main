@@ -3075,10 +3075,12 @@ router.post("/admin/delete-duplicates", requireAuth, async (req, res) => {
             expiresAt,
             a.username || null,
           ]);
-          await dbRun(
-            `INSERT IGNORE INTO banned_users (ban_type, ban_value, user_type, reason, banned_by, banned_at, expires_at, username) VALUES ${insertPlaceholders}`,
-            insertParams,
-          );
+          // `INSERT IGNORE` est MySQL ; PostgreSQL ignore les doublons via le
+          // conflit sur l'index unique (ban_type, ban_value, user_type).
+          const insertBanSql = isPostgres()
+            ? `INSERT INTO banned_users (ban_type, ban_value, user_type, reason, banned_by, banned_at, expires_at, username) VALUES ${insertPlaceholders} ON CONFLICT DO NOTHING`
+            : `INSERT IGNORE INTO banned_users (ban_type, ban_value, user_type, reason, banned_by, banned_at, expires_at, username) VALUES ${insertPlaceholders}`;
+          await dbRun(insertBanSql, insertParams);
         }
         bannedCount = toBan.length;
       }

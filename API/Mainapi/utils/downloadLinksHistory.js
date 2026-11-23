@@ -1,4 +1,4 @@
-const { getPool } = require('../mysqlPool');
+const { getPool } = require('../db/dialect');
 
 function normalizeAuthType(userType) {
   return userType === 'bip39' ? 'bip-39' : 'oauth';

@@ -1,8 +1,14 @@
 # Frontend CineHD — Vite SPA servie par Workers (Static Assets).
 # Offre gratuite (Workers Free). Voir README.md de deployment/cloudflare.
+# /api/* passe d'abord par le Worker (src/index.js), qui relaie vers l'API
+# Render sur la même origine : le cookie de session reste first-party.
+# Build : npm run build:cf (mode cloudflare, lit .env.cloudflare).
 name = "cinehd-mainapp"
+main = "src/index.js"
 compatibility_date = "2026-11-22"
 
 [assets]
 directory = "../../../dist/"
+binding = "ASSETS"
 not_found_handling = "single-page-application"
+run_worker_first = ["/api", "/api/*"]

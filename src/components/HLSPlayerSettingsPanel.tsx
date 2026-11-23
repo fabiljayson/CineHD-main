@@ -1408,9 +1408,6 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                                       className="ml-4 pl-2 border-l-2 border-gray-700 mb-2"
                                     >
                                       {[
-                                        { id: '111movies', label: '111Movies' },
-                                        { id: 'peachify', label: 'Peachify' },
-                                        { id: 'vostfr', label: 'Videasy' },
                                         { id: 'vidlink', label: 'Vidlink' },
                                         { id: 'vidsrccc', label: 'Vidsrc.io' },
                                         { id: 'vidsrcwtf1', label: 'Vidsrc.wtf 1' }
@@ -1419,18 +1416,12 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                                         // (épisode spécial / Spéciaux TMDB) tombe dans le fallback '#' qui fait
                                         // charger la page courante en boucle dans l'iframe.
                                         const sourceUrl = movieId ?
-                                          vostfrSource.id === '111movies' ? `https://111movies.net/movie/${movieId}` :
-                                            vostfrSource.id === 'peachify' ? `https://peachify.top/embed/movie/${movieId}?sub=French&accent=dc2626` :
                                             vostfrSource.id === 'vidlink' ? `https://vidlink.pro/movie/${movieId}` :
                                               vostfrSource.id === 'vidsrccc' ? `https://vidsrc.io/embed/movie?tmdb=${movieId}` :
-                                                vostfrSource.id === 'vostfr' ? `https://player.videasy.net/movie/${movieId}` :
                                                   `https://vidsrc.wtf/api/1/movie/?id=${movieId}` :
                                           (tvShowId != null && seasonNumber != null && episodeNumber != null) ?
-                                            vostfrSource.id === '111movies' ? `https://111movies.net/tv/${tvShowId}/${seasonNumber}/${episodeNumber}` :
-                                              vostfrSource.id === 'peachify' ? `https://peachify.top/embed/tv/${tvShowId}/${seasonNumber}/${episodeNumber}?sub=French&accent=dc2626` :
                                               vostfrSource.id === 'vidlink' ? `https://vidlink.pro/tv/${tvShowId}/${seasonNumber}/${episodeNumber}` :
                                                 vostfrSource.id === 'vidsrccc' ? `https://vidsrc.io/embed/tv?tmdb=${tvShowId}&season=${seasonNumber}&episode=${episodeNumber}` :
-                                                  vostfrSource.id === 'vostfr' ? `https://player.videasy.net/tv/${tvShowId}/${seasonNumber}/${episodeNumber}` :
                                                     `https://vidsrc.wtf/api/1/tv/?id=${tvShowId}&s=${seasonNumber}&e=${episodeNumber}` :
                                             '#'; // Fallback if neither movie nor TV info is present
 

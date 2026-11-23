@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { getFrembedBase } from '../../utils/frembedConfig';
-import { openInNewTab } from '../../utils/openInNewTab';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
@@ -222,7 +221,7 @@ interface NightflixSource {
   label?: string;
 }
 
-type PlayerSourceType = 'primary' | 'vostfr' | 'videasy' | 'vidsrccc' | 'vidsrcsu' | 'vidsrcwtf1' | 'vidsrcwtf5' | 'multi' | 'omega' | 'darkino' | 'mp4' | 'coflix' | 'frembed' | 'custom' | 'nexus_hls' | 'nexus_file' | 'fstream' | 'wiflix' | 'j1f' | 'swiftflow' | 'swiftflux' | 'viper' | 'vidmoly' | 'dropload' | 'adfree' | 'bravo' | 'kisskh' | number;
+type PlayerSourceType = 'primary' | 'vostfr' | 'vidsrccc' | 'vidsrcsu' | 'vidsrcwtf1' | 'vidsrcwtf5' | 'multi' | 'omega' | 'darkino' | 'mp4' | 'coflix' | 'frembed' | 'custom' | 'nexus_hls' | 'nexus_file' | 'fstream' | 'wiflix' | 'j1f' | 'swiftflow' | 'swiftflux' | 'viper' | 'vidmoly' | 'dropload' | 'adfree' | 'bravo' | 'kisskh' | number;
 
 function formatPremidSourceDetail(...parts: Array<string | null | undefined>) {
   const normalizedParts = parts
@@ -2955,17 +2954,6 @@ const WatchMovie: React.FC = () => {
 
           {/* Boutons en haut à droite */}
           <div className="fixed top-6 right-8 z-[10000] flex items-center gap-2">
-            {/* Bouton Ouvrir dans une nouvelle page */}
-            <button
-              onClick={() => openInNewTab(embedUrl)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/90 border border-gray-600 hover:bg-gray-700/90 text-white font-medium text-sm transition-all duration-200"
-              title={t('watch.openInNewPage')}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </button>
-
             {/* Bouton Changer de source */}
             <button
               onClick={() => setShowEmbedQuality(true)}
@@ -3107,10 +3095,6 @@ const WatchMovie: React.FC = () => {
                       setSelectedSource('custom');
                       setEmbedUrl(customSources[0]);
                       setEmbedType('custom');
-                    } else {
-                      setSelectedSource('vostfr');
-                      setEmbedUrl(`https://player.videasy.net/movie/${id}`);
-                      setEmbedType('vostfr');
                     }
                   }
                 }
@@ -3810,17 +3794,6 @@ const WatchMovie: React.FC = () => {
 
           {/* Boutons en haut à droite */}
           <div className="fixed top-6 right-8 z-[10000] flex items-center gap-2">
-            {/* Bouton Ouvrir dans une nouvelle page */}
-            <button
-              onClick={() => openInNewTab(embedUrl)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/90 border border-gray-600 hover:bg-gray-700/90 text-white font-medium text-sm transition-all duration-200"
-              title={t('watch.openInNewPage')}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </button>
-
             {/* Bouton Changer de source */}
             <button
               onClick={() => setShowEmbedQuality(true)}
@@ -3940,17 +3913,6 @@ const WatchMovie: React.FC = () => {
 
           {/* Boutons en haut à droite */}
           <div className="fixed top-6 right-8 z-[10000] flex items-center gap-2">
-            {/* Bouton Ouvrir dans une nouvelle page */}
-            <button
-              onClick={() => window.open(selectedSource === 'vostfr' ? `https://player.videasy.net/movie/${id}` : `${getFrembedBase()}/api/film.php?id=${id}`, '_blank', 'noopener')}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/90 border border-gray-600 hover:bg-gray-700/90 text-white font-medium text-sm transition-all duration-200"
-              title={t('watch.openInNewPage')}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </button>
-
             {/* Bouton Changer de source */}
             <button
               onClick={() => setShowEmbedQuality(true)}
@@ -3962,7 +3924,7 @@ const WatchMovie: React.FC = () => {
           </div>
 
           <iframe
-            src={selectedSource === 'vostfr' ? `https://player.videasy.net/movie/${id}` : `${getFrembedBase()}/api/film.php?id=${id}`}
+            src={`${getFrembedBase()}/api/film.php?id=${id}`}
             className="w-full h-full border-0"
             allowFullScreen
             referrerPolicy="strict-origin-when-cross-origin"

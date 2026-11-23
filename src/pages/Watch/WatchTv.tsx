@@ -10,7 +10,6 @@ import { useAdFreePopup } from '../../context/AdFreePopupContext';
 import AdFreePlayerAds from '../../components/AdFreePlayerAds';
 import AdWaitingScreen from '@/components/AdWaitingScreen';
 import { getAdPopupMode } from '../../utils/adPopupMode';
-import { openInNewTab } from '../../utils/openInNewTab';
 import { extractM3u8FromEmbed, extractUqloadFile, extractVidzyM3u8, extractFsvidM3u8, registerServerResolvedSources, type M3u8Result } from '../../utils/extractM3u8';
 import type { SeekStreamingHlsSource } from '../../utils/seekStreamingCandidates';
 import { runExtractionPass } from '../../utils/runExtractionPass';
@@ -4545,22 +4544,6 @@ const WatchTv: React.FC = () => {
 
       {showSourceButton && (
         <div className="absolute top-16 right-4 z-[9000] flex items-center gap-2">
-          {/* Bouton Ouvrir dans une nouvelle page */}
-          <button
-            onClick={() => {
-              const targetUrl = embedType === 'vostfr'
-                ? `https://vidlink.pro/tv/${id}/${seasonNumber}/${episodeNumber}`
-                : embedUrl || '';
-              openInNewTab(targetUrl);
-            }}
-            className="flex items-center gap-1 sm:gap-2 px-3 py-2 rounded-lg bg-gray-800/90 border border-gray-600 hover:bg-gray-700/90 text-white font-medium text-sm transition-all duration-200"
-            title={t('watch.openInNewPage')}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </button>
-
           {/* Bouton Changer de source */}
           <button
             onClick={() => setShowEmbedQuality(true)}

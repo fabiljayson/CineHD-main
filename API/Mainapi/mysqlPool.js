@@ -34,6 +34,26 @@ const dbConfig = {
 const SCHEMA_BOOTSTRAP_LOCK_NAME = 'mainapi:schema-bootstrap:v1';
 const DEFAULT_LOCK_TIMEOUT_SECONDS = 180;
 
+
+// TiDB et MySQL >= 8.0.22 refusent `LIMIT ? OFFSET ?` en requête préparée
+// (ER_WRONG_ARGUMENTS « Incorrect arguments to LIMIT »). Ces requêtes passent
+// par `query()`, où mysql2 échappe lui-même les paramètres côté client (les
+// nombres restent des nombres) : même protection contre l'injection.
+const LIMIT_PLACEHOLDER_RE = /\b(LIMIT|OFFSET)\s+\?/i;
+function patchLimitPlaceholders(target) {
+  if (!target || typeof target.execute !== 'function' || target.__limitPatched) return target;
+  const originalExecute = target.execute.bind(target);
+  target.execute = (sql, params, ...rest) => {
+    const text = typeof sql === 'string' ? sql : sql && sql.sql;
+    if (text && LIMIT_PLACEHOLDER_RE.test(text) && typeof target.query === 'function') {
+      return target.query(sql, params, ...rest);
+    }
+    return originalExecute(sql, params, ...rest);
+  };
+  target.__limitPatched = true;
+  return target;
+}
+
 // Pool de connexions MySQL partagé — single instance per worker
 let pool = null;
 let poolInitializing = false;
@@ -51,7 +71,7 @@ const initPool = async () => {
   }
   poolInitializing = true;
   try {
-    pool = diagnostics.instrumentMysqlPool(mysql.createPool(dbConfig));
+    pool = patchLimitPlaceholders(diagnostics.instrumentMysqlPool(mysql.createPool(dbConfig)));
     console.log('✅ MySQL connection pool created successfully');
 
     // Test de connexion
@@ -70,7 +90,7 @@ const initPool = async () => {
 const getPool = () => {
   if (!pool) {
     console.warn('⚠️ MySQL pool not initialized yet, initializing synchronously...');
-    pool = diagnostics.instrumentMysqlPool(mysql.createPool(dbConfig));
+    pool = patchLimitPlaceholders(diagnostics.instrumentMysqlPool(mysql.createPool(dbConfig)));
   }
   return pool;
 };

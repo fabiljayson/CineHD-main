@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { readLocalStorage } from './browserStorage';
-import { isUserVip } from './vipUtils';
 
 /**
  * Vrai si le visiteur porte une session que l'application reconnaît.
@@ -18,7 +17,9 @@ import { isUserVip } from './vipUtils';
 export const isSessionAuthenticated = (): boolean => {
   if (readLocalStorage('discord_auth') === 'true') return true;
   if (readLocalStorage('bip39_auth') === 'true') return true;
-  if (isUserVip()) return true;
+  // Pas de isUserVip() ici : il renvoie vrai pour tout le monde (d82a416), ce qui
+  // ouvrait le mur de lecture aux anonymes. Les logins par code (CINE-…) posent
+  // bip39_auth via persistResolvedSession et restent reconnus.
 
   const authStr = readLocalStorage('auth');
   if (authStr) {

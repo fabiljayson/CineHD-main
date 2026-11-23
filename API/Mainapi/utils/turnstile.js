@@ -138,7 +138,7 @@ async function verifyTurnstileFromRequest(req, turnstileToken, kind = 'visible')
     // refuse (fail-closed) plutot que d'ouvrir la porte a tout le monde.
     if (process.env.NODE_ENV === 'production') {
       console.warn('[Turnstile] Clé secrète absente en production — vérification REFUSÉE (fail-closed). Configurer TURNSTILE_SECRET_KEY.');
-      return { valid: false, reason: 'turnstile_not_configured' };
+      return { valid: false, status: 503, reason: 'turnstile_not_configured', error: 'Vérification de sécurité indisponible. Réessayez plus tard.' };
     }
     // Dev : on continue sans vérification, mais on le fait remarquer une fois.
     if (!warnedTurnstileUnconfigured) {

@@ -761,7 +761,8 @@
     "becauseYouWatched": "Because you watched {{title}}",
     "popularInGenre": "Popular in {{genre}}",
     "forYou": "For you",
-    "usersAlsoWatched": "Users with similar taste also watched"
+    "usersAlsoWatched": "Users with similar taste also watched",
+    "loadingCaption": "Loading your catalogue…"
   },
   "movies": {
     "title": "Movies",
@@ -6106,7 +6107,7 @@
     },
     "sessions_ui": {
       "notAvailable": "Sessions not available",
-      "notAvailableDesc":       "Session management is only available for users logged in via Discord or BIP39.",
+      "notAvailableDesc": "Session management is only available for users logged in via Discord or BIP39.",
       "noActiveSessions": "No active sessions",
       "noActiveSessionsDesc": "You currently have no active sessions on other devices."
     },
@@ -8008,7 +8009,12 @@
     "legalLinks": "Legal links",
     "footerTerms": "Terms of service",
     "footerPrivacy": "Privacy",
-    "footerLegal": "Legal notice"
+    "footerLegal": "Legal notice",
+    "imageCredits": "Image credits",
+    "creditResurrection": "Resurrection (1909), Wikimedia Commons",
+    "creditIngomar": "Ingomar, the Barbarian (1908), Wikimedia Commons",
+    "creditIntolerance": "Intolerance (1916), Wikimedia Commons",
+    "creditCrossroads": "At the Crossroads of Life (1908), Wikimedia Commons"
   },
   "login": {
     "title": "Sign in",

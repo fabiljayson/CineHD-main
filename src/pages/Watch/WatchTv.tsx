@@ -490,6 +490,10 @@ const WatchTv: React.FC = () => {
 
   const { t } = useTranslation();
 
+  useEffect(() => {
+    document.title = `${t('watch.title')} - CineHD`;
+  }, [t]);
+
   // Ensure IDs are valid before parsing
   const seasonNumber = parseInt(seasonParam || '1', 10);
   const episodeNumber = parseInt(episodeParam || '1', 10);

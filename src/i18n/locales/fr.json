@@ -4932,6 +4932,34 @@
     "contentLoadError": "Une erreur est survenue lors du chargement du contenu"
   },
   "admin": {
+    "team": {
+      "title": "Équipe admin",
+      "addUploader": "Ajouter un uploader",
+      "adding": "Ajout…",
+      "addedSuccess": "Uploader ajouté avec succès",
+      "remove": "Retirer",
+      "removeTitle": "Retirer cet uploader ?",
+      "removeConfirm": "Retirer {{username}} de l'équipe ?",
+      "removedSuccess": "Uploader retiré",
+      "roleAdmin": "Admin",
+      "roleUploader": "Uploader",
+      "userIdLabel": "Identifiant utilisateur",
+      "userIdPlaceholder": "discord:123456789 ou bip39:…",
+      "authTypeLabel": "Type d'authentification",
+      "authTypeOAuth": "Discord / Google (OAuth)",
+      "authTypeOAuthShort": "OAuth",
+      "copied": "Copié",
+      "linkDownload": "Téléchargement",
+      "linkStreaming": "Streaming",
+      "empty": "Aucun membre dans l'équipe",
+      "since": "Depuis",
+      "history": "Historique",
+      "historyCount": "{{count}} actions",
+      "historyEmpty": "Aucune action enregistrée",
+      "loadMore": "Charger plus",
+      "loadingMore": "Chargement…",
+      "historyTitle": "Historique — {{username}}"
+    },
     "gate": {
       "anonymousTitle": "Connexion requise",
       "anonymousBody": "Aucune session active. Connectez-vous avec un compte de gestion pour ouvrir le panel.",
@@ -5096,7 +5124,7 @@
     "manageSharedListsDesc": "Modérer et gérer les listes partagées",
     "manageReportsDesc": "Gérer les signalements de commentaires et listes",
     "helpFeedback": {
-      "sectionTitle": "Feedback tutos /help",
+      "sectionTitle": "Feedback tutos / Aide",
       "sectionDesc": "Votes pouce-haut / pouce-bas laissés par les utilisateurs sur chaque tuto du hub d'aide.",
       "refresh": "Rafraîchir",
       "totalUp": "utiles",

@@ -11,7 +11,7 @@ import { fetchStatsOverview } from '../services/adminStatsService';
 import type { StatsOverview, StatsRange } from '../services/adminStatsService';
 import ChartCard from './stats/ChartCard';
 import { Skeleton } from './ui/Skeleton';
-import { CHART_COLORS, PROVIDER_COLORS, formatDayLabel, tooltipStyle } from './stats/chartTheme';
+import { CHART_COLORS, PROVIDER_COLORS, PROVIDER_LABELS, formatDayLabel, tooltipStyle } from './stats/chartTheme';
 
 const RANGES: StatsRange[] = [7, 30, 90];
 const nf = new Intl.NumberFormat('fr-FR');
@@ -41,7 +41,7 @@ const AdminStats = () => {
   }, [range]);
 
   const providerData = useMemo(
-    () => (data ? Object.entries(data.totals.byProvider).map(([name, value]) => ({ name, value })) : []),
+    () => (data ? Object.entries(data.totals.byProvider).map(([name, value]) => ({ name: PROVIDER_LABELS[name] || name, value })) : []),
     [data],
   );
 

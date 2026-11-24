@@ -16,6 +16,9 @@ type GateState =
 
 const AdminPage: React.FC = () => {
   const { t } = useTranslation();
+  useEffect(() => {
+    document.title = `${t('admin.title', 'Admin')} - CineHD`;
+  }, [t]);
   const [gate, setGate] = useState<GateState>({ status: 'checking' });
   const [bgMode] = useState<'combined' | 'static' | 'animated'>(() => {
     return (localStorage.getItem('settings_bg_mode') as 'combined' | 'static' | 'animated') || 'combined';

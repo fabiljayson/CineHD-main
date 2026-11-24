@@ -1949,7 +1949,7 @@ const AppWithIntro: React.FC = () => {
 
       {/* Annonce du changement de canal support (WhatsApp) : une seule fois, jamais sur le lecteur */}
       <WhatsAppAnnouncementPopup
-        suspended={isWatchRoute || isWrappedRoute || currentPath.startsWith('/oauth/authorize') || showRedirectPopup}
+        suspended={isWatchRoute || isWrappedRoute || currentPath.startsWith('/login') || currentPath.startsWith('/oauth/authorize') || showRedirectPopup}
       />
 
       {/* Screensaver */}

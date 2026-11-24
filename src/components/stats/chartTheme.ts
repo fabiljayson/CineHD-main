@@ -18,6 +18,14 @@ export const PROVIDER_COLORS: Record<string, string> = {
   unknown: '#64748b',
 };
 
+/** Libellés lisibles pour la légende de la répartition par fournisseur. */
+export const PROVIDER_LABELS: Record<string, string> = {
+  bip39: 'CINE (bip39)',
+  discord: 'Discord',
+  google: 'Google',
+  unknown: 'Inconnu',
+};
+
 export const tooltipStyle: CSSProperties = {
   background: 'rgba(10,10,10,0.95)',
   border: '1px solid rgba(255,255,255,0.12)',

@@ -4932,6 +4932,34 @@
     "contentLoadError": "An error occurred while loading content"
   },
   "admin": {
+    "team": {
+      "title": "Admin team",
+      "addUploader": "Add uploader",
+      "adding": "Adding…",
+      "addedSuccess": "Uploader added successfully",
+      "remove": "Remove",
+      "removeTitle": "Remove this uploader?",
+      "removeConfirm": "Remove {{username}} from the team?",
+      "removedSuccess": "Uploader removed",
+      "roleAdmin": "Admin",
+      "roleUploader": "Uploader",
+      "userIdLabel": "User ID",
+      "userIdPlaceholder": "discord:123456789 or bip39:…",
+      "authTypeLabel": "Authentication type",
+      "authTypeOAuth": "Discord / Google (OAuth)",
+      "authTypeOAuthShort": "OAuth",
+      "copied": "Copied",
+      "linkDownload": "Download",
+      "linkStreaming": "Streaming",
+      "empty": "No members in the team",
+      "since": "Since",
+      "history": "History",
+      "historyCount": "{{count}} actions",
+      "historyEmpty": "No recorded actions",
+      "loadMore": "Load more",
+      "loadingMore": "Loading…",
+      "historyTitle": "History — {{username}}"
+    },
     "gate": {
       "anonymousTitle": "Sign-in required",
       "anonymousBody": "No active session. Sign in with a management account to open the panel.",
@@ -5096,7 +5124,7 @@
     "reports": "Reports",
     "manageReportsDesc": "Manage comment and list reports",
     "helpFeedback": {
-      "sectionTitle": "/help tuto feedback",
+      "sectionTitle": "Help / Tuto feedback",
       "sectionDesc": "Thumbs-up / thumbs-down votes left by users on each tuto in the help hub.",
       "refresh": "Refresh",
       "totalUp": "helpful",

@@ -3956,6 +3956,15 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
       hls.loadSource(normalizedSrc);
       hls.attachMedia(video);
 
+      // Anti-stall : si le média n'apparaît pas de lui-même (~35 s — écran
+      // 0:00/0:00 sans erreur ni menu de source), déclencher le mécanisme
+      // de fallback existant pour sortir de l'état bloqué.
+      const stallTimer = setTimeout(() => {
+        if (video.readyState >= 1 || (video.currentTime > 0 && !video.paused)) return;
+        console.warn('⏱️ HLS bloqué à 0:00 après 35 s — requestHlsFallback()');
+        requestHlsFallback();
+      }, 35000);
+
       const updateCurrentSourceStreamQuality = (levelIndex?: number) => {
         const fallbackIndex = typeof levelIndex === 'number' && levelIndex >= 0
           ? levelIndex
@@ -4555,6 +4564,7 @@ const HLSPlayer = forwardRef<HLSPlayerRef, HLSPlayerProps>(({
       return () => {
         clearBufferingTimeout(); // Clear timeout on cleanup
         clearSourceTimeout(); // Clear source timeout on cleanup
+        clearTimeout(stallTimer); // Anti-stall watchdog on cleanup
         // Nettoyer les tentatives de récupération
         if ((window as any).hlsRecoveryAttempts) {
           delete (window as any).hlsRecoveryAttempts;

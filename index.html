@@ -401,6 +401,20 @@
              `src/utils/analytics.ts`, appelé depuis `main.tsx`. Le fournisseur
              (Google Analytics ou Plausible) et son identifiant viennent
              maintenant du `.env` — voir VITE_ANALYTICS_PROVIDER. -->
+        <script>
+            // Réveil des services Render gratuits (proxy, watchparty) dès l'ouverture du site,
+            // une fois par session et par tranche de 10 min : ils s'endorment après 15 min sans trafic.
+            (function () {
+                try {
+                    var k = 'cinehd-wake', now = Date.now();
+                    if (now - Number(sessionStorage.getItem(k) || 0) < 600000) return;
+                    sessionStorage.setItem(k, String(now));
+                    ['https://cinehd-proxy.onrender.com/', 'https://cinehd-watchparty.onrender.com/'].forEach(function (u) {
+                        fetch(u, { mode: 'no-cors', cache: 'no-store' }).catch(function () {});
+                    });
+                } catch (e) {}
+            })();
+        </script>
     </head>
     <body>
         <div id="root"></div>

@@ -6611,7 +6611,7 @@
           "CineHD data may live in several places depending on the feature: in your browser, in JSON files tied to your account, in MySQL tables and in temporary technical caches. The code does not define one single uniform retention period for every case."
         ],
         "bullets": [
-          "The data controller is [[identity of the controller — to be provided]]; any question can be sent to jasonfranckkenmognw@gmail.com.",
+          "The data controller is [[identity of the controller — to be provided]]; any question can be sent to movixstreaming@gmail.com.",
           "You can already manage some items directly in your profile: active sessions, linked accounts, local import or export, local history and future Wrapped collection.",
           "Some deletions are local only and others require support intervention, because the repository does not expose a universal purge interface for all backend data.",
           "CineHD does not implement, in the current code, any mechanism to sell personal data to third parties.",
@@ -6774,7 +6774,7 @@
       "Site publisher: legal identity to be provided (placeholders flagged below).",
       "Host: name and address to be provided.",
       "The source code is published under the MIT license; third-party metadata and logos remain the property of their owners.",
-      "Contact: jasonfranckkenmognw@gmail.com and the Privacy and Terms of service pages."
+      "Contact: movixstreaming@gmail.com and the Privacy and Terms of service pages."
     ],
     "sections": {
       "publisher": {
@@ -6783,7 +6783,7 @@
           "CineHD is published by [[legal identity of the publisher — to be provided]], [[legal form — to be provided]], whose registered office is [[registered office address — to be provided]].",
           "Registration number: [[SIRET or RCS — to be provided]].",
           "Publication director: [[name of the publication director — to be provided]].",
-          "Contact: jasonfranckkenmognw@gmail.com."
+          "Contact: movixstreaming@gmail.com."
         ],
         "note": "Bracketed fields are placeholders to be replaced with the operator's real information before commercial distribution."
       },
@@ -6806,7 +6806,7 @@
       "contact": {
         "title": "Contact",
         "bullets": [
-          "Questions, data-related requests or reports: jasonfranckkenmognw@gmail.com.",
+          "Questions, data-related requests or reports: movixstreaming@gmail.com.",
           "WhatsApp support: link available from the legal pages and the footer.",
           "Usage rules: Terms of service page; data processing: Privacy page."
         ]

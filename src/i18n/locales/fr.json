@@ -6611,7 +6611,7 @@
           "Les données CineHD peuvent vivre à plusieurs endroits selon la fonctionnalité : dans votre navigateur, dans des fichiers JSON liés à votre compte, dans des tables MySQL et dans des caches techniques temporaires. Le code ne définit pas une durée uniforme unique pour tous les cas."
         ],
         "bullets": [
-          "Le responsable du traitement est [[identité du responsable du traitement — à fournir]] ; toute question peut être adressée à jasonfranckkenmognw@gmail.com.",
+          "Le responsable du traitement est [[identité du responsable du traitement — à fournir]] ; toute question peut être adressée à movixstreaming@gmail.com.",
           "Vous pouvez déjà gérer certaines choses directement dans ton profil : sessions actives, comptes liés, import ou export local, historique local et collecte future de Wrapped.",
           "Certaines suppressions sont locales uniquement et d'autres nécessitent une intervention support, car le dépôt n'expose pas une interface de purge universelle pour toutes les données backend.",
           "CineHD ne met pas en place, dans le code actuel, de mécanisme de vente de données personnelles à des tiers.",
@@ -6774,7 +6774,7 @@
       "L'éditeur du site : identité juridique à fournir (placeholders signalés ci-dessous).",
       "L'hébergeur : nom et adresse à fournir.",
       "Le code source est publié sous licence MIT ; les métadonnées et logos tiers restent la propriété de leurs titulaires.",
-      "Contact : jasonfranckkenmognw@gmail.com et les pages Confidentialité et Conditions d'utilisation."
+      "Contact : movixstreaming@gmail.com et les pages Confidentialité et Conditions d'utilisation."
     ],
     "sections": {
       "publisher": {
@@ -6783,7 +6783,7 @@
           "CineHD est édité par [[identité juridique de l'éditeur — à fournir]], [[forme juridique — à fournir]], dont le siège est situé [[adresse du siège — à fournir]].",
           "Numéro d'immatriculation : [[SIRET ou RCS — à fournir]].",
           "Directeur de la publication : [[nom du directeur de la publication — à fournir]].",
-          "Contact : jasonfranckkenmognw@gmail.com."
+          "Contact : movixstreaming@gmail.com."
         ],
         "note": "Les champs entre crochets sont des placeholders à remplacer par les informations réelles de l'exploitant avant diffusion commerciale."
       },
@@ -6806,7 +6806,7 @@
       "contact": {
         "title": "Contact",
         "bullets": [
-          "Questions, demandes relatives aux données ou signalements : jasonfranckkenmognw@gmail.com.",
+          "Questions, demandes relatives aux données ou signalements : movixstreaming@gmail.com.",
           "Support WhatsApp : lien disponible depuis les pages légales et le pied de page.",
           "Règles d'usage : page Conditions d'utilisation ; traitement des données : page Confidentialité."
         ]

@@ -34,6 +34,10 @@ type MakeRequestDetails = Parameters<typeof makeRequest>[0];
 
 function isBlockedUrl(url: string, type: MakeRequestDetails['type']): boolean {
   if (!url) return false;
+  // Le toggle désactivé doit réellement tout laisser passer : le wrapper fetch
+  // et le MutationObserver consultent tous deux cette fonction, un seul garde-fou
+  // suffit donc à couvrir les deux chemins.
+  if (!enabled) return false;
   try {
     return Boolean(ensureEngine().match(makeRequest({ url, type })).match);
   } catch {

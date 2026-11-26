@@ -35,7 +35,7 @@ import {
   type SwiftfluxPlayback,
 } from '../../services/swiftfluxService';
 import { isHevcPlayable } from '../../utils/videoCodecSupport';
-import type { KisskhSource, KisskhSubtitleTrack } from '../../types/kisskh';
+import type { KisskhResolution, KisskhSource, KisskhSubtitleTrack } from '../../types/kisskh';
 import {
   createHlsAutoFallbackGuard,
   resolveAcceptedWatchSource,
@@ -465,6 +465,9 @@ const WatchMovie: React.FC = () => {
   const [loadingKisskh, setLoadingKisskh] = useState(true);
   const kisskhRequestGenerationRef = useRef(0);
   const kisskhRequestAbortRef = useRef<AbortController | null>(null);
+  // Promesse de résolution KissKH partagée : `fetchVideoSources` doit lire le
+  // résultat (auto-sélection) sans déclencher une seconde résolution.
+  const kisskhPromiseRef = useRef<Promise<KisskhResolution | null> | null>(null);
 
   // PurStream (Bravo) HLS states
   const [purstreamSources, setPurstreamSources] = useState<{ url: string; label: string }[]>([]);
@@ -689,32 +692,35 @@ const WatchMovie: React.FC = () => {
     setLoadingKisskh(true);
 
     if (!id) {
+      kisskhPromiseRef.current = Promise.resolve(null);
       setLoadingKisskh(false);
       return () => kisskhController.abort();
     }
 
-    const resolveMovie = async () => {
+    const resolveMovie = async (): Promise<KisskhResolution | null> => {
       try {
         const resolution = await resolveKisskhMovie(Number(id), { signal: kisskhController.signal });
         if (
           kisskhController.signal.aborted
           || kisskhRequestGenerationRef.current !== kisskhGeneration
         ) {
-          return;
+          return null;
         }
         setKisskhSources(resolution.sources);
         setKisskhSubtitles(resolution.subtitles);
+        return resolution;
       } catch (error) {
         if (
           kisskhController.signal.aborted
           || kisskhRequestGenerationRef.current !== kisskhGeneration
         ) {
-          return;
+          return null;
         }
         if (error instanceof KisskhServiceError && error.code === 'retrieval_in_progress') {
-          return;
+          return null;
         }
         // KissKH is additive; other provider sources remain usable on failure.
+        return null;
       } finally {
         if (
           !kisskhController.signal.aborted
@@ -725,7 +731,10 @@ const WatchMovie: React.FC = () => {
       }
     };
 
-    void resolveMovie();
+    // Partagée avec fetchVideoSources (déclaré après : les effets s'exécutent
+    // dans l'ordre de déclaration, la promesse est donc déjà posée).
+    kisskhPromiseRef.current = resolveMovie();
+    void kisskhPromiseRef.current;
     return () => {
       kisskhController.abort();
       if (kisskhRequestAbortRef.current === kisskhController) {
@@ -1007,7 +1016,8 @@ const WatchMovie: React.FC = () => {
         wiflixResult,
         viperResult,
         j1fResult,
-        swiftflowResult
+        swiftflowResult,
+        kisskhResult
       ] = await Promise.all([
         darkinoPromise,
         availabilityPromise,
@@ -1018,7 +1028,11 @@ const WatchMovie: React.FC = () => {
         wiflixPromise,
         viperPromise,
         j1fPromise,
-        swiftflowPromise
+        swiftflowPromise,
+        // Résolution KissKH lancée par l'effet dédié (avant celui-ci) : on
+        // l'attend ici pour que l'auto-sélection voie le résultat, sans double
+        // requête vers le provider.
+        kisskhPromiseRef.current ?? Promise.resolve(null)
       ]);
 
       // =========== TRAITEMENT DES RÉSULTATS SWIFTFLUX ===========
@@ -2043,6 +2057,20 @@ const WatchMovie: React.FC = () => {
             setOnlyVostfrAvailable(false);
             return true;
           }
+          case 'kisskh': {
+            // Miroir de WatchTv : KissKH rend une URL directe (hls ou mp4),
+            // pas un embed — le lecteur la prend via videoSource.
+            const kisskhSource = kisskhResult?.sources.find(s => s.type === 'hls' || s.type === 'mp4');
+            if (!kisskhSource) return false;
+            console.log('✅ Selecting KISSKH as source');
+            setSelectedSource('kisskh');
+            setVideoSource(kisskhSource.url);
+            setEmbedUrl(null);
+            setEmbedType(null);
+            currentSourceRef.current = 'kisskh';
+            setOnlyVostfrAvailable(false);
+            return true;
+          }
           // Les ids restants (vostfr, vox) ne sont pas auto-sélectionnables dans
           // le flux Movie (vostfr = fallback final géré ci-dessous,
           // vox = WatchTv uniquement).
@@ -2093,6 +2121,7 @@ const WatchMovie: React.FC = () => {
           { id: 'viper', hasData: viperProcessedSources.length > 0 },
           { id: 'custom', hasData: customLinks.length > 0 },
           { id: 'frembed', hasData: isFrembedAvailable },
+          { id: 'kisskh', hasData: !!kisskhResult?.sources.length },
           // Sources sans fetch dédié côté film — placées après, désactivées via hasData: false
           { id: 'vox', hasData: false },
           { id: 'vostfr', hasData: false },

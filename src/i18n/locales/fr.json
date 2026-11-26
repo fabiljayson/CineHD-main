@@ -1389,6 +1389,8 @@
     "active": "Actif",
     "inProgress": "En cours",
     "autoSave": "Sauvegarde Automatique",
+    "adblockerTitle": "Adblocker",
+    "adblockerDesc": "Bloque les requêtes publicitaires et les pubs injectées (EasyList) dans l'app.",
     "enabled": "Activée",
     "disabled": "Désactivée",
     "saveProgressDesc": "Sauvegarder la progression toutes les 10 secondes.",

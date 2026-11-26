@@ -7,6 +7,7 @@ import App from './App.tsx'
 import axios from 'axios'
 import { api } from './services/api'
 import { registerBlockDetection } from './services/blockDetection'
+import { installAdBlockerIfEnabled } from './services/adblocker';
 import { initAnalytics } from './utils/analytics'
 import { installHttpCache } from './utils/httpCache'
 import { installSessionCredentials, installSessionFetchCredentials } from './utils/sessionCredentials'
@@ -261,6 +262,7 @@ if (typeof Node === 'function' && Node.prototype) {
 initAnalytics();
 
 const mountApp = () => {
+  installAdBlockerIfEnabled();
   let container = document.getElementById('root');
   // Si le conteneur HTML attendu manque, le recréer pour permettre le montage.
   // React ne peut pas monter sur null (erreur #299).

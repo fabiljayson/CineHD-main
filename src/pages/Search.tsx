@@ -1317,7 +1317,7 @@ const Search: React.FC = () => {
                                     {/* Results controls bar */}
                                     <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
                                         <p className="text-sm text-ink-faint">
-                                            {t('search.pageXOfY', { current: Math.max(page > 1 ? page - 1 : 1, 1), total: maxPages })} ({ageFilteredResults.length} {t('search.results')})
+                                            {t('search.pageXOfY', { current: Math.max(page > 1 ? page - 1 : 1, 1), total: maxPages })} ({ageFilteredResults.length} {t('search.results')}${keywordQuery ? ` — ${keywordQuery}` : ''})
                                             {totalPages > 500 && <span className="text-xs ml-2">({t('search.limitedToPages')})</span>}
                                         </p>
 

@@ -761,7 +761,8 @@
     "becauseYouWatched": "Because you watched {{title}}",
     "popularInGenre": "Popular in {{genre}}",
     "forYou": "For you",
-    "usersAlsoWatched": "Users with similar taste also watched"
+    "usersAlsoWatched": "Users with similar taste also watched",
+    "loadingCaption": "Loading your catalogue…"
   },
   "movies": {
     "title": "Movies",
@@ -1389,6 +1390,8 @@
     "active": "Active",
     "inProgress": "In progress",
     "autoSave": "Auto Save",
+    "adblockerTitle": "Adblocker",
+    "adblockerDesc": "Blocks ad requests and injected ads (EasyList) in the app.",
     "enabled": "Enabled",
     "disabled": "Disabled",
     "saveProgressDesc": "Save progress every 10 seconds.",
@@ -4931,6 +4934,34 @@
     "contentLoadError": "An error occurred while loading content"
   },
   "admin": {
+    "team": {
+      "title": "Admin team",
+      "addUploader": "Add uploader",
+      "adding": "Adding…",
+      "addedSuccess": "Uploader added successfully",
+      "remove": "Remove",
+      "removeTitle": "Remove this uploader?",
+      "removeConfirm": "Remove {{username}} from the team?",
+      "removedSuccess": "Uploader removed",
+      "roleAdmin": "Admin",
+      "roleUploader": "Uploader",
+      "userIdLabel": "User ID",
+      "userIdPlaceholder": "discord:123456789 or bip39:…",
+      "authTypeLabel": "Authentication type",
+      "authTypeOAuth": "Discord / Google (OAuth)",
+      "authTypeOAuthShort": "OAuth",
+      "copied": "Copied",
+      "linkDownload": "Download",
+      "linkStreaming": "Streaming",
+      "empty": "No members in the team",
+      "since": "Since",
+      "history": "History",
+      "historyCount": "{{count}} actions",
+      "historyEmpty": "No recorded actions",
+      "loadMore": "Load more",
+      "loadingMore": "Loading…",
+      "historyTitle": "History — {{username}}"
+    },
     "gate": {
       "anonymousTitle": "Sign-in required",
       "anonymousBody": "No active session. Sign in with a management account to open the panel.",
@@ -5095,7 +5126,7 @@
     "reports": "Reports",
     "manageReportsDesc": "Manage comment and list reports",
     "helpFeedback": {
-      "sectionTitle": "/help tuto feedback",
+      "sectionTitle": "Help / Tuto feedback",
       "sectionDesc": "Thumbs-up / thumbs-down votes left by users on each tuto in the help hub.",
       "refresh": "Refresh",
       "totalUp": "helpful",
@@ -6108,7 +6139,7 @@
     },
     "sessions_ui": {
       "notAvailable": "Sessions not available",
-      "notAvailableDesc":       "Session management is only available for users logged in via Discord or BIP39.",
+      "notAvailableDesc": "Session management is only available for users logged in via Discord or BIP39.",
       "noActiveSessions": "No active sessions",
       "noActiveSessionsDesc": "You currently have no active sessions on other devices."
     },
@@ -6580,7 +6611,7 @@
           "CineHD data may live in several places depending on the feature: in your browser, in JSON files tied to your account, in MySQL tables and in temporary technical caches. The code does not define one single uniform retention period for every case."
         ],
         "bullets": [
-          "The data controller is [[identity of the controller — to be provided]]; any question can be sent to jasonfranckkenmognw@gmail.com.",
+          "The data controller is [[identity of the controller — to be provided]]; any question can be sent to movixstreaming@gmail.com.",
           "You can already manage some items directly in your profile: active sessions, linked accounts, local import or export, local history and future Wrapped collection.",
           "Some deletions are local only and others require support intervention, because the repository does not expose a universal purge interface for all backend data.",
           "CineHD does not implement, in the current code, any mechanism to sell personal data to third parties.",
@@ -6743,7 +6774,7 @@
       "Site publisher: legal identity to be provided (placeholders flagged below).",
       "Host: name and address to be provided.",
       "The source code is published under the MIT license; third-party metadata and logos remain the property of their owners.",
-      "Contact: jasonfranckkenmognw@gmail.com and the Privacy and Terms of service pages."
+      "Contact: movixstreaming@gmail.com and the Privacy and Terms of service pages."
     ],
     "sections": {
       "publisher": {
@@ -6752,7 +6783,7 @@
           "CineHD is published by [[legal identity of the publisher — to be provided]], [[legal form — to be provided]], whose registered office is [[registered office address — to be provided]].",
           "Registration number: [[SIRET or RCS — to be provided]].",
           "Publication director: [[name of the publication director — to be provided]].",
-          "Contact: jasonfranckkenmognw@gmail.com."
+          "Contact: movixstreaming@gmail.com."
         ],
         "note": "Bracketed fields are placeholders to be replaced with the operator's real information before commercial distribution."
       },
@@ -6775,7 +6806,7 @@
       "contact": {
         "title": "Contact",
         "bullets": [
-          "Questions, data-related requests or reports: jasonfranckkenmognw@gmail.com.",
+          "Questions, data-related requests or reports: movixstreaming@gmail.com.",
           "WhatsApp support: link available from the legal pages and the footer.",
           "Usage rules: Terms of service page; data processing: Privacy page."
         ]
@@ -8010,7 +8041,12 @@
     "legalLinks": "Legal links",
     "footerTerms": "Terms of service",
     "footerPrivacy": "Privacy",
-    "footerLegal": "Legal notice"
+    "footerLegal": "Legal notice",
+    "imageCredits": "Image credits",
+    "creditResurrection": "Resurrection (1909), Wikimedia Commons",
+    "creditIngomar": "Ingomar, the Barbarian (1908), Wikimedia Commons",
+    "creditIntolerance": "Intolerance (1916), Wikimedia Commons",
+    "creditCrossroads": "At the Crossroads of Life (1908), Wikimedia Commons"
   },
   "login": {
     "title": "Sign in",

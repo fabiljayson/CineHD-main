@@ -186,6 +186,9 @@ const WatchAnime: React.FC = () => {
   const autoFallbackGuard = useMemo(() => createHlsAutoFallbackGuard(2), [id, season, episode]);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  useEffect(() => {
+    document.title = `${t('watch.title')} - CineHD`;
+  }, [t]);
   const { currentProfile } = useProfile();
   const playerRef = useRef<HTMLDivElement>(null);
 

@@ -116,6 +116,9 @@ before(async () => {
     }
     return originalListen.call(this, ...args);
   };
+  // app.js démarre un subscriber Redis dédié : ce test ne s'en sert pas, et sa
+  // connexion duplicate() ne serait jamais fermée — le process ne sortirait pas.
+  require('../utils/oauthClientsDb').startClientsCacheSubscriber = () => {};
   try {
     ({ app, appReady } = await import(pathToFileURL(path.join(__dirname, '../app.js')).href));
   } finally {

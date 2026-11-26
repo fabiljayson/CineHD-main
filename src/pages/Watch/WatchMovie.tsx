@@ -361,6 +361,9 @@ const WatchMovie: React.FC = () => {
   const { tmdbid: encodedId } = useParams<{ tmdbid: string }>();
 
   const { t } = useTranslation();
+  useEffect(() => {
+    document.title = `${t('watch.title')} - CineHD`;
+  }, [t]);
   const navigate = useNavigate();
   const { currentProfile } = useProfile();
 

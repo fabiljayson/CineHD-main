@@ -35,8 +35,14 @@ function uniqueIndex(name, columns) { return { name, unique: true, columns }; }
 function foreignKey(name, columns, referencedTable, referencedColumns, onDelete = null) {
   return { name, columns, referencedTable, referencedColumns, onDelete };
 }
+function renderIndexPart(part) {
+  if (typeof part === 'string') return quoteIdentifier(part);
+  return part.prefixLength ? `${quoteIdentifier(part.column)}(${Number(part.prefixLength)})` : quoteIdentifier(part.column);
+}
+// Préfixe d'index (MySQL/TiDB) : évite la limite de 3072 octets sur les clés composites utf8mb4.
+function prefix(column, prefixLength) { return { column, prefixLength }; }
 function renderIndexDefinition(value) {
-  return `${value.unique ? 'UNIQUE KEY' : 'KEY'} ${quoteIdentifier(value.name)} (${value.columns.map(quoteIdentifier).join(', ')})`;
+  return `${value.unique ? 'UNIQUE KEY' : 'KEY'} ${quoteIdentifier(value.name)} (${value.columns.map(renderIndexPart).join(', ')})`;
 }
 function renderForeignKeyDefinition(value) {
   const onDelete = value.onDelete ? ` ON DELETE ${value.onDelete}` : '';
@@ -53,4 +59,4 @@ function renderAddColumn(table, value) { return `ALTER TABLE ${quoteIdentifier(t
 function renderAddIndex(table, value) { return `ALTER TABLE ${quoteIdentifier(table.name)} ADD ${renderIndexDefinition(value)}`; }
 function renderAddForeignKey(table, value) { return `ALTER TABLE ${quoteIdentifier(table.name)} ADD ${renderForeignKeyDefinition(value)}`; }
 
-module.exports = { TABLE_OPTIONS, column, index, uniqueIndex, foreignKey, quoteIdentifier, renderCreateTable, renderAddColumn, renderAddIndex, renderAddForeignKey };
+module.exports = { TABLE_OPTIONS, column, index, prefix, uniqueIndex, foreignKey, quoteIdentifier, renderCreateTable, renderAddColumn, renderAddIndex, renderAddForeignKey };

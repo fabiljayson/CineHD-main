@@ -1146,7 +1146,7 @@ const Home: React.FC = () => {
       {cinematicLoadingVisible && (
         <CineHDLoadingScreen
           ready={!loading}
-          caption={t('home.loadingCaption')}
+          caption={t('home.loadingCaption', { defaultValue: 'Loading your catalogue…' })}
           onExitComplete={handleCinematicExit}
         />
       )}

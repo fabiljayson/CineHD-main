@@ -500,7 +500,7 @@ const Login: React.FC = () => {
     : null;
 
   return (
-    <div className="min-h-svh bg-ground text-ink">
+    <div className="min-h-svh bg-ground text-ink relative z-[60]">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-6 sm:py-10 lg:grid-cols-[minmax(13rem,0.72fr)_minmax(0,1.28fr)] lg:gap-16">
         <section className="lg:sticky lg:top-10 lg:self-start">
           <button

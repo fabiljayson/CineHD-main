@@ -38,25 +38,3 @@ services:
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     autoDeploy: true
-
-  # --- Frontend (Vite SPA + Hono static server) — plan free, déploiement push
-  # via le blueprint. VITE_* intégrés à la build Docker (ARG du Dockerfile).
-  # Domaine réel : Render lui assigne `cinehd-mainapp.onrender.com` ;
-  # à ajuster si un domaine sur mesure est choisi.
-  - type: web
-    name: cinehd-mainapp
-    runtime: docker
-    plan: free
-    rootDir: .
-    dockerfilePath: ./Dockerfile
-    healthCheckPath: /
-    autoDeploy: true
-    envVars:
-      - key: VITE_MAIN_API
-        value: https://cinehd-mainapi.onrender.com
-      - key: VITE_WATCHPARTY_API
-        value: https://cinehd-watchparty.onrender.com
-      - key: VITE_PROXIES_EMBED_API
-        value: https://cinehd-proxy.onrender.com
-      - key: VITE_SITE_URL
-        value: https://cinehd-router.jasonfranckkenmognw.workers.dev

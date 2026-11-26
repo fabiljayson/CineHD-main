@@ -62,8 +62,7 @@ const AdminHelpFeedback: React.FC = () => {
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2 text-sm text-zinc-300">
           <ThumbsUp className="w-4 h-4 text-green-400" />
-          <span className="font-semibold text-white">{totals.up}</span>
-          <span>{t('admin.helpFeedback.totalUp')}</span>
+          <span className="font-semibold text-white">{totals.up}</span>{' '}<span>{t('admin.helpFeedback.totalUp')}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-zinc-300">
           <ThumbsDown className="w-4 h-4 text-red-400" />
@@ -71,8 +70,7 @@ const AdminHelpFeedback: React.FC = () => {
           <span>{t('admin.helpFeedback.totalDown')}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-zinc-400">
-          <span>{t('admin.helpFeedback.totalVotes')}</span>
-          <span className="font-semibold text-white">{totals.total}</span>
+          <span>{t('admin.helpFeedback.totalVotes')}</span>{' '}<span className="font-semibold text-white">{totals.total}</span>
         </div>
         <button
           type="button"

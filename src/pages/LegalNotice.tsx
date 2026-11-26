@@ -8,7 +8,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import LegalDocumentPage, { LegalSection } from '../components/legal/LegalDocumentPage';
 
-const CONTACT_EMAIL = 'jasonfranckkenmognw@gmail.com';
+const CONTACT_EMAIL = 'movixstreaming@gmail.com';
 
 const LegalNotice = () => {
   const { t } = useTranslation();

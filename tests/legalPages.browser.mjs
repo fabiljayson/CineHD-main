@@ -191,7 +191,7 @@ try {
   const cases = [
     {
       lang: 'fr', page: 'legal', h1: 'Mentions légales', sections: 4,
-      include: ['[[identité juridique', 'Éditeur du site', 'Hébergement', 'jasonfranckkenmognw@gmail.com', 'Mentions légales'],
+      include: ['[[identité juridique', 'Éditeur du site', 'Hébergement', 'movixstreaming@gmail.com', 'Mentions légales'],
       exclude: ['Vercel Analytics'],
       footerLink: { href: '/mentions-legales', text: 'Mentions légales' },
     },

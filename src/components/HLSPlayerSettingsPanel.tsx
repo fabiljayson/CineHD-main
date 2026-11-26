@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem } from '@/components/u
 import { computeFacets, filterTracks } from '../services/subtitles/index.ts';
 import type { SubtitleFilters, SubtitleTrack } from '../services/subtitles/index.ts';
 import { SubtitleStyleControls } from './subtitles/SubtitleStyleControls';
+import { isAdBlockerEnabled, installAdBlocker, uninstallAdBlocker } from '../services/adblocker';
 import SkipSegmentsPanel from './Settings/SkipSegmentsPanel';
 import * as skipSegmentPrefs from '../utils/skipSegmentPrefs';
 import { PinButton } from './ui/PinButton';
@@ -295,6 +296,7 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
     query: '',
   });
   const [visibleResultCount, setVisibleResultCount] = useState(60);
+  const [adblockerEnabled, setAdblockerEnabled] = useState(isAdBlockerEnabled());
 
   const subtitleFacets = useMemo(
     () => computeFacets(externalTracks, subtitleFilters),
@@ -2180,6 +2182,31 @@ const HLSPlayerSettingsPanel = (props: HLSPlayerSettingsPanelProps) => {
                     transition={getTransition({ duration: 0.25 })}
                     className="w-full pr-2 space-y-4"
                   >
+                    {/* Toggle Adblocker (activé par défaut — voir src/services/adblocker.ts) */}
+                    <div className="mb-3">
+                      <h3 className="text-base font-semibold text-white mb-2">{t('watch.adblockerTitle')}</h3>
+                      <button
+                        onClick={() => {
+                          const next = !adblockerEnabled;
+                          setAdblockerEnabled(next);
+                          localStorage.setItem('cinehd_adblocker_enabled', next ? '1' : '0');
+                          if (next) installAdBlocker(); else uninstallAdBlocker();
+                        }}
+                        className={`w-full px-4 py-3 text-sm text-left rounded-lg flex justify-between items-center transition-colors ${adblockerEnabled ? 'bg-green-600/30 hover:bg-green-600/40 text-green-300' : 'bg-red-600/30 hover:bg-red-600/40 text-red-300'}`}
+                      >
+                        <span>{adblockerEnabled ? t('watch.enabled') : t('watch.disabled')}</span>
+                        <div className={`w-10 h-5 flex items-center rounded-full p-1 transition-colors ${adblockerEnabled ? 'bg-green-500' : 'bg-gray-600'}`}>
+                          <motion.div
+                            className="w-3.5 h-3.5 bg-white rounded-full shadow-md"
+                            layout
+                            transition={getTransition({ type: "spring", stiffness: 700, damping: 30 })}
+                            style={{ marginLeft: adblockerEnabled ? 'auto' : '0px' }}
+                          />
+                        </div>
+                      </button>
+                      <p className="text-xs text-gray-400 mt-1 px-1">{t('watch.adblockerDesc')}</p>
+                    </div>
+
                     {/* Toggle Save Progress */}
                     <div className="mb-3">
                       <h3 className="text-base font-semibold text-white mb-2">{t('watch.autoSave')}</h3>

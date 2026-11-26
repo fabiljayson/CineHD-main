@@ -1390,6 +1390,8 @@
     "active": "Active",
     "inProgress": "In progress",
     "autoSave": "Auto Save",
+    "adblockerTitle": "Adblocker",
+    "adblockerDesc": "Blocks ad requests and injected ads (EasyList) in the app.",
     "enabled": "Enabled",
     "disabled": "Disabled",
     "saveProgressDesc": "Save progress every 10 seconds.",
